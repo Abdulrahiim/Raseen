@@ -1,0 +1,37 @@
+# Raw documents never go to a public repository
+*.pdf
+*.docx
+*.dwg
+*.dxf
+
+# Full-text reference conversions (large; public sources; not needed at runtime)
+references/
+
+# Reference screenshots used during design
+dashboard example.webp
+dashboard example2.png
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+
+# Generated
+raseen_sim.json
+app/.cache/
+outputs/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

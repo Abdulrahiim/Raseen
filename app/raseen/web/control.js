@@ -10,12 +10,16 @@
    declared ramp (export comes down at the declared gradient, headroom kept on the blocks the
    cloud reaches last) and pre-hold and backfill (every block held down evenly ahead of the
    front, the blocks still in sun raising their output when it lands so export stays flat).
-   The page shows one at a time; the strategy segment in The response panel chooses. */
+   The page shows one at a time; the strategy segment in The response panel chooses.
+
+   The scenario comes from the API on the live server and from engine.js on the published
+   build, so the sliders are free in both. */
 import { SiteMap } from "/rs/site-map.js";
 import { SitePlan, blockRows, setReserveHorizon } from "/rs/site-plan.js";
 import { lineChart, blockGradient } from "/rs/charts.js";
 import { fmt, clockLabel } from "/rs/format.js";
 import { cssVar } from "/rs/colour.js";
+import { runScenario as runInBrowser } from "/rs/engine.js";
 
 const $ = (id) => document.getElementById(id);
 const PLANT_MW = 3000;
@@ -47,25 +51,9 @@ const DEFAULTS = {
   cover_frac: 1.0, cover_offset: 0.0, softness: 0.0,
 };
 
-/* The four properties of the cloud the page lets you move continuously. On the live server
-   every value in the range is computed on demand. On the static build there is no server, so
-   each axis is pre-rendered at the values below and the slider snaps to the nearest one —
-   which is why the axes and their slugs must stay in step with SCENARIO_AXES in
-   tools/build_static.py. */
-const AXES = [
-  { param: "speed_kmh", key: "speed", values: [16, 24, 48, 72, 96, 120] },
-  { param: "cover_frac", key: "size", values: [0.2, 0.4, 0.6, 0.8, 1.0] },
-  { param: "cover_offset", key: "pos", values: [-1, -0.5, 0, 0.5, 1] },
-  { param: "heading_deg", key: "angle", values: [0, 45, 90, 135, 180, 225, 270, 315], wrap: 360 },
-];
-export const axisSlug = (key, v) =>
-  key === "size" ? String(Math.round(v * 100))
-    : key === "pos" ? (v < 0 ? "m" : "") + String(Math.round(Math.abs(v) * 100))
-      : String(Math.round(v));
-
-/* Named situations: the things a slider cannot express — a different kind of cloud, a
-   forecast that turns out to be wrong, a different declared gradient. A situation may also
-   choose the strategy it is best watched with (`view`); the sliders never do. */
+/* Named situations: the things a slider cannot express in one move — a different kind of
+   cloud, a forecast that turns out to be wrong, a different declared gradient. A situation
+   may also choose the strategy it is best watched with (`view`); the sliders never do. */
 const SITUATIONS = [
   { key: "d1-default", label: "Design case: a solid front at 48 km/h", params: {} },
   { key: "band-middle", label: "A band over the middle of the plant", params: { cover_frac: 0.4 }, view: { controller: "hold" } },
@@ -136,30 +124,17 @@ async function fetchJSON(url, opts) {
   return body;
 }
 
-/* On the static build the sliders move one axis at a time: only that axis has pre-rendered
-   scenarios, so the other three go back to their defaults and the note under the sliders
-   says so. `axis` is the axis the user just touched, or null for a named situation. */
-function staticKey(axis) {
-  if (!axis) return state.situation;
-  const v = nearest(axis.values, state.params[axis.param], axis.wrap);
-  // The whole scenario goes back to the default cloud, not just the other three axes: the
-  // pre-rendered axis files are default in every other respect, so leaving a situation's
-  // event type or gradient set would leave the controls describing a case that is not loaded.
-  state.params = { ...DEFAULTS, [axis.param]: v };
-  state.situation = "d1-default";
-  return v === DEFAULTS[axis.param] ? "d1-default" : `axis-${axis.key}-${axisSlug(axis.key, v)}`;
-}
-/* Distance along an axis. A heading is circular, so 359° is one degree from 0 and not 359:
-   without `wrap` the top of the direction slider snapped backwards to 315. */
-const gap = (a, b, wrap) => (wrap ? Math.min(Math.abs(a - b), wrap - Math.abs(a - b)) : Math.abs(a - b));
-const nearest = (values, v, wrap) => values.reduce((a, b) => (gap(b, v, wrap) < gap(a, v, wrap) ? b : a));
-
 /* Each run is tagged, and a result is thrown away if a newer run has started since. Without
    it two overlapping loads race and whichever fetch finishes last wins, which is not
    necessarily the one the controls now describe. */
 let runToken = 0;
 
-async function runScenario(patch = {}, axis = null) {
+/* On the live server the scenario is computed by the API (the Python engine, cached). On
+   the published build there is no server, so the same simulation runs here in the browser
+   (engine.js, a port held to the Python by a test) — every slider is free either way. The
+   run takes well under a second; the page dims while it does, after one frame so the dim
+   is on screen before the work starts. */
+async function runScenario(patch = {}) {
   const token = ++runToken;
   Object.assign(state.params, patch);
   const root = $("rs-root");
@@ -168,8 +143,9 @@ async function runScenario(patch = {}, axis = null) {
     const keepT = frame()?.t;
     let scn;
     if (STATIC()) {
-      scn = await fetchJSON(`${STATIC()}/scenarios/${staticKey(axis)}.json`);
-      syncInputs();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      if (token !== runToken) return;
+      scn = runInBrowser(state.params, state.site);
     } else {
       const body = {};
       for (const [k, v] of Object.entries(state.params)) if (v !== null && v !== undefined) body[k] = v;
@@ -446,18 +422,17 @@ function bindControls() {
   const on = (id, ev, fn) => $(id)?.addEventListener(ev, fn);
   /* A slider reports live while it is dragged and only re-runs the scenario on release:
      each run is a full plant simulation, so firing one per pixel would make it unusable. */
-  const bindSlider = (id, labelFn, param, axisKey) => {
+  const bindSlider = (id, labelFn, param) => {
     const input = $(id), out = $(`v-${id.slice(2)}`);
-    const axis = AXES.find((a) => a.key === axisKey) || null;
     if (!input) return;
     paintRange(input);
     input.addEventListener("input", () => { out.textContent = labelFn(Number(input.value)); paintRange(input); });
-    input.addEventListener("change", () => runScenario({ [param]: Number(input.value) }, axis));
+    input.addEventListener("change", () => runScenario({ [param]: Number(input.value) }));
   };
-  bindSlider("p-speed", (v) => `${v} km/h`, "speed_kmh", "speed");
-  bindSlider("p-cover", coverLabel, "cover_frac", "size");
-  bindSlider("p-offset", offsetLabel, "cover_offset", "pos");
-  bindSlider("p-heading", headingLabel, "heading_deg", "angle");
+  bindSlider("p-speed", (v) => `${v} km/h`, "speed_kmh");
+  bindSlider("p-cover", coverLabel, "cover_frac");
+  bindSlider("p-offset", offsetLabel, "cover_offset");
+  bindSlider("p-heading", headingLabel, "heading_deg");
   bindSlider("p-depth", (v) => `${Math.round(v * 100)} %`, "depth");
   bindSlider("p-soft", softLabel, "softness");
   bindSlider("p-g", (v) => `${v} MW/min`, "g_mw_min");
@@ -1041,20 +1016,11 @@ export async function mountGradientControl() {
   layout();
   bindControls();
   if (STATIC()) {
-    // No server to compute a scenario, so each slider axis is pre-rendered on its own and
-    // the others return to their defaults when you move one. Say so rather than hiding it.
-    // Both strategies are in every file, so the strategy segment stays free.
+    // No server, so the plant is simulated here in the browser. Every control is free; the
+    // note says where the numbers come from, because a reader may reasonably wonder.
     const note = $("rs-static-note");
     note.hidden = false;
-    note.textContent = "This is the published build, so the sliders step between pre-computed clouds and move one at a time — the other three return to their defaults. Run the app locally for free movement.";
-    for (const id of ["p-depth", "p-soft", "p-g", "p-conf", "p-flat", "rs-stall", "rs-deepen"]) {
-      const el = $(id);
-      if (!el) continue;
-      el.disabled = true;
-      (el.closest(".rs-ctl, .rs-check, .rs-btn-row") ?? el).hidden = true;
-    }
-    $("rs-reset").hidden = true;
-    for (const b of $("rs-root").querySelectorAll("[data-event]")) b.disabled = true;
+    note.textContent = "This is the published build: the crossing is simulated in your browser each time a control moves, by the same controller code the server runs.";
   }
   paintMapLegend();
   try {

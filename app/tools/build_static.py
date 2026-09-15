@@ -5,10 +5,13 @@ compute scenarios. This script pre-renders everything into ``docs/``:
 
 * the three pages and their assets, with absolute ``/rs`` and ``/static`` paths rewritten to
   work under a project sub-path (``…github.io/Raseen/``);
-* the registry, geometry and a curated set of scenarios as JSON under ``docs/data``;
+* the registry and geometry as JSON under ``docs/data``. Cloud scenarios are not rendered:
+  the Gradient control page runs the simulation in the browser (``raseen/web/engine.js``, a
+  port of the Python engine held to it by ``tests/test_engine_js.py``), so every slider is
+  free on the published build;
 * a "day bundle" for the Plant page plus a fetch shim (``rs-static-api.js``) that answers the
   NAJM-3000 dashboard's ``/api/*`` calls from that bundle — so the reused dashboard runs with
-  no backend (read-only: the scripted fault injection is not part of the static demo).
+  no backend (fault injection is answered from an in-memory registry in the shim).
 
 Run:  .venv/Scripts/python.exe tools/build_static.py
 Out:  docs/
@@ -28,87 +31,6 @@ WEB = APP_DIR / "raseen" / "web"
 NAJM_STATIC = APP_DIR / "najm3000" / "dashboard" / "static"
 DOCS = APP_DIR.parent / "docs"
 
-# ── what gets pre-rendered ──────────────────────────────────────────────────────────────
-# The published build has no server, so anything the Gradient Control page can show has to
-# exist as a file. Two sets: the named situations behind the "Situation" list, and a spine
-# along each of the four cloud sliders so those sliders still move (one axis at a time,
-# snapping to the nearest rendered value). Both must stay in step with SITUATIONS and AXES in
-# raseen/web/control.js — the page builds its filenames from the same rules.
-
-SCENARIO_SITUATIONS: dict[str, dict] = {
-    "d1-default": {},
-    "d1-g60": {"g_mw_min": 60},
-    "d1-g120": {"g_mw_min": 120},
-    "thin-dsh": {"event": "thin", "flat": True, "g_mw_min": 60},
-    "scattered": {"event": "scattered"},
-    "partial-soft": {"cover_frac": 0.6, "softness": 0.8},
-    "haze": {"softness": 1.0},
-    "stall": {"stall_at_min": -3},
-    "deepen": {"deepen_at_min": 2, "deepen_factor": 1.2},
-    "high-conf": {"confidence": 0.9},
-    "low-conf": {"confidence": 0.3},
-    # The guided replay's own case: a band over the middle of the plant, where the pre-hold
-    # strategy has blocks on both sides still in sun to give back what they held.
-    "band-middle": {"cover_frac": 0.4},
-}
-
-#: axis key -> (scenario parameter, the values rendered along it). The default value of each
-#: parameter is deliberately one of the values, and resolves to "d1-default" rather than a
-#: duplicate file.
-SCENARIO_AXES: dict[str, tuple[str, list[float]]] = {
-    "speed": ("speed_kmh", [16, 24, 48, 72, 96, 120]),
-    "size": ("cover_frac", [0.2, 0.4, 0.6, 0.8, 1.0]),
-    "pos": ("cover_offset", [-1.0, -0.5, 0.0, 0.5, 1.0]),
-    "angle": ("heading_deg", [0, 45, 90, 135, 180, 225, 270, 315]),
-}
-AXIS_DEFAULTS = {"speed_kmh": 48, "cover_frac": 1.0, "cover_offset": 0.0, "heading_deg": 90}
-
-#: Keep every Nth frame in the published copy. The physics still runs at the full 10-second
-#: step — this only coarsens the replay, and halves a download that would otherwise be 1.2 MB
-#: per scenario. control.js reads the time step back out of the file and paces itself to it.
-FRAME_STRIDE = 2
-
-
-def axis_slug(key: str, value: float) -> str:
-    """Mirror of axisSlug() in control.js. Change one, change both."""
-    if key == "size":
-        return str(round(value * 100))
-    if key == "pos":
-        return ("m" if value < 0 else "") + str(round(abs(value) * 100))
-    return str(round(value))
-
-
-def scenario_jobs() -> dict[str, dict]:
-    """Every scenario the published build needs, keyed by filename stem."""
-    jobs = dict(SCENARIO_SITUATIONS)
-    for key, (param, values) in SCENARIO_AXES.items():
-        for value in values:
-            if value == AXIS_DEFAULTS[param]:
-                continue                       # already rendered as d1-default
-            jobs[f"axis-{key}-{axis_slug(key, value)}"] = {param: value}
-    return jobs
-
-
-def slim(scenario: dict) -> dict:
-    """Drop what the browser can work out for itself, and coarsen the replay.
-
-    ``firm`` is just ``eta > horizon``; ``P_base`` is a copy of ``A``, because with no control
-    the export *is* the available power. Carrying either one costs about a quarter of the
-    file for nothing. ``P_hold`` (the pre-hold strategy's set-points) and the ``agg`` fields
-    ``P_hold`` / ``P_star_hold`` / ``R_hold`` are kept: the page switches strategy without a
-    reload, so both strategies have to be in every file.
-    """
-    scenario["times_min"] = scenario["times_min"][::FRAME_STRIDE]
-    frames = scenario["frames"][::FRAME_STRIDE]
-    for frame in frames:
-        frame.pop("firm", None)
-        frame.pop("P_base", None)
-        frame["agg"].pop("P_base", None)
-        frame["agg"].pop("residual", None)
-    scenario["frames"] = frames
-    return scenario
-
-
 #: The generated site lives alongside docs/superpowers (the spec and plan); only these
 #: entries are the static site, so only these are removed and rebuilt.
 SITE_ENTRIES = ("rs", "static", "data", "index.html", "kingdom.html", "control.html", "plant.html", ".nojekyll")
@@ -121,7 +43,7 @@ def clean() -> None:
             shutil.rmtree(target)
         elif target.exists():
             target.unlink()
-    for sub in ("rs", "static", "data", "data/scenarios", "data/plant"):
+    for sub in ("rs", "static", "data", "data/plant"):
         (DOCS / sub).mkdir(parents=True, exist_ok=True)
 
 
@@ -193,22 +115,6 @@ def build_data(client: TestClient) -> None:
     (DOCS / "data" / "plants.json").write_text(json.dumps(client.get("/api/rs/plants").json()), encoding="utf-8")
     (DOCS / "data" / "grid.json").write_text(json.dumps(client.get("/api/rs/grid").json()), encoding="utf-8")
     (DOCS / "data" / "site.json").write_text(json.dumps(client.get("/api/rs/site").json()), encoding="utf-8")
-
-
-def build_scenarios() -> None:
-    from raseen.scenario.params import ScenarioParams
-    from raseen.scenario.runner import run_scenario
-
-    jobs = scenario_jobs()
-    total = 0
-    for key, params in jobs.items():
-        scenario = slim(run_scenario(ScenarioParams(**params)))
-        path = DOCS / "data" / "scenarios" / f"{key}.json"
-        path.write_text(json.dumps(scenario, separators=(",", ":")), encoding="utf-8")
-        mb = path.stat().st_size / 1e6
-        total += mb
-        print(f"  scenario {key:18s} frames={len(scenario['frames']):<5} {mb:.2f} MB")
-    print(f"  {len(jobs)} scenarios, {total:.1f} MB")
 
 
 def build_plant_bundle(client: TestClient) -> None:
@@ -300,7 +206,6 @@ def main() -> None:
     app = build_app()
     client = TestClient(app)
     build_data(client)
-    build_scenarios()
     build_plant_bundle(client)
     print("Done. Serve locally with:  python -m http.server -d", DOCS)
 

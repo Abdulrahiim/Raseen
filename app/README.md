@@ -79,11 +79,13 @@ internet; both fall back to a drawn plan if tiles or WebGL are unavailable.
 
 GitHub Pages serves static files only, so `tools/build_static.py` pre-renders the whole
 dashboard into `../docs/` — the pages, their assets (with paths rewritten for a project
-sub-path), the registry and geometry as JSON, a curated set of scenarios, and a "day bundle"
+sub-path), the registry and geometry as JSON, and a "day bundle"
 for the Plant page. A small fetch shim (`tools/rs-static-api.js`) answers the reused
 NAJM-3000 dashboard's `/api/*` calls from that bundle, so the Plant page runs with no backend
-(fault injection is answered from an in-memory registry that lives for the browser session,
-and the Gradient Control sliders become a set of pre-rendered preset scenarios).
+(fault injection is answered from an in-memory registry that lives for the browser session).
+The Gradient Control page needs no shim: `raseen/web/engine.js` is a port of the simulation
+that runs in the browser, and `tests/test_engine_js.py` holds it to the Python on seven cases
+(it needs `node` on the path and is skipped otherwise).
 
 ```powershell
 .venv\Scripts\python.exe tools\build_static.py          # regenerate ../docs

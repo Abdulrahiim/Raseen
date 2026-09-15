@@ -246,9 +246,9 @@
 @media (max-width: 900px) { :root { --rs-sidebar-w: 60px; } }
 
 /* ── opening ────────────────────────────────────────────────────────────── */
-/* One orchestrated moment on first load: the mark arrives, holds, and clears out of the
-   way. Injected by splash.js from the document head so it is on screen before the page
-   paints, and shown once per session — it is a title card, not a loading spinner. */
+/* One orchestrated moment on every load: the mark eases in, holds, and clears out of the
+   way over about two and a half seconds. Injected by splash.js from the document head so it
+   is on screen before the page paints — it is a title card, not a loading spinner. */
 #rs-splash {
   position: fixed; inset: 0; z-index: 9999;
   display: grid; place-items: center;
@@ -256,9 +256,9 @@
   opacity: 1;
 }
 #rs-splash img { width: min(300px, 52vw); opacity: 0; transform: scale(0.965); }
-#rs-splash.in img { opacity: 1; transform: none; transition: opacity 200ms ease-out, transform 320ms cubic-bezier(.2,.7,.3,1); }
-#rs-splash.out { opacity: 0; transition: opacity 240ms ease-in; }
-#rs-splash.out img { transform: scale(1.02); transition: transform 240ms ease-in; }
+#rs-splash.in img { opacity: 1; transform: none; transition: opacity 600ms ease-out, transform 900ms cubic-bezier(.2,.7,.3,1); }
+#rs-splash.out { opacity: 0; transition: opacity 800ms ease-in; }
+#rs-splash.out img { transform: scale(1.03); transition: transform 800ms ease-in; }
 @media (prefers-reduced-motion: reduce) {
   #rs-splash img, #rs-splash.in img, #rs-splash.out, #rs-splash.out img { transition: none; }
   #rs-splash.in img { opacity: 1; transform: none; }

@@ -279,3 +279,21 @@ Element ids the tour relies on (the gradient page must provide them): `rs-gen`, 
 | E · gradient page | `raseen/web/control.js`, `charts.js`, `control.css`, `site-plan.js` |
 | C · theme (after A/B/D/E) | `shell.css`, `styles.css`, `kingdom.css`, `splash.js`, `sidebar.js`, `kingdom.js`, `kingdom-map.js`, `model.js`, plus the one-line theme hooks in `app.js` and `control.js` |
 | lead | the three HTML files, `build_static.py`, docs rebuild, README notes |
+
+## Addendum (16 Sep 2026) — free sliders on the published build, and the opening card
+
+The user asked for all the cloud sliders to work. On the published build they snapped to
+pre-rendered values and moved one at a time because there was no server. The fix is a port
+of the simulation to the browser, `raseen/web/engine.js` (shadow fields, planner, both
+allocators, the schemes, the metrics, the economics and the runner, dependency-free), which
+`control.js` uses in static mode; the live server keeps calling the API. The port is held to
+the Python by `tests/test_engine_js.py` on seven cases: the plant total agrees to the tenth
+of a megawatt carried in the payload, a single block's share may differ by up to 2.5 MW on a
+frame where two blocks tie for the water-fill. The static build no longer renders scenarios
+(`build_static.py` lost `SCENARIO_SITUATIONS`, `SCENARIO_AXES`, `slim()`), which takes
+20 MB out of `docs/`. For the scattered case the first 48 draws of Python's `Random(1)` are
+embedded so the browser seeds the same sky.
+
+The opening card now plays on every load, refresh included (the session gate is gone), and
+slower: 0.6 s in, 1.7 s hold, 0.8 s out. This replaces the "once per session" rule in the
+first-pass spec's Motion section at the user's request.

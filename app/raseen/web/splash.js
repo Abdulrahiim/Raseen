@@ -1,8 +1,9 @@
 /* The opening title card. Loaded from the document head — before the body exists — so the
    mark is on screen from the first paint rather than appearing over a half-drawn page.
 
-   It runs once per browsing session: a title card, not a loading spinner. Navigating
-   between Kingdom and Plant should not replay it. Styles live in shell.css.
+   It plays on every load, refresh included: the mark eases in, holds, and fades out over
+   about two and a half seconds — a title card, not a loading spinner. Styles and the
+   durations of the transitions live in shell.css; the hold is set here.
 
    Being the first script on every page, it is also where the theme is applied: a stored
    choice goes onto the root element before the stylesheet is read, so a dark page never
@@ -15,12 +16,6 @@
   } catch (e) {
     /* private mode: the system preference decides */
   }
-  try {
-    if (sessionStorage.getItem("rs-splash") === "seen") return;
-    sessionStorage.setItem("rs-splash", "seen");
-  } catch (e) {
-    /* private mode: show it, once, and move on */
-  }
   var base = (document.currentScript && document.currentScript.src || "").replace(/splash\.js.*$/, "");
   var el = document.createElement("div");
   el.id = "rs-splash";
@@ -30,8 +25,9 @@
 
   var reduced = false;
   try { reduced = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) { /* older browsers */ }
-  var hold = reduced ? 260 : 700;
+  // Ease in over 0.6 s, hold, fade out over 0.8 s (see shell.css); reduced motion cuts it short.
+  var hold = reduced ? 400 : 1700;
   requestAnimationFrame(function () { el.classList.add("in"); });
   setTimeout(function () { el.classList.add("out"); }, hold);
-  setTimeout(function () { el.remove(); }, hold + (reduced ? 20 : 260));
+  setTimeout(function () { el.remove(); }, hold + (reduced ? 20 : 820));
 })();

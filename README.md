@@ -136,11 +136,10 @@ Tests and lint (from `app/`):
 
 GitHub Pages serves static files only, so `tools/build_static.py` pre-renders the dashboard
 into `docs/` — the pages, their assets, the registry and geometry as JSON, a curated set of
-scenarios, and a day bundle for the Plant page. On the static build fault injection is kept
-in the browser's memory for the session (nothing is sent anywhere), and the gradient-control
-sliders step between pre-rendered clouds one axis at a time (the four cloud sliders each have
-their own spine of scenarios; moving one returns the other three to their defaults). Run the
-app locally for free movement.
+and a day bundle for the Plant page. On the static build the cloud crossing is simulated in
+the browser by `app/raseen/web/engine.js`, a port of the Python engine held to it by a test,
+so every slider and button on the Gradient control page is free; fault injection is kept in
+the browser's memory for the session (nothing is sent anywhere).
 
 ```powershell
 .venv\Scripts\python.exe tools\build_static.py          # regenerate ../docs

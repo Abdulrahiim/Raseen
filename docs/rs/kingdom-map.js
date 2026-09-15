@@ -33,7 +33,7 @@ const RING_MIN = 7, RING_MAX = 17;            // capacity ring radius, px
 const RING_W_MIN = 1.1, RING_W_MAX = 2.2;     // capacity ring thickness, px
 const CORE_R = 3.2, CORE_R_REF = 4.4;         // the solid pin dot (constant, always crisp)
 const CORE_W = 1.2, CORE_W_REF = 1.6;         // light stroke around the pin dot
-const REF_GAP = 5, REF_W = 2.2;               // purple ring that marks the modelled plant
+const REF_GAP = 5, REF_W = 2.2;               // sage ring that marks the modelled plant
 const HIT_MIN = 8, HIT_PAD = 0;               // invisible click/hover target
 
 /** Position of a capacity on the clamped sqrt scale, 0 (smallest) .. 1 (3,000 MW). */
@@ -48,13 +48,32 @@ const ringWidth = (mw) => RING_W_MIN + (RING_W_MAX - RING_W_MIN) * capacityT(mw)
     Deliberately NOT padded beyond the ring — a padded disc on a small plant reaches over a
     larger neighbour's pin, and whichever one then wins the hit reports the wrong plant. */
 const hitRadius = (mw, reference = false) => Math.max(ringRadius(mw) + (reference ? REF_GAP + HIT_PAD : HIT_PAD), HIT_MIN);
+/* Labels are HTML markers, so MapLibre does no collision detection for them. Over the whole
+   Kingdom the west-coast and Riyadh clusters overlap into an unreadable pile, so a plant only
+   earns a label once it is big enough for the current zoom. The reference plant always keeps
+   its label, and the Labels checkbox still switches the lot off. */
+const LABEL_MIN_MW = [[6, 1500], [7, 700], [8.5, 200], [Infinity, 0]];
+
+/* Map labels drop the trailing technology word ("Sudair PV" -> "Sudair"). Two plants on one
+   site can then collapse to the same text — NEOM Green Hydrogen has both a PV and a Wind
+   project — so keep the word wherever the short form would not be unique. */
+function labelTexts(plants) {
+  const short = (n) => n.replace(/ (PV|Wind|BESS|ISCC).*$/, "");
+  const count = new Map();
+  for (const p of plants) count.set(short(p.name_en), (count.get(short(p.name_en)) || 0) + 1);
+  const out = new Map();
+  for (const p of plants) out.set(p.id, count.get(short(p.name_en)) > 1 ? p.name_en : short(p.name_en));
+  return out;
+}
+const labelMinMw = (zoom) => LABEL_MIN_MW.find(([z]) => zoom < z)[1];
+
 /** Distance from the plant to the top of its label, so the text clears the whole marker. */
 const labelGap = (p) => ringRadius(p.capacity_mw) + (p.id === REFERENCE_ID ? REF_GAP + REF_W : 0) + 5;
 
 /** Marker colours live in kingdom.css so the dark-basemap palette stays in one place. */
 const token = (name, fallback) => cssVar(name) || fallback;
 const pinStroke = () => token("--rs-map-pin-stroke", "#f2f6fb");
-const refPurple = () => token("--rs-map-ref", "#b98ce8");
+const refSage = () => token("--rs-map-ref", "#a8d5c0");
 const nodeFill = () => token("--rs-map-node", "#dfe7f2");
 const mapInk = () => token("--rs-map-ink", "#0b0e13");
 
@@ -79,7 +98,7 @@ function plantsGeoJSON(plants) {
           r,                                   // capacity ring radius
           rw: ringWidth(p.capacity_mw),        // capacity ring thickness
           cr: reference ? CORE_R_REF : CORE_R, // pin dot radius
-          refr: r + REF_GAP,                   // purple reference ring radius
+          refr: r + REF_GAP,                   // sage reference ring radius
           hit: hitRadius(p.capacity_mw, reference), // click/hover target radius
         },
       };
@@ -150,11 +169,11 @@ export class KingdomMap {
     this.map.addLayer({ id: "grid-lines", type: "line", source: "grid", filter: ["==", ["geometry-type"], "LineString"], paint: { "line-color": ["match", ["get", "voltage_kv"], 380, "#9fc3ee", "#f2a33a"], "line-width": ["match", ["get", "voltage_kv"], 380, 1.8, 1.2], "line-dasharray": [3, 2], "line-opacity": 0.9 } });
     this.map.addLayer({ id: "grid-nodes", type: "circle", source: "grid", filter: ["==", ["geometry-type"], "Point"], paint: { "circle-radius": 2.8, "circle-color": nodeFill(), "circle-stroke-color": mapInk(), "circle-stroke-width": 1, "circle-opacity": 0.95 } });
 
-    // Plants: capacity ring (status colour) → purple reference ring → pin dot (technology
+    // Plants: capacity ring (status colour) -> sage reference ring -> pin dot (technology
     // colour) → an invisible, slightly larger circle that carries click and hover.
     this.map.addSource("plants", { type: "geojson", data: plantsGeoJSON(this.plants) });
     this.map.addLayer({ id: "plants-ring", type: "circle", source: "plants", paint: { "circle-radius": byZoom("r"), "circle-color": "#000", "circle-opacity": 0, "circle-stroke-color": ["get", "ring"], "circle-stroke-width": ["get", "rw"], "circle-stroke-opacity": 0.95 } });
-    this.map.addLayer({ id: "plants-ref", type: "circle", source: "plants", filter: REF_ONLY, paint: { "circle-radius": byZoom("refr"), "circle-color": "#000", "circle-opacity": 0, "circle-stroke-color": refPurple(), "circle-stroke-width": REF_W, "circle-stroke-opacity": 0.95 } });
+    this.map.addLayer({ id: "plants-ref", type: "circle", source: "plants", filter: REF_ONLY, paint: { "circle-radius": byZoom("refr"), "circle-color": "#000", "circle-opacity": 0, "circle-stroke-color": refSage(), "circle-stroke-width": REF_W, "circle-stroke-opacity": 0.95 } });
     this.map.addLayer({ id: "plants", type: "circle", source: "plants", paint: { "circle-radius": ["get", "cr"], "circle-color": ["get", "colour"], "circle-opacity": 1, "circle-stroke-color": pinStroke(), "circle-stroke-width": ["case", ["get", "reference"], CORE_W_REF, CORE_W], "circle-stroke-opacity": 0.92 } });
     this.map.addLayer({ id: "plants-hit", type: "circle", source: "plants", paint: { "circle-radius": ["get", "hit"], "circle-color": "#000", "circle-opacity": 0 } });
 
@@ -162,17 +181,47 @@ export class KingdomMap {
       const e = document.createElement("div"); e.className = "node-label"; e.textContent = f.properties.name;
       this.markers.push(new maplibregl.Marker({ element: e, anchor: "left", offset: [6, 0] }).setLngLat(f.geometry.coordinates).addTo(this.map));
     }
+    const labels = labelTexts(this.plants);
     for (const p of this.plants) {
       const e = document.createElement("div"); e.className = `plant-label ${p.id === REFERENCE_ID ? "is-ref" : ""}`;
-      e.textContent = p.name_en.replace(/ (PV|Wind|BESS|ISCC).*$/, ""); e.dataset.tech = p.technology; e.dataset.status = p.status;
+      e.textContent = labels.get(p.id); e.dataset.tech = p.technology; e.dataset.status = p.status;
+      e.dataset.mw = String(p.capacity_mw); e.dataset.ref = p.id === REFERENCE_ID ? "1" : "";
       this.markers.push(new maplibregl.Marker({ element: e, anchor: "top", offset: [0, labelGap(p)] }).setLngLat([p.lon, p.lat]).addTo(this.map));
     }
     // The hit layer is transparent but still queried, so a small pin stays easy to click.
     this.map.on("click", "plants-hit", (e) => { const f = this.nearestFeature(e); if (f) this.onSelect?.(f.properties.id); });
     this.map.on("mousemove", "plants-hit", (e) => { this.map.getCanvas().style.cursor = "pointer"; const f = this.nearestFeature(e); if (f) this.onHover?.(e.originalEvent, f.properties.id); });
     this.map.on("mouseleave", "plants-hit", (e) => { this.map.getCanvas().style.cursor = ""; this.onLeave?.(e.originalEvent); });
+    for (const ev of ["zoomend", "moveend"]) this.map.on(ev, () => this.updateLabels());
+    this.map.on("load", () => this.updateLabels());
     this.ready = true;
+    this.updateLabels();
     return true;
+  }
+  /** A label shows only if it passes the tech/status filter, earns its place at this zoom, and
+      still has room. Co-located plants (NEOM's PV and Wind share a site) would otherwise print
+      on top of each other, so the larger plant keeps the space and the smaller drops its label. */
+  updateLabels() {
+    if (!this.map) return;
+    const min = labelMinMw(this.map.getZoom());
+    const els = [...this.container.querySelectorAll(".plant-label")];
+    const candidates = [];
+    for (const el of els) {
+      const ok = el.dataset.filtered !== "0" && (el.dataset.ref === "1" || Number(el.dataset.mw) >= min);
+      el.hidden = !ok;
+      if (ok) candidates.push(el);
+    }
+    // Biggest first, reference plant always first: it is the one the dashboard is about.
+    candidates.sort((a, b) =>
+      (b.dataset.ref === "1") - (a.dataset.ref === "1") || Number(b.dataset.mw) - Number(a.dataset.mw));
+    const kept = [];
+    for (const el of candidates) {
+      const r = el.getBoundingClientRect();
+      if (r.width === 0) continue;               // not laid out yet
+      const clash = kept.some((k) =>
+        !(r.right < k.left || k.right < r.left || r.bottom < k.top || k.bottom < r.top));
+      if (clash) el.hidden = true; else kept.push(r);
+    }
   }
   setLayers({ plants = true, grid = true, labels = true }) {
     if (!this.ready) return;
@@ -186,7 +235,10 @@ export class KingdomMap {
     if (!this.ready) return;
     const expr = ["all", ["in", ["get", "tech"], ["literal", [...tech]]], ["in", ["get", "status"], ["literal", [...status]]]];
     for (const id of PLANT_LAYERS) this.map.setFilter(id, id === "plants-ref" ? ["all", expr, REF_ONLY] : expr);
-    for (const el of this.container.querySelectorAll(".plant-label")) el.hidden = !(tech.has(el.dataset.tech) && status.has(el.dataset.status));
+    for (const el of this.container.querySelectorAll(".plant-label")) {
+      el.dataset.filtered = tech.has(el.dataset.tech) && status.has(el.dataset.status) ? "1" : "0";
+    }
+    this.updateLabels();
   }
   flyTo(plant) { if (this.ready) this.map.flyTo({ center: [plant.lon, plant.lat], zoom: 8.5, duration: 1400, essential: true }); }
   fitKingdom() { if (this.ready) this.map.fitBounds(KINGDOM_BOUNDS, { padding: 24, duration: 800 }); }
@@ -215,15 +267,16 @@ export class KingdomPlan {
       if (f.geometry.type === "LineString") svg.append(el("polyline", { points: f.geometry.coordinates.map(([lon, lat]) => `${X(lon)},${Y(lat)}`).join(" "), fill: "none", stroke: f.properties.voltage_kv === 380 ? "#9fc3ee" : "#f2a33a", "stroke-width": 2, "stroke-dasharray": "6 4" }));
       else { const [lon, lat] = f.geometry.coordinates; svg.append(el("circle", { cx: X(lon), cy: Y(lat), r: 3, fill: nodeFill(), stroke: mapInk(), "stroke-width": 1 })); if (this.layers.labels) { const t = el("text", { x: X(lon) + 7, y: Y(lat) + 4, fill: "#b8bcc6", "font-size": 12 }); t.textContent = f.properties.name; svg.append(t); } }
     }
-    // Same marker as the GL path: capacity ring (status colour) + optional purple reference
+    // Same marker as the GL path: capacity ring (status colour) + optional sage reference
     // ring + a small technology-coloured pin dot, with an invisible circle carrying events.
+    const planLabels = labelTexts(this.plants);
     if (this.layers.plants) for (const p of bySizeDesc(this.plants)) {
       if (!this.filter.tech.has(p.technology) || !this.filter.status.has(p.status)) continue;
       const cx = X(p.lon), cy = Y(p.lat), isRef = p.id === REFERENCE_ID;
       const r = ringRadius(p.capacity_mw);
       const g = el("g", { class: `kp-plant${isRef ? " is-ref" : ""}` });
       g.append(el("circle", { class: "kp-ring", cx, cy, r, fill: "none", stroke: STATUS_COLOUR[p.status], "stroke-width": ringWidth(p.capacity_mw), "stroke-opacity": 0.95, "pointer-events": "none" }));
-      if (isRef) g.append(el("circle", { class: "kp-ref", cx, cy, r: r + REF_GAP, fill: "none", stroke: refPurple(), "stroke-width": REF_W, "stroke-opacity": 0.95, "pointer-events": "none" }));
+      if (isRef) g.append(el("circle", { class: "kp-ref", cx, cy, r: r + REF_GAP, fill: "none", stroke: refSage(), "stroke-width": REF_W, "stroke-opacity": 0.95, "pointer-events": "none" }));
       g.append(el("circle", { class: "kp-core", cx, cy, r: isRef ? CORE_R_REF : CORE_R, fill: TECH_COLOUR[p.technology], stroke: pinStroke(), "stroke-width": isRef ? CORE_W_REF : CORE_W, "stroke-opacity": 0.92, "pointer-events": "none" }));
       const hit = el("circle", { class: "kp-hit", cx, cy, r: hitRadius(p.capacity_mw, isRef), fill: "none", "pointer-events": "all", style: "cursor:pointer" });
       hit.addEventListener("click", () => this.onSelect?.(p.id));
@@ -231,7 +284,7 @@ export class KingdomPlan {
       hit.addEventListener("mouseleave", (e) => this.onLeave?.(e));
       g.append(hit);
       svg.append(g);
-      if (this.layers.labels) { const t = el("text", { class: `kp-label${isRef ? " is-ref" : ""}`, x: cx, y: cy + labelGap(p) + 9, fill: isRef ? refPurple() : "#f2f3f5", "font-size": 11, "text-anchor": "middle", "pointer-events": "none" }); t.textContent = p.name_en.replace(/ (PV|Wind|BESS|ISCC).*$/, ""); svg.append(t); }
+      if (this.layers.labels) { const t = el("text", { class: `kp-label${isRef ? " is-ref" : ""}`, x: cx, y: cy + labelGap(p) + 9, fill: isRef ? refSage() : "#f2f3f5", "font-size": 11, "text-anchor": "middle", "pointer-events": "none" }); t.textContent = planLabels.get(p.id); svg.append(t); }
     }
     const wrap = document.createElement("div"); wrap.className = "map-fallback"; wrap.append(svg);
     this.container.replaceChildren(wrap);

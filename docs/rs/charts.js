@@ -83,7 +83,7 @@ export function lineChart(mount, opts) {
   mount.replaceChildren(svg);
 }
 
-/** 30 bars: fill = set-point, outline = available, headroom violet (firm) / dim (expiring),
+/** 30 bars: fill = set-point, outline = available, headroom slate blue (firm) / dim (expiring),
     cloud hatch on covered blocks. Ordered by cloud arrival by default. */
 export function blockGradient(mount, blocks, frame, opts = {}) {
   const { controller = "bgc", order = "eta", selected = null, onSelect, onHover, onLeave } = opts;
@@ -98,7 +98,7 @@ export function blockGradient(mount, blocks, frame, opts = {}) {
   const bw = slot * 0.78;
   const H = height - pad.top - pad.bottom;
   const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": "set-point per control block ordered by cloud arrival" });
-  const violet = cssVar("--violet"), violetDim = cssVar("--violet-dim") || "#5a5570", accent = cssVar("--accent"), amber = cssVar("--amber");
+  const violet = cssVar("--violet"), violetDim = cssVar("--violet-dim") || "#b3c6d4", accent = cssVar("--accent"), amber = cssVar("--amber");
   idx.forEach((i, slotIndex) => {
     const b = blocks[i];
     const x = pad.left + slotIndex * slot + (slot - bw) / 2;

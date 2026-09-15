@@ -116,7 +116,7 @@ function layout() {
       <div class="rs-tile amber"><span class="k">Available</span><span class="v big" id="rs-avail">—</span><span class="u">MW · simulated</span></div>
       <div class="rs-tile accent"><span class="k">Export</span><span class="v big" id="rs-export">—</span><span class="u" id="rs-export-u">MW</span></div>
       <div class="rs-tile"><span class="k">Declared line</span><span class="v" id="rs-declared">—</span><span class="u">MW</span></div>
-      <div class="rs-tile violet"><span class="k">Firm reserve R(5 min)</span><span class="v" id="rs-reserve">—</span><span class="u" id="rs-reserve-u">MW headroom</span></div>
+      <div class="rs-tile reserve"><span class="k">Firm reserve R(5 min)</span><span class="v" id="rs-reserve">—</span><span class="u" id="rs-reserve-u">MW headroom</span></div>
       <div class="rs-tile sun"><span class="k">Blocks in full sun</span><span class="v" id="rs-clear">—</span><span class="u" id="rs-clear-u">carrying the reserve</span></div>
     </div>
   </section>
@@ -420,7 +420,7 @@ function renderKpis() {
     tile("", "Max 10-min drop", fmt(k.max_drop10_mw, 0), `MW · uncontrolled ${fmt(b.max_drop10_mw, 0)}`),
     tile("", "Max down-gradient", fmt(k.max_grad_mw_min, 0), `MW/min · uncontrolled ${fmt(b.max_grad_mw_min, 0)}`),
     tile("", "Energy not exported", fmt(k.spill_mwh, 0), `MWh · ${fmt(e.spill_share_of_day_pct, 1)} % of a clear day`),
-    tile("violet", "Firm reserve at contact", fmt(k.firm_at_contact_mw, 0), ctl === "bgc" ? "MW · declared R(0, 5 min)" : "MW · not declarable plant-wide"),
+    tile("reserve", "Firm reserve at contact", fmt(k.firm_at_contact_mw, 0), ctl === "bgc" ? "MW · declared R(0, 5 min)" : "MW · not declarable plant-wide"),
     tile("", "Curtailed while shaded", fmt(k.shaded_curtailment_mwh ?? 0, 1), `MWh · plant-level ${fmt((ctl === "bgc" ? o : k).shaded_curtailment_mwh ?? 0, 1)}`),
     tile("", "This event", fmt(e.spill_sar, 0), `SAR · battery block ≈ ${fmt(e.battery_block_annual_sar / 1e6, 0)} SAR m/yr`),
   ].join("");

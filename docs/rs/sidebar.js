@@ -1,5 +1,5 @@
-/* Shared chrome for every Raseen page: a full-width purple banner across the top and a
-   lavender rail of pill buttons down the left. Injected as fixed elements; the page body is
+/* Shared chrome for every Raseen page: a full-width sage banner across the top and a
+   white rail of pill buttons down the left. Injected as fixed elements; the page body is
    offset by CSS in shell.css. Pure vanilla, no dependencies, safe to include anywhere.
 
    Links must work both on the live server (routes /kingdom, /plant, /control) and on the
@@ -24,6 +24,10 @@
       : path === "/" + page || (page === "kingdom" && path === "/");
   const isActive = (t) => {
     const page = t.page || t.name;
+    // The standalone /control page still exists; its own tab owns it even though the tab
+    // normally points at plant#gradient. Only applies to a tab that redirects elsewhere,
+    // or the Plant tab would match /plant before the hash is consulted.
+    if (page !== t.name && onPage(t.name)) return true;
     if (!onPage(page)) return false;
     if (page !== "plant") return true;
     return t.hash ? location.hash === "#gradient" : location.hash !== "#gradient";

@@ -1,50 +1,55 @@
-/* Raseen shell — Power BI style: a purple gradient banner, a lavender rail of pill
-   buttons, a light-lavender canvas of white cards, and deep-purple readouts. Shared by
-   every page; the Plant page (vendored dashboard) reads the same tokens. */
+/* Raseen shell — Power BI style: a sage gradient banner, a white rail of pill buttons, a
+   near-white canvas of white cards, and deep-sage readouts. Shared by every page; the Plant
+   page (vendored dashboard) reads the same tokens.
+
+   The brand colour is #729082 — a desaturated sea green (hsl 152 12% 51%). Everything in the
+   --pb-* scale is that hue: tints for surfaces and borders, shades for text and numbers. */
 
 :root {
   --rs-sidebar-w: 210px;
   --rs-banner-h: 58px;
 
-  /* White-and-purple system: the page is white, purple carries the meaning —
+  /* White-and-sage system: the page is white, sage carries the meaning —
      the banner, the active pill, the numbers that matter. */
-  --pb-banner: linear-gradient(100deg, #6b3f97 0%, #8a55ae 55%, #a56ec4 100%);
-  --pb-purple: #7a4aa5;
-  --pb-purple-2: #9c66c1;
-  --pb-deep: #582a86;            /* KPI numbers, chart fills */
-  --pb-lav: #ffffff;             /* sidebar — white, separated by its border */
-  --pb-canvas: #f8f5fc;          /* content: barely-tinted white, so white cards still read */
+  --pb-banner: linear-gradient(100deg, #55705f 0%, #729082 55%, #8faa9b 100%);
+  --pb-green: #729082;           /* the brand colour */
+  --pb-green-2: #8faa9b;
+  --pb-deep: #3f6354;            /* KPI numbers, chart fills — 6.7:1 on white */
+  --pb-rail: #ffffff;             /* sidebar — white, separated by its border */
+  --pb-canvas: #f5f8f6;          /* content: barely-tinted white, so white cards still read */
   --pb-card: #ffffff;
-  --pb-border: #ece4f5;
-  --pb-border-2: #dccfeb;
+  --pb-border: #e2ebe6;
+  --pb-border-2: #cfdcd5;
 
-  --rs-text: #2a2440;
-  --rs-text-2: #675e80;
-  --rs-muted: #9a93ad;
+  --rs-text: #22302a;
+  --rs-text-2: #5b6b63;
+  --rs-muted: #83988e;
 
   /* aliases the components read */
   --rs-bg: var(--pb-canvas);
   --rs-surface: var(--pb-card);
-  --rs-surface-2: #faf7fd;
-  --rs-surface-3: #f3edfa;
+  --rs-surface-2: #f7faf8;
+  --rs-surface-3: #edf3ef;
   --rs-border: var(--pb-border);
   --rs-border-strong: var(--pb-border-2);
-  --rs-accent: var(--pb-purple);
+  --rs-accent: var(--pb-green);
   --rs-accent-2: var(--pb-deep);
-  --rs-accent-soft: var(--pb-purple-2);
+  --rs-accent-soft: var(--pb-green-2);
   --rs-ink: #ffffff;
-  --rs-violet: #8a5cc4;
-  --rs-violet-dim: #c4addf;
-  --rs-amber: #d99a2c;           /* sunshine: available power, blocks still in full sun */
+  /* Reserve / headroom. Named "violet" from the old palette; it is slate blue now, kept
+     deliberately off-hue from the sage chrome so held headroom reads as its own quantity. */
+  --rs-violet: #5b7c99;
+  --rs-violet-dim: #b3c6d4;
+  --rs-amber: #bf8a1f;           /* sunshine: available power, blocks still in full sun */
   --rs-cyan: #4aa3c7;
-  --rs-teal: #3aa6a0;
-  --rs-sim: #7a4aa5;
+  --rs-teal: #2f9c96;
+  --rs-sim: #5b7c99;
   --rs-good: #3a9d6b;
   --rs-warn: #d98b2b;
   --rs-bad: #d1495b;
 
-  --rs-shadow: 0 1px 3px rgba(80, 40, 120, 0.08), 0 6px 18px rgba(80, 40, 120, 0.07);
-  --rs-shadow-lg: 0 12px 34px rgba(70, 30, 110, 0.22);
+  --rs-shadow: 0 1px 3px rgba(45, 75, 60, 0.08), 0 6px 18px rgba(45, 75, 60, 0.07);
+  --rs-shadow-lg: 0 12px 34px rgba(40, 68, 54, 0.22);
   --rs-radius: 10px;
 
   --rs-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
@@ -52,19 +57,20 @@
   --rs-display: "Segoe UI", "IBM Plex Sans Condensed", var(--rs-sans);
 
   /* map/chart colour tokens */
-  --surface-3: #ede4f8;
-  --accent: #3aa6a0;             /* Raseen line / set-point fill (teal, distinct from purple) */
-  --amber: #d99a2c;              /* available power */
-  --violet: #8a5cc4;
-  --violet-dim: #c4addf;
+  --surface-3: #edf3ef;
+  --accent: #2f9c96;             /* Raseen line / set-point fill — teal, saturated well clear
+                                    of the muted sage chrome so the hero line still reads */
+  --amber: #bf8a1f;              /* available power */
+  --violet: #5b7c99;             /* firm headroom (see --rs-violet above) */
+  --violet-dim: #b3c6d4;
   --cyan: #4aa3c7;
-  --muted: #9a93ad;
-  --ramp-0: #efe8f8;
-  --ramp-1: #d9c6ec;
-  --ramp-2: #bd9fdd;
-  --ramp-3: #9d72c8;
-  --ramp-4: #7d49ac;
-  --ramp-5: #582a86;
+  --muted: #83988e;
+  --ramp-0: #eef4f0;
+  --ramp-1: #d3e2d9;
+  --ramp-2: #aec7b9;
+  --ramp-3: #86a795;
+  --ramp-4: #5f8573;
+  --ramp-5: #3f6354;
 }
 
 .rs-has-sidebar body { padding-left: var(--rs-sidebar-w); padding-top: var(--rs-banner-h); }
@@ -75,7 +81,7 @@
   position: fixed; inset: 0 0 auto 0; height: var(--rs-banner-h); z-index: 1100;
   background: var(--pb-banner);
   display: flex; align-items: center; justify-content: center; gap: 14px;
-  box-shadow: 0 2px 10px rgba(60, 25, 95, 0.28);
+  box-shadow: 0 2px 10px rgba(35, 60, 48, 0.26);
 }
 .rs-banner-bar .bb-logo { position: absolute; left: 16px; display: flex; align-items: center; gap: 10px; color: #fff; }
 .rs-banner-bar .bb-mark { width: 30px; height: 30px; border-radius: 7px; background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.35); position: relative; }
@@ -84,13 +90,13 @@
 .rs-banner-bar .bb-logo small { font: 400 11px var(--rs-mono); opacity: 0.8; }
 .rs-banner-bar h1 { margin: 0; color: #fff; font: 700 22px var(--rs-display); letter-spacing: 0.02em; text-shadow: 0 1px 2px rgba(0,0,0,0.18); }
 .rs-banner-bar .bb-chip { position: absolute; right: 18px; display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px; font: 700 10px/1 var(--rs-mono); letter-spacing: 0.1em; color: #fff; background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.4); }
-.rs-banner-bar .bb-chip i { width: 6px; height: 6px; border-radius: 50%; background: #d7c6ff; animation: rs-pulse 2.4s ease-in-out infinite; }
+.rs-banner-bar .bb-chip i { width: 6px; height: 6px; border-radius: 50%; background: #cfe6d9; animation: rs-pulse 2.4s ease-in-out infinite; }
 @media (max-width: 720px) { .rs-banner-bar h1 { font-size: 16px; } .rs-banner-bar .bb-logo small { display: none; } }
 
-/* ── sidebar (lavender rail of pills) ───────────────────────────────────── */
+/* ── sidebar (white rail of pills) ───────────────────────────────────────── */
 .rs-sidebar {
   position: fixed; inset: var(--rs-banner-h) auto 0 0; width: var(--rs-sidebar-w);
-  background: var(--pb-lav); border-right: 1px solid var(--pb-border-2);
+  background: var(--pb-rail); border-right: 1px solid var(--pb-border-2);
   display: flex; flex-direction: column; gap: 14px; padding: 20px 12px; z-index: 1000;
   font-family: var(--rs-sans);
 }
@@ -98,22 +104,22 @@
 .rs-nav {
   display: flex; align-items: center; gap: 10px; justify-content: center;
   padding: 11px 12px; border-radius: 22px; text-decoration: none;
-  background: var(--rs-surface-2); border: 1.5px solid var(--pb-purple);
+  background: var(--rs-surface-2); border: 1.5px solid var(--pb-green);
   color: var(--pb-deep); font: 600 12.5px var(--rs-sans); text-align: center;
-  box-shadow: 0 2px 5px rgba(90, 45, 130, 0.12); transition: transform .08s, box-shadow .12s;
+  box-shadow: 0 2px 5px rgba(45, 75, 60, 0.12); transition: transform .08s, box-shadow .12s;
 }
-.rs-nav:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(90, 45, 130, 0.2); }
+.rs-nav:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(45, 75, 60, 0.2); }
 .rs-nav.is-active {
-  background: linear-gradient(90deg, #7a4aa5, #a06cc4); color: #fff; border-color: transparent;
-  box-shadow: 0 4px 12px rgba(110, 55, 155, 0.4);
+  background: linear-gradient(90deg, #496e5d, #577d6b); color: #fff; border-color: transparent;
+  box-shadow: 0 4px 12px rgba(55, 90, 72, 0.38);
 }
 .rs-nav-icon { font-size: 14px; }
 .rs-sidebar-foot { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .rs-social { display: flex; gap: 12px; }
-.rs-social a { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: #fff; background: var(--pb-purple); font: 700 12px var(--rs-sans); text-decoration: none; box-shadow: 0 2px 5px rgba(90,45,130,0.25); }
+.rs-social a { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: #fff; background: var(--pb-green); font: 700 12px var(--rs-sans); text-decoration: none; box-shadow: 0 2px 5px rgba(45,75,60,0.25); }
 .rs-social a:hover { background: var(--pb-deep); }
-.rs-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px; font: 700 9px/1 var(--rs-mono); letter-spacing: 0.1em; color: var(--pb-deep); background: #fff; border: 1px solid var(--pb-purple); }
-.rs-chip-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--pb-purple); animation: rs-pulse 2.4s ease-in-out infinite; }
+.rs-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px; font: 700 9px/1 var(--rs-mono); letter-spacing: 0.1em; color: var(--pb-deep); background: #fff; border: 1px solid var(--pb-green); }
+.rs-chip-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--pb-green); animation: rs-pulse 2.4s ease-in-out infinite; }
 @keyframes rs-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 @media (prefers-reduced-motion: reduce) { .rs-chip-dot, .rs-banner-bar .bb-chip i { animation: none; } }
 .rs-ver { font: 9px var(--rs-mono); color: var(--rs-muted); text-align: center; }

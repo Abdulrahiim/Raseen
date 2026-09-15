@@ -16,7 +16,7 @@ function ramp(stops, t) {
 export function outputColour(ratio) {
   return ramp([cssVar("--ramp-0"), cssVar("--ramp-2"), cssVar("--ramp-4"), cssVar("--ramp-5")], ratio);
 }
-/** Headroom share 0..1; firm (ETA beyond the horizon) in violet, expiring in dim violet. */
+/** Headroom share 0..1; firm (ETA beyond the horizon) in slate blue, expiring dimmer. */
 export function headroomColour(ratio, firm) {
   if (ratio < 0.01) return cssVar("--surface-3");
   return ramp([cssVar("--surface-3"), firm ? cssVar("--violet") : cssVar("--violet-dim")], 0.25 + 0.75 * ratio);
@@ -27,7 +27,7 @@ export function etaColour(minutes) {
   if (minutes <= 0) return "#4a5160";
   return ramp([cssVar("--cyan"), cssVar("--surface-3")], minutes / 15);
 }
-export const TECH_COLOUR = { pv: "#f2a33a", wind: "#2ec4d6", csp: "#ec835a", bess: "#8b7cf6" };
+export const TECH_COLOUR = { pv: "#f2a33a", wind: "#2ec4d6", csp: "#ec835a", bess: "#6f9fd0" };
 export const STATUS_COLOUR = { operational: "#22b573", under_construction: "#fab219", awarded: "#9aa1ad", planned: "#5a6270" };
 export const TECH_LABEL = { pv: "Solar PV", wind: "Wind", csp: "CSP", bess: "Battery storage" };
 export const STATUS_LABEL = { operational: "Operational", under_construction: "Under construction", awarded: "Awarded", planned: "Planned" };

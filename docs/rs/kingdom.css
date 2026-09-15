@@ -1,4 +1,4 @@
-/* Kingdom page — purple "Power BI" theme. Pairs with shell.css. */
+/* Kingdom page — sage "Power BI" theme. Pairs with shell.css. */
 
 .rs-body { padding: 16px; }
 
@@ -47,14 +47,14 @@
 .rs-map-note { position: absolute; bottom: 14px; left: 14px; z-index: 5; font: 10px var(--rs-sans); color: var(--rs-text-2); max-width: 58%; background: color-mix(in srgb, var(--rs-surface) 88%, transparent); border: 1px solid var(--rs-border); padding: 5px 9px; border-radius: 6px; backdrop-filter: blur(6px); }
 
 /* ── map markers ──────────────────────────────────────────────────────────
-   The basemap is dark, so marker strokes are light rather than the page's deep purple.
+   The basemap is dark, so marker strokes are light rather than the page's deep sage.
    A plant is a small solid pin dot (technology colour) inside a thin capacity ring
-   (status colour); the modelled plant, Humaij, carries an extra purple ring. Geometry
+   (status colour); the modelled plant, Humaij, carries an extra sage ring. Geometry
    lives in kingdom-map.js — only the palette is here. */
 :root {
   --rs-map-ink: #0b0e13;         /* basemap ink: separates a marker from the tiles */
   --rs-map-pin-stroke: #f2f6fb;  /* light stroke around every pin dot */
-  --rs-map-ref: #b98ce8;         /* the site purple, lifted to read on the dark basemap */
+  --rs-map-ref: #a8d5c0;         /* the site sage, lifted to read on the dark basemap */
   --rs-map-node: #dfe7f2;        /* grid substation dots */
 }
 

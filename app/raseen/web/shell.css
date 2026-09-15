@@ -1,70 +1,107 @@
-/* Raseen shell — Power BI style: a sage gradient banner, a white rail of pill buttons, a
-   near-white canvas of white cards, and deep-sage readouts. Shared by every page; the Plant
-   page (vendored dashboard) reads the same tokens.
+/* Raseen shell — the chrome every page shares, and the token system every page reads.
 
-   The brand colour is #729082 — a desaturated sea green (hsl 152 12% 51%). Everything in the
-   --pb-* scale is that hue: tints for surfaces and borders, shades for text and numbers. */
+   The room this is designed for is a grid control desk, so the page is built like an
+   instrument rather than a document: sage is structure (rail, header, active state) and
+   never carries a measurement; the data plane is a small fixed set of colours where each
+   one means exactly one physical quantity, off-hue from the sage so a reading never gets
+   confused with a border.
+
+   Brand colour #729082 — a desaturated sea green (hsl 152 12% 51%), the sage of the
+   wordmark. Its gold (#c09557) is the logo's own second colour and is the same gold the
+   charts use for available power, so the palette and the mark share a source.
+
+   Type is IBM Plex throughout: Sans for language, Mono for every number (tabular figures
+   are the point), Sans Arabic for رَصين. One family, three cuts. */
 
 :root {
-  --rs-sidebar-w: 210px;
-  --rs-banner-h: 58px;
+  --rs-sidebar-w: 216px;
+  --rs-banner-h: 56px;
 
-  /* White-and-sage system: the page is white, sage carries the meaning —
-     the banner, the active pill, the numbers that matter. */
-  --pb-banner: linear-gradient(100deg, #55705f 0%, #729082 55%, #8faa9b 100%);
+  /* ── sage: structure only ─────────────────────────────────────────────── */
   --pb-green: #729082;           /* the brand colour */
   --pb-green-2: #8faa9b;
   --pb-deep: #3f6354;            /* KPI numbers, chart fills — 6.7:1 on white */
-  --pb-rail: #ffffff;             /* sidebar — white, separated by its border */
-  --pb-canvas: #f5f8f6;          /* content: barely-tinted white, so white cards still read */
+  --pb-header: #35524a;          /* the top bar: one flat, quiet field */
+  --pb-header-2: #2b443d;
+  --pb-rail: #ffffff;
+  --pb-canvas: #eef2ef;          /* the desk the instruments sit on */
   --pb-card: #ffffff;
-  --pb-border: #e2ebe6;
-  --pb-border-2: #cfdcd5;
+  --pb-border: #dde6e0;
+  --pb-border-2: #c6d5cc;
 
-  --rs-text: #22302a;
-  --rs-text-2: #5b6b63;
-  --rs-muted: #83988e;
+  --rs-text: #1b2621;
+  --rs-text-2: #4c5c54;
+  /* Every one of these carries real information — units, notes, axis labels — so the floor
+     is 4.5:1, and it has to hold on the darkest surface a label ever sits on (--rs-surface-3
+     #eaf0ec, where this measures 4.59:1). Do not lighten it. */
+  --rs-muted: #5c7065;
 
   /* aliases the components read */
   --rs-bg: var(--pb-canvas);
   --rs-surface: var(--pb-card);
-  --rs-surface-2: #f7faf8;
-  --rs-surface-3: #edf3ef;
+  --rs-surface-2: #f6f9f7;
+  --rs-surface-3: #eaf0ec;
   --rs-border: var(--pb-border);
   --rs-border-strong: var(--pb-border-2);
   --rs-accent: var(--pb-green);
   --rs-accent-2: var(--pb-deep);
   --rs-accent-soft: var(--pb-green-2);
   --rs-ink: #ffffff;
-  /* Reserve / headroom. Named "violet" from the old palette; it is slate blue now, kept
-     deliberately off-hue from the sage chrome so held headroom reads as its own quantity. */
+
+  /* ── the data plane: one colour, one quantity ─────────────────────────── */
+  /* Sunshine — the power the plant could make. The logo's own gold. */
+  --rs-amber: #bf8a1f;
+  /* Export at the connection point under Raseen. Teal, saturated clear of the sage. */
+  --rs-teal: #1f8a84;
+  /* Held headroom. Named "violet" from an older palette; it is slate blue, kept off-hue
+     from everything else so reserve reads as its own quantity and not as chrome. */
   --rs-violet: #5b7c99;
   --rs-violet-dim: #b3c6d4;
-  --rs-amber: #bf8a1f;           /* sunshine: available power, blocks still in full sun */
   --rs-cyan: #4aa3c7;
-  --rs-teal: #2f9c96;
+  --rs-rust: #c0553f;            /* uncontrolled: what the sun does unaided */
   --rs-sim: #5b7c99;
   --rs-good: #3a9d6b;
-  --rs-warn: #d98b2b;
-  --rs-bad: #d1495b;
+  --rs-warn: #c47f17;
+  --rs-bad: #c23f52;
 
-  --rs-shadow: 0 1px 3px rgba(45, 75, 60, 0.08), 0 6px 18px rgba(45, 75, 60, 0.07);
-  --rs-shadow-lg: 0 12px 34px rgba(40, 68, 54, 0.22);
-  --rs-radius: 10px;
+  /* Reading pairs. The data-plane colours above are tuned to read as marks: a 2px line, an
+     8px key, a filled area. The same hue has to go darker to carry 4.5:1 as a number or a
+     label on white, so every colour that also gets set in type has a second value. Never
+     swap the two — the mark colour fails contrast as text, and the text colour reads muddy
+     as a 2px line. Measured on white, on --pb-canvas and on --rs-surface-3. */
+  --rs-amber-text: #8a6412;
+  --rs-teal-text: #16706b;
+  --rs-violet-text: #47637a;
+  --rs-rust-text: #a8452f;
+  --rs-good-text: #217a4d;
+
+  /* Two levels of elevation, not one shadow on everything: instruments sit flat on the
+     desk (0), only things that float above it (tooltips, the splash) cast a shadow. */
+  --rs-shadow: none;
+  --rs-shadow-lg: 0 16px 40px rgba(24, 45, 36, 0.20);
+  --rs-radius: 8px;
+  --rs-radius-sm: 5px;
 
   --rs-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
-  --rs-sans: "Segoe UI", "IBM Plex Sans", ui-sans-serif, system-ui, Roboto, sans-serif;
-  --rs-display: "Segoe UI", "IBM Plex Sans Condensed", var(--rs-sans);
+  --rs-sans: "IBM Plex Sans", "Segoe UI", ui-sans-serif, system-ui, Roboto, sans-serif;
+  --rs-arabic: "IBM Plex Sans Arabic", var(--rs-sans);
+  --rs-display: var(--rs-sans);
 
-  /* map/chart colour tokens */
-  --surface-3: #edf3ef;
-  --accent: #2f9c96;             /* Raseen line / set-point fill — teal, saturated well clear
-                                    of the muted sage chrome so the hero line still reads */
+  /* map/chart colour tokens (read by charts.js and the maps through colour.js) */
+  --surface-3: #eaf0ec;
+  --accent: #1f8a84;             /* the Raseen line / set-point fill */
   --amber: #bf8a1f;              /* available power */
   --violet: #5b7c99;             /* firm headroom (see --rs-violet above) */
   --violet-dim: #b3c6d4;
   --cyan: #4aa3c7;
-  --muted: #83988e;
+  --rust: #c0553f;
+  --muted: #5c7065;
+  --cloud: #6f7c88;              /* the shadow itself, over the plant and over the bars */
+  --map-ground: #0f1216;         /* the map's own field, under the satellite tiles */
+  --amber-text: var(--rs-amber-text);
+  --accent-text: var(--rs-teal-text);
+  --violet-text: var(--rs-violet-text);
+  --rust-text: var(--rs-rust-text);
   --ramp-0: #eef4f0;
   --ramp-1: #d3e2d9;
   --ramp-2: #aec7b9;
@@ -73,70 +110,190 @@
   --ramp-5: #3f6354;
 }
 
-.rs-has-sidebar body { padding-left: var(--rs-sidebar-w); padding-top: var(--rs-banner-h); }
-@media (max-width: 860px) { :root { --rs-sidebar-w: 62px; } }
+/* Anything given a display value in this stylesheet beats the browser's own
+   [hidden] { display: none } — author origin wins — so hiding an element from script would
+   silently do nothing. State it once, here, rather than remembering it per component. */
+[hidden] { display: none !important; }
 
-/* ── banner (injected by sidebar.js, full width above everything) ────────── */
+.rs-has-sidebar body { padding-left: var(--rs-sidebar-w); padding-top: var(--rs-banner-h); }
+@media (max-width: 900px) { :root { --rs-sidebar-w: 60px; } }
+
+/* ── opening ────────────────────────────────────────────────────────────── */
+/* One orchestrated moment on first load: the mark arrives, holds, and clears out of the
+   way. Injected by splash.js from the document head so it is on screen before the page
+   paints, and shown once per session — it is a title card, not a loading spinner. */
+#rs-splash {
+  position: fixed; inset: 0; z-index: 9999;
+  display: grid; place-items: center;
+  background: var(--pb-canvas, #eef2ef);
+  opacity: 1;
+}
+#rs-splash img { width: min(300px, 52vw); opacity: 0; transform: scale(0.965); }
+#rs-splash.in img { opacity: 1; transform: none; transition: opacity 200ms ease-out, transform 320ms cubic-bezier(.2,.7,.3,1); }
+#rs-splash.out { opacity: 0; transition: opacity 240ms ease-in; }
+#rs-splash.out img { transform: scale(1.02); transition: transform 240ms ease-in; }
+@media (prefers-reduced-motion: reduce) {
+  #rs-splash img, #rs-splash.in img, #rs-splash.out, #rs-splash.out img { transition: none; }
+  #rs-splash.in img { opacity: 1; transform: none; }
+}
+
+/* ── top bar ────────────────────────────────────────────────────────────── */
+/* The mark is the only brand statement; the page says what it is, one level down. */
 .rs-banner-bar {
   position: fixed; inset: 0 0 auto 0; height: var(--rs-banner-h); z-index: 1100;
-  background: var(--pb-banner);
-  display: flex; align-items: center; justify-content: center; gap: 14px;
-  box-shadow: 0 2px 10px rgba(35, 60, 48, 0.26);
+  background: var(--pb-header);
+  display: flex; align-items: center; gap: 16px; padding: 0 18px;
+  border-bottom: 1px solid var(--pb-header-2);
 }
-.rs-banner-bar .bb-logo { position: absolute; left: 16px; display: flex; align-items: center; gap: 10px; color: #fff; }
-.rs-banner-bar .bb-mark { width: 30px; height: 30px; border-radius: 7px; background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.35); position: relative; }
-.rs-banner-bar .bb-mark::before { content: ""; position: absolute; inset: 5px; background: linear-gradient(to bottom right, transparent 46%, #fff 47%, #fff 53%, transparent 54%); opacity: 0.95; }
-.rs-banner-bar .bb-logo b { font: 700 14px var(--rs-display); letter-spacing: 0.02em; }
-.rs-banner-bar .bb-logo small { font: 400 11px var(--rs-mono); opacity: 0.8; }
-.rs-banner-bar h1 { margin: 0; color: #fff; font: 700 22px var(--rs-display); letter-spacing: 0.02em; text-shadow: 0 1px 2px rgba(0,0,0,0.18); }
-.rs-banner-bar .bb-chip { position: absolute; right: 18px; display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px; font: 700 10px/1 var(--rs-mono); letter-spacing: 0.1em; color: #fff; background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.4); }
-.rs-banner-bar .bb-chip i { width: 6px; height: 6px; border-radius: 50%; background: #cfe6d9; animation: rs-pulse 2.4s ease-in-out infinite; }
-@media (max-width: 720px) { .rs-banner-bar h1 { font-size: 16px; } .rs-banner-bar .bb-logo small { display: none; } }
+.rs-banner-bar .bb-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: #fff; }
+.rs-banner-bar .bb-logo img { height: 27px; width: auto; display: block; }
+.rs-banner-bar .bb-logo span { font: 400 11.5px var(--rs-sans); color: #b9cdc2; border-left: 1px solid rgba(255,255,255,0.22); padding-left: 12px; }
+.rs-banner-bar .bb-spacer { flex: 1; }
+.rs-banner-bar .bb-plant { font: 500 12px var(--rs-sans); color: #cfe0d7; }
+.rs-banner-bar .bb-plant b { font-weight: 600; color: #fff; }
+.rs-banner-bar .bb-chip {
+  display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px 5px 9px;
+  border-radius: 4px; font: 500 11px var(--rs-sans); color: #fff;
+  background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.28);
+}
+/* Steady, not pulsing: the page is a simulation replay, not a live feed, and a blinking dot
+   claims a liveness it does not have. The one thing that moves on its own is the title card. */
+.rs-banner-bar .bb-chip i { width: 7px; height: 7px; border-radius: 50%; background: #9cc4dd; }
+@media (max-width: 760px) { .rs-banner-bar .bb-logo span, .rs-banner-bar .bb-plant { display: none; } }
 
-/* ── sidebar (white rail of pills) ───────────────────────────────────────── */
+/* ── left rail ──────────────────────────────────────────────────────────── */
+/* Two places to be — the Kingdom, and the plant — and the plant holds two views. The
+   nesting is the navigation: there is no second copy of these controls inside the page. */
 .rs-sidebar {
   position: fixed; inset: var(--rs-banner-h) auto 0 0; width: var(--rs-sidebar-w);
   background: var(--pb-rail); border-right: 1px solid var(--pb-border-2);
-  display: flex; flex-direction: column; gap: 14px; padding: 20px 12px; z-index: 1000;
+  display: flex; flex-direction: column; padding: 16px 12px 14px; z-index: 1000;
   font-family: var(--rs-sans);
 }
-.rs-brand { display: none; }   /* brand lives in the banner now */
+.rs-brand { display: none; }
 .rs-nav {
-  display: flex; align-items: center; gap: 10px; justify-content: center;
-  padding: 11px 12px; border-radius: 22px; text-decoration: none;
-  background: var(--rs-surface-2); border: 1.5px solid var(--pb-green);
-  color: var(--pb-deep); font: 600 12.5px var(--rs-sans); text-align: center;
-  box-shadow: 0 2px 5px rgba(45, 75, 60, 0.12); transition: transform .08s, box-shadow .12s;
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: 6px; text-decoration: none;
+  color: var(--rs-text); font: 500 13px var(--rs-sans);
+  border: 1px solid transparent; margin-bottom: 2px;
 }
-.rs-nav:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(45, 75, 60, 0.2); }
-.rs-nav.is-active {
-  background: linear-gradient(90deg, #496e5d, #577d6b); color: #fff; border-color: transparent;
-  box-shadow: 0 4px 12px rgba(55, 90, 72, 0.38);
+.rs-nav:hover { background: var(--rs-surface-3); }
+.rs-nav.is-active { background: var(--pb-deep); color: #fff; font-weight: 600; }
+.rs-nav.is-active .rs-nav-icon { opacity: 1; }
+.rs-nav-icon { font-size: 13px; opacity: 0.6; width: 14px; text-align: center; }
+
+/* The plant's two views, hung off a rule so the hierarchy is drawn, not implied. The
+   heading names the plant and is a label, not a fourth button — there is exactly one
+   control per destination. */
+.rs-nav-group { margin: 14px 0 6px; padding: 0 12px; font: 600 10.5px var(--rs-sans); color: var(--rs-muted); letter-spacing: 0.01em; }
+.rs-subnav { margin-left: 8px; padding-left: 11px; border-left: 1px solid var(--pb-border-2); }
+.rs-subnav .rs-nav { position: relative; }
+.rs-subnav .rs-nav.is-active::before {
+  content: ""; position: absolute; left: -12px; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 19px; border-radius: 2px; background: var(--pb-green);
 }
-.rs-nav-icon { font-size: 14px; }
-.rs-sidebar-foot { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-.rs-social { display: flex; gap: 12px; }
-.rs-social a { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: #fff; background: var(--pb-green); font: 700 12px var(--rs-sans); text-decoration: none; box-shadow: 0 2px 5px rgba(45,75,60,0.25); }
-.rs-social a:hover { background: var(--pb-deep); }
-.rs-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px; font: 700 9px/1 var(--rs-mono); letter-spacing: 0.1em; color: var(--pb-deep); background: #fff; border: 1px solid var(--pb-green); }
-.rs-chip-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--pb-green); animation: rs-pulse 2.4s ease-in-out infinite; }
-@keyframes rs-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-@media (prefers-reduced-motion: reduce) { .rs-chip-dot, .rs-banner-bar .bb-chip i { animation: none; } }
-.rs-ver { font: 9px var(--rs-mono); color: var(--rs-muted); text-align: center; }
-@media (max-width: 860px) { .rs-nav-label { display: none; } .rs-ver, .rs-social { display: none; } .rs-chip { font-size: 0; padding: 5px; } .rs-chip-dot { width: 8px; height: 8px; } }
+
+.rs-sidebar-foot { margin-top: auto; display: flex; flex-direction: column; gap: 3px; padding: 12px 4px 0; border-top: 1px solid var(--pb-border); }
+.rs-chip { display: inline-flex; align-items: center; gap: 7px; font: 500 11.5px var(--rs-sans); color: var(--rs-text-2); }
+.rs-chip-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--rs-sim); flex: none; }
+.rs-ver { font: 400 10.5px var(--rs-sans); color: var(--rs-muted); padding-left: 14px; }
+@media (max-width: 900px) {
+  .rs-nav-label { display: none; }
+  .rs-ver, .rs-sidebar-foot, .rs-nav-group { display: none; }
+  .rs-nav { justify-content: center; padding: 10px 0; }
+  .rs-nav-icon { width: auto; font-size: 15px; }
+  .rs-subnav { margin: 6px 0 0; padding: 6px 0 0; border-left: 0; border-top: 1px solid var(--pb-border); }
+  .rs-subnav .rs-nav.is-active::before { display: none; }
+}
 
 /* ── page chrome ────────────────────────────────────────────────────────── */
 .rs-page { min-height: 100vh; background: var(--pb-canvas); color: var(--rs-text); font-family: var(--rs-sans); font-size: 13px; }
-.rs-topbar { display: flex; align-items: baseline; gap: 12px; padding: 14px 22px 10px; position: sticky; top: var(--rs-banner-h); z-index: 20; background: var(--pb-canvas); }
-.rs-topbar h1 { margin: 0; font: 700 17px var(--rs-display); color: var(--pb-deep); }
-.rs-topbar .rs-sub { font-size: 12px; color: var(--rs-muted); }
-.rs-topbar .rs-right { margin-left: auto; display: flex; align-items: center; gap: 12px; align-self: center; }
-.rs-body { padding: 6px 22px 20px; }
-.rs-loading { color: var(--rs-muted); font: 13px var(--rs-sans); padding: 60px 22px; }
-.rs-banner { margin: 0 22px 10px; padding: 10px 16px; background: #fff3f4; border: 1px solid #f0c4ca; border-radius: 8px; color: var(--rs-bad); font-size: 13px; }
-.rs-banner[hidden] { display: none; }
+.rs-topbar {
+  display: flex; align-items: flex-start; gap: 14px; padding: 18px 24px 12px;
+  background: var(--pb-canvas);
+}
+/* Every page groups its title and subtitle in one element, so the head aligns to the top of
+   that block. Aligned to centre instead, a subtitle long enough to wrap starts *above* its
+   own title — which is what the Plant page did at full desktop width. */
+.rs-topbar > div { min-width: 0; }
+.rs-topbar h1 { margin: 0; font: 600 21px/1.15 var(--rs-display); color: var(--rs-text); letter-spacing: -0.012em; }
+.rs-topbar .rs-sub { margin: 5px 0 0; font-size: 12.5px; color: var(--rs-text-2); max-width: 68ch; line-height: 1.5; }
+.rs-topbar .rs-right { margin-left: auto; display: flex; align-items: center; gap: 10px; align-self: flex-start; padding-top: 3px; white-space: nowrap; }
+@media (max-width: 760px) {
+  .rs-topbar { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .rs-topbar .rs-right { margin-left: 0; padding-top: 0; }
+}
+.rs-body { padding: 0 24px 26px; }
+.rs-loading { color: var(--rs-muted); font: 13px var(--rs-sans); padding: 60px 0; }
+.rs-banner { margin: 0 24px 12px; padding: 11px 15px; background: #fdf1f3; border: 1px solid #edc3cb; border-left: 3px solid var(--rs-bad); border-radius: var(--rs-radius-sm); color: #8c2b3b; font-size: 12.5px; }
+.rs-banner.is-note { background: var(--rs-surface-2); border-color: var(--pb-border-2); border-left-color: var(--rs-sim); color: var(--rs-text-2); }
 
-.rs-panel { background: var(--pb-card); border: 1px solid var(--pb-border); border-radius: var(--rs-radius); padding: 15px 16px; box-shadow: var(--rs-shadow); min-width: 0; }
-.rs-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
-.rs-panel-head h2 { margin: 0; font: 700 12px var(--rs-sans); letter-spacing: 0.01em; color: var(--pb-deep); }
-.rs-note { margin: 2px 0 0; font-size: 11.5px; color: var(--rs-muted); font-weight: 400; }
+/* An instrument face: flat on the desk, hairline edge, no shadow. */
+.rs-panel { background: var(--pb-card); border: 1px solid var(--pb-border); border-radius: var(--rs-radius); padding: 15px 16px; min-width: 0; }
+.rs-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 13px; flex-wrap: wrap; }
+.rs-panel-head h2 { margin: 0; font: 600 13.5px var(--rs-sans); color: var(--rs-text); letter-spacing: -0.005em; }
+.rs-note { margin: 3px 0 0; font-size: 11.5px; color: var(--rs-muted); font-weight: 400; line-height: 1.5; }
+
+/* ── readout strip ──────────────────────────────────────────────────────── */
+/* The replacement for a row of KPI cards: one instrument bar, cells divided by hairlines and
+   nothing floating. The hairlines are 1px grid gaps letting the panel's own background
+   through, so a cell can wrap onto a new row at any width with no first/last-child border
+   bookkeeping. The small square in front of each label is the colour that quantity has in
+   the chart or on the map beside it, which is why neither needs a legend of its own.
+
+   A cell is a column with its value pushed to the bottom: a label that wraps to two lines
+   must not drop its number half a line below the one next to it. Digits out of line are
+   exactly what an instrument bar exists to prevent. */
+.rs-readout { display: grid; grid-template-columns: repeat(var(--rs-cells, 5), minmax(0, 1fr)); gap: 1px; background: var(--pb-border); padding: 0; overflow: hidden; }
+.rs-cell { display: flex; flex-direction: column; background: var(--pb-card); padding: 13px 16px; min-width: 0; }
+.rs-cell .k { display: flex; align-items: center; gap: 7px; font: 400 12.5px var(--rs-sans); color: var(--rs-text-2); }
+.rs-cell .k i { width: 8px; height: 8px; border-radius: 2px; background: var(--rs-muted); flex: none; }
+.rs-cell .v { display: block; margin-top: auto; padding-top: 6px; font: 500 26px/1.05 var(--rs-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; color: var(--rs-text); }
+.rs-cell .u { display: block; margin-top: 3px; font: 400 11.5px var(--rs-sans); color: var(--rs-muted); }
+.rs-cell.lead .v { font-size: 33px; }
+/* The quantity keys, one class per thing the dashboard measures. */
+.rs-cell.amber .k i { background: var(--rs-amber); } .rs-cell.amber .v { color: var(--rs-amber-text); }
+.rs-cell.accent .k i { background: var(--rs-teal); } .rs-cell.accent .v { color: var(--rs-teal-text); }
+.rs-cell.reserve .k i { background: var(--rs-violet); } .rs-cell.reserve .v { color: var(--rs-violet-text); }
+.rs-cell.rust .k i { background: var(--rs-rust); } .rs-cell.rust .v { color: var(--rs-rust-text); }
+/* Five cells into three columns or two leaves a hole in the last row, and a hole in a
+   hairline grid reads as a broken cell — so the headline cell takes two columns and the four
+   parts fill the rest exactly. */
+@media (max-width: 1100px) { .rs-readout { --rs-cells: 3; } .rs-cell.lead { grid-column: span 2; } }
+/* One column below that, rather than two: with five cells and a headline cell two columns
+   wide, a two-column grid leaves a hole wherever the headline is not the first cell — and a
+   hole in a hairline grid reads as a broken instrument. A phone wants one column anyway. */
+@media (max-width: 660px) {
+  .rs-readout { --rs-cells: 1; }
+  .rs-cell.lead { grid-column: auto; }
+  .rs-cell { flex-direction: row; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .rs-cell .k { flex: 1 1 auto; }
+  .rs-cell .v { margin-top: 0; padding-top: 0; font-size: 22px; }
+  .rs-cell.lead .v { font-size: 26px; }
+  .rs-cell .u { flex: 1 0 100%; margin-top: 2px; }
+}
+
+/* ── shared controls ────────────────────────────────────────────────────── */
+/* A slider is the right control for a quantity that is continuous, so the track shows how
+   far along its range the value sits. --rs-fill is set from JS on input. */
+.rs-range {
+  -webkit-appearance: none; appearance: none; width: 100%; height: 18px;
+  background: transparent; cursor: pointer; margin: 0;
+}
+.rs-range::-webkit-slider-runnable-track {
+  height: 4px; border-radius: 2px;
+  background: linear-gradient(90deg, var(--pb-green) var(--rs-fill, 50%), var(--rs-surface-3) var(--rs-fill, 50%));
+}
+.rs-range::-moz-range-track { height: 4px; border-radius: 2px; background: var(--rs-surface-3); }
+.rs-range::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--pb-green); }
+.rs-range::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 15px; height: 15px; margin-top: -5.5px;
+  border-radius: 50%; background: #fff; border: 2px solid var(--pb-deep);
+  box-shadow: 0 1px 3px rgba(30, 55, 44, 0.3);
+}
+.rs-range::-moz-range-thumb { width: 15px; height: 15px; border-radius: 50%; background: #fff; border: 2px solid var(--pb-deep); box-shadow: 0 1px 3px rgba(30, 55, 44, 0.3); }
+.rs-range:focus-visible { outline: none; }
+.rs-range:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px rgba(114, 144, 130, 0.45); }
+.rs-range:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px rgba(114, 144, 130, 0.45); }
+
+:where(a, button, input, select, [tabindex]):focus-visible { outline: 2px solid var(--pb-deep); outline-offset: 2px; }

@@ -2,7 +2,7 @@ import { blockColour } from "/rs/site-plan.js";
 import { fmt } from "/rs/format.js";
 
 export const IMAGERY = window.RASEEN_TILES_SAT || "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
-export const ATTRIBUTION = "Imagery &copy; Esri, Maxar, Earthstar Geographics · Layout as-designed · Values simulated";
+export const ATTRIBUTION = "Imagery &copy; Esri, Maxar, Earthstar Geographics. Layout as-designed, values simulated.";
 const IMAGERY_SOURCE = "esri";
 //: How long init() waits for the first imagery tile before deciding the tiles are reachable.
 const IMAGERY_PROBE_MS = 6000;

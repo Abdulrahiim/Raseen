@@ -28,26 +28,80 @@ WEB = APP_DIR / "raseen" / "web"
 NAJM_STATIC = APP_DIR / "najm3000" / "dashboard" / "static"
 DOCS = APP_DIR.parent / "docs"
 
-# Presets pre-rendered for the Gradient Control page (must match PRESETS in control.js).
-SCENARIO_PRESETS: dict[str, dict] = {
+# ── what gets pre-rendered ──────────────────────────────────────────────────────────────
+# The published build has no server, so anything the Gradient Control page can show has to
+# exist as a file. Two sets: the named situations behind the "Situation" list, and a spine
+# along each of the four cloud sliders so those sliders still move (one axis at a time,
+# snapping to the nearest rendered value). Both must stay in step with SITUATIONS and AXES in
+# raseen/web/control.js — the page builds its filenames from the same rules.
+
+SCENARIO_SITUATIONS: dict[str, dict] = {
     "d1-default": {},
     "d1-g60": {"g_mw_min": 60},
     "d1-g120": {"g_mw_min": 120},
-    "d1-ns": {"heading_deg": 0},
-    "d1-fast": {"speed_kmh": 72},
-    "d1-slow": {"speed_kmh": 24},
     "thin-dsh": {"event": "thin", "flat": True, "g_mw_min": 60},
     "scattered": {"event": "scattered"},
+    "partial-soft": {"cover_frac": 0.6, "softness": 0.8},
+    "haze": {"softness": 1.0},
     "stall": {"stall_at_min": -3},
     "deepen": {"deepen_at_min": 2, "deepen_factor": 1.2},
     "high-conf": {"confidence": 0.9},
     "low-conf": {"confidence": 0.3},
-    # Partial cover: only part of the plant darkens, so the clear blocks visibly hold the reserve.
-    "partial-half": {"cover_frac": 0.5},
-    "partial-edge": {"cover_frac": 0.35, "cover_offset": -1.0},
-    "partial-soft": {"cover_frac": 0.6, "softness": 0.8},
-    "haze": {"softness": 1.0},
 }
+
+#: axis key -> (scenario parameter, the values rendered along it). The default value of each
+#: parameter is deliberately one of the values, and resolves to "d1-default" rather than a
+#: duplicate file.
+SCENARIO_AXES: dict[str, tuple[str, list[float]]] = {
+    "speed": ("speed_kmh", [16, 24, 48, 72, 96, 120]),
+    "size": ("cover_frac", [0.2, 0.4, 0.6, 0.8, 1.0]),
+    "pos": ("cover_offset", [-1.0, -0.5, 0.0, 0.5, 1.0]),
+    "angle": ("heading_deg", [0, 45, 90, 135, 180, 225, 270, 315]),
+}
+AXIS_DEFAULTS = {"speed_kmh": 48, "cover_frac": 1.0, "cover_offset": 0.0, "heading_deg": 90}
+
+#: Keep every Nth frame in the published copy. The physics still runs at the full 10-second
+#: step — this only coarsens the replay, and halves a download that would otherwise be 1.2 MB
+#: per scenario. control.js reads the time step back out of the file and paces itself to it.
+FRAME_STRIDE = 2
+
+
+def axis_slug(key: str, value: float) -> str:
+    """Mirror of axisSlug() in control.js. Change one, change both."""
+    if key == "size":
+        return str(round(value * 100))
+    if key == "pos":
+        return ("m" if value < 0 else "") + str(round(abs(value) * 100))
+    return str(round(value))
+
+
+def scenario_jobs() -> dict[str, dict]:
+    """Every scenario the published build needs, keyed by filename stem."""
+    jobs = dict(SCENARIO_SITUATIONS)
+    for key, (param, values) in SCENARIO_AXES.items():
+        for value in values:
+            if value == AXIS_DEFAULTS[param]:
+                continue                       # already rendered as d1-default
+            jobs[f"axis-{key}-{axis_slug(key, value)}"] = {param: value}
+    return jobs
+
+
+def slim(scenario: dict) -> dict:
+    """Drop what the browser can work out for itself, and coarsen the replay.
+
+    ``firm`` is just ``eta > horizon``; ``P_base`` is a copy of ``A``, because with no control
+    the export *is* the available power. Carrying either one costs about a quarter of the
+    file for nothing.
+    """
+    scenario["times_min"] = scenario["times_min"][::FRAME_STRIDE]
+    frames = scenario["frames"][::FRAME_STRIDE]
+    for frame in frames:
+        frame.pop("firm", None)
+        frame.pop("P_base", None)
+        frame["agg"].pop("P_base", None)
+        frame["agg"].pop("residual", None)
+    scenario["frames"] = frames
+    return scenario
 
 
 #: The generated site lives alongside docs/superpowers (the spec and plan); only these
@@ -140,10 +194,16 @@ def build_scenarios() -> None:
     from raseen.scenario.params import ScenarioParams
     from raseen.scenario.runner import run_scenario
 
-    for key, params in SCENARIO_PRESETS.items():
-        scenario = run_scenario(ScenarioParams(**params))
-        (DOCS / "data" / "scenarios" / f"{key}.json").write_text(json.dumps(scenario, separators=(",", ":")), encoding="utf-8")
-        print(f"  scenario {key:12s} g={scenario['front']['g_mw_min']:<4} frames={len(scenario['frames'])}")
+    jobs = scenario_jobs()
+    total = 0
+    for key, params in jobs.items():
+        scenario = slim(run_scenario(ScenarioParams(**params)))
+        path = DOCS / "data" / "scenarios" / f"{key}.json"
+        path.write_text(json.dumps(scenario, separators=(",", ":")), encoding="utf-8")
+        mb = path.stat().st_size / 1e6
+        total += mb
+        print(f"  scenario {key:18s} frames={len(scenario['frames']):<5} {mb:.2f} MB")
+    print(f"  {len(jobs)} scenarios, {total:.1f} MB")
 
 
 def build_plant_bundle(client: TestClient) -> None:

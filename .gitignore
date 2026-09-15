@@ -38,6 +38,9 @@ raseen_sim.json
 app/.cache/
 outputs/
 
+# Local tooling (the preview launcher, per-machine settings)
+.claude/
+
 # OS / editors
 .DS_Store
 Thumbs.db

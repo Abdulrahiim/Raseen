@@ -3,10 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Raseen · Plant (Humaij)</title>
+<title>Raseen · Plant overview</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap">
+<!-- The site's one non-interactive moment, once per session. Kingdom and Gradient control
+     already load it; without it here, landing on the Plant page first meant the title card
+     played later, mid-session, on the next page instead of at the opening. -->
+<script src="/rs/splash.js"></script>
 <link rel="stylesheet" href="/rs/shell.css">
 <link rel="stylesheet" href="/static/styles.css">
 <link rel="stylesheet" href="/rs/control.css">
@@ -24,42 +28,64 @@
 </head>
 <body>
 
-<header class="topbar">
-  <div class="brand">
-    <span class="brand-mark" aria-hidden="true"></span>
-    <div>
-      <h1>Humaij &mdash; Digital Twin</h1>
-      <p class="brand-sub" id="brand-sub">Plant supervisory overview</p>
-    </div>
+<!-- One page head. The brand, the plant identity and the simulation state are carried by the
+     shell's top bar and rail, so they are not repeated here. The title and subtitle change
+     with the view, because the rail treats Overview and Gradient control as two views of
+     one page. -->
+<header class="rs-topbar">
+  <div>
+    <h1 id="page-title">Plant overview</h1>
+    <p class="rs-sub" id="page-sub">What every MV block at Humaij is making across one simulated day, and where the simulated meter and the model disagree.</p>
   </div>
-
-  <div class="statusbar">
-    <span class="stat"><span class="stat-k">PLANT</span><span class="stat-v" id="sb-plant">Humaij</span></span>
-    <span class="stat"><span class="stat-k">MVPS</span><span class="stat-v" id="sb-blocks">—</span></span>
-    <span class="stat"><span class="stat-k">OUTPUT</span><span class="stat-v" id="sb-power">—</span></span>
-    <span class="stat"><span class="stat-k">ALARMS</span><span class="stat-v" id="sb-alarms">0</span></span>
-    <span id="data-source-chip" class="chip chip-sim" role="status" title="Data source">
-      <span class="chip-dot" aria-hidden="true"></span>
-      <span class="chip-label" id="data-source-label">SIM</span>
-    </span>
-  </div>
-
-  <div class="status-block">
-    <span class="status-pill" id="status-calibration" title="Model calibration state">uncalibrated</span>
-    <button id="theme-toggle" class="ghost-btn" type="button" aria-label="Toggle colour theme">Theme</button>
+  <!-- Gradient control's own state: which part of the event is on screen, and where the
+       replay has got to. Hidden on the supervisory view, which has its own clock. -->
+  <div class="rs-right" id="page-clock" hidden>
+    <span class="rs-phase" id="rs-phase">&mdash;</span>
+    <span class="rs-clock" id="rs-clock">t &mdash;</span>
   </div>
 </header>
 
-<div id="banner" class="banner" hidden></div>
-
 <main>
 
-  <div class="view-switch" role="tablist" aria-label="Plant views">
-    <button id="view-sup" class="view-tab is-on" type="button" role="tab" aria-selected="true">Supervisory</button>
-    <button id="view-gc" class="view-tab" type="button" role="tab" aria-selected="false">Gradient Control</button>
-  </div>
+<!-- app.js's reportError() writes text here but never clears a hidden attribute, so with
+     `hidden` on the element a dashboard error was silent. The element hides itself while it
+     is empty instead, and sits inside <main> so it lines up with the panels under it. -->
+<div id="banner" class="banner"></div>
 
-<div id="sup-view" role="tabpanel" aria-labelledby="view-sup">
+<div id="sup-view">
+
+  <section class="statusbar" aria-label="Plant status">
+    <div class="stat">
+      <span class="stat-k">Plant</span>
+      <span class="stat-v" id="sb-plant">Humaij</span>
+    </div>
+    <div class="stat">
+      <span class="stat-k">MV blocks</span>
+      <span class="stat-v" id="sb-blocks">&mdash;</span>
+      <!-- Same count as #sb-blocks; kept so app.js can keep writing it, shown once. -->
+      <span id="kpi-blocks" hidden></span>
+      <span class="stat-note" id="kpi-blocks-note">configured</span>
+    </div>
+    <div class="stat">
+      <span class="stat-k">Active alarms</span>
+      <span class="stat-v" id="sb-alarms">0</span>
+    </div>
+    <div class="stat">
+      <span class="stat-k">Data source</span>
+      <span id="data-source-chip" class="chip chip-sim" role="status" title="Data source">
+        <span class="chip-dot" aria-hidden="true"></span>
+        <span class="chip-label" id="data-source-label">SIM</span>
+      </span>
+    </div>
+    <div class="stat">
+      <span class="stat-k">Model</span>
+      <span class="status-pill" id="status-calibration" title="Model calibration state">uncalibrated</span>
+      <!-- The shell forces this page to light and has no dark theme, so the toggle would
+           only offer a state nothing else on the site can be in. Hidden, not deleted:
+           app.js still binds a listener to it. -->
+      <button id="theme-toggle" class="ghost-btn" type="button" aria-label="Toggle colour theme">Theme</button>
+    </div>
+  </section>
 
   <section class="panel timeline-panel">
     <div class="timeline-controls">
@@ -75,60 +101,33 @@
     </div>
   </section>
 
-  <section class="tile-row" aria-label="Plant summary">
+  <section class="tile-row" aria-label="Plant readout">
     <div class="tile">
       <span class="tile-label">Plant AC power</span>
       <span class="tile-value" id="kpi-plant-power">&mdash;</span>
-      <span class="tile-unit">MW &middot; simulated</span>
+      <span class="tile-unit">MW</span>
+      <!-- The same number, pre-formatted with its unit. Shown once, above. -->
+      <span id="sb-power" hidden></span>
     </div>
     <div class="tile">
       <span class="tile-label">Plane-of-array irradiance</span>
       <span class="tile-value" id="kpi-poa">&mdash;</span>
-      <span class="tile-unit">W&#8239;m&#8315;&sup2; &middot; simulated</span>
+      <span class="tile-unit">W&#8239;m&#8315;&sup2;</span>
     </div>
     <div class="tile">
       <span class="tile-label">Module temperature</span>
       <span class="tile-value" id="kpi-tmod">&mdash;</span>
-      <span class="tile-unit">&deg;C &middot; modelled</span>
+      <span class="tile-unit">&deg;C</span>
     </div>
     <div class="tile">
       <span class="tile-label">Measured vs expected</span>
       <span class="tile-value" id="kpi-deviation">&mdash;</span>
-      <span class="tile-unit" id="kpi-deviation-note">% &middot; simulated measurement</span>
+      <span class="tile-unit" id="kpi-deviation-note">% (the measurement is simulated)</span>
     </div>
     <div class="tile">
       <span class="tile-label">Performance ratio</span>
       <span class="tile-value" id="kpi-pr">&mdash;</span>
       <span class="tile-unit" id="kpi-pr-note">measured / expected</span>
-    </div>
-    <div class="tile">
-      <span class="tile-label">MV blocks</span>
-      <span class="tile-value" id="kpi-blocks">&mdash;</span>
-      <span class="tile-unit" id="kpi-blocks-note">configured</span>
-    </div>
-  </section>
-
-  <section class="split split-ops">
-    <div class="panel">
-      <div class="panel-head">
-        <div class="head-row">
-          <h2>Alarms &amp; events</h2>
-          <span class="count-badge" id="alarm-count">0</span>
-        </div>
-        <p class="panel-note">Active plant events, newest first.</p>
-      </div>
-      <ul id="alarm-log" class="alarm-log"></ul>
-    </div>
-
-    <div class="panel">
-      <div class="panel-head">
-        <div class="head-row">
-          <h2>Deviation analysis <span class="panel-sub" id="diag-block"></span></h2>
-          <span class="badge-ai" id="diag-confidence">&mdash;</span>
-        </div>
-        <p class="panel-note" id="diag-basis"></p>
-      </div>
-      <div id="diag-body" class="diag-body"></div>
     </div>
   </section>
 
@@ -136,7 +135,7 @@
     <div class="panel">
       <div class="panel-head">
         <div class="head-row">
-          <h2>Plant overview</h2>
+          <h2>Blocks</h2>
           <div class="seg" role="group" aria-label="Grid colouring">
             <button type="button" class="seg-btn is-on" data-mode="output">Output</button>
             <button type="button" class="seg-btn" data-mode="deviation">Deviation</button>
@@ -161,15 +160,39 @@
     <div class="panel">
       <div class="panel-head">
         <h2>Block detail</h2>
-        <p class="panel-note" id="block-note">Select a block from the plant overview.</p>
+        <p class="panel-note" id="block-note">Select a block from the grid.</p>
       </div>
       <dl class="detail-list" id="block-detail"></dl>
     </div>
   </section>
 
+  <section class="split split-ops">
+    <div class="panel">
+      <div class="panel-head">
+        <div class="head-row">
+          <h2>Alarms and events</h2>
+          <span class="count-badge" id="alarm-count">0</span>
+        </div>
+        <p class="panel-note">Active plant events, newest first.</p>
+      </div>
+      <ul id="alarm-log" class="alarm-log"></ul>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div class="head-row">
+          <h2>Deviation analysis <span class="panel-sub" id="diag-block"></span></h2>
+          <span class="badge-ai" id="diag-confidence">&mdash;</span>
+        </div>
+        <p class="panel-note" id="diag-basis"></p>
+      </div>
+      <div id="diag-body" class="diag-body"></div>
+    </div>
+  </section>
+
   <section class="panel">
     <div class="panel-head">
-      <h2>Station 3D <span class="panel-sub" id="model-block-name"></span></h2>
+      <h2>Station model <span class="panel-sub" id="model-block-name"></span></h2>
       <p class="panel-note" id="model-note"></p>
       <p class="model-status" id="model-status" role="status"></p>
     </div>
@@ -195,7 +218,7 @@
       <h2>Trends <span class="panel-sub" id="trend-block-name"></span></h2>
       <p class="panel-note">
         Irradiance, temperature and power carry different units, so each has its
-        own scale. Simulated day.
+        own scale. One simulated day.
       </p>
     </div>
 
@@ -219,7 +242,7 @@
 
     <figure class="chart-figure">
       <figcaption class="chart-title">
-        Inverter power &mdash; expected vs measured
+        Inverter power, expected against measured
         <span class="chart-unit">MW</span>
       </figcaption>
       <div class="legend" id="legend-power"></div>
@@ -262,14 +285,7 @@
 
 </div><!-- /#sup-view -->
 
-<div id="gc-view" role="tabpanel" aria-labelledby="view-gc" hidden>
-  <div class="gc-head">
-    <div>
-      <h2>Gradient Control</h2>
-      <p class="panel-note">A cloud crosses Humaij, block by block &middot; simulated</p>
-    </div>
-    <span class="rs-clock" id="rs-clock">t &mdash;</span>
-  </div>
+<div id="gc-view" hidden>
   <div id="rs-banner" class="rs-banner" hidden></div>
   <div id="rs-root" class="rs-body"><p class="rs-loading">Preparing the plant…</p></div>
 </div>
@@ -281,37 +297,56 @@
 
 <script src="/rs/sidebar.js"></script>
 <script>
-/* Plant views. Gradient Control is mounted lazily the first time it is shown so the
-   supervisory view still paints immediately. RASEEN_GC_MANUAL tells control.js not to
-   mount itself on import. */
+/* Plant views. The rail is the only place these two views are chosen, so the page carries no
+   tab strip of its own: it reads the hash the rail navigates to. Gradient control is mounted
+   lazily the first time it is shown so the supervisory view still paints immediately, and
+   RASEEN_GC_MANUAL tells control.js not to mount itself on import. */
 window.RASEEN_GC_MANUAL = true;
 (function () {
-  var tabs = { sup: "sup-view", gc: "gc-view" };
-  function show(which) {
-    for (var k in tabs) {
-      var panel = document.getElementById(tabs[k]);
-      var tab = document.getElementById("view-" + k);
-      var on = k === which;
-      if (panel) panel.hidden = !on;
-      if (tab) { tab.classList.toggle("is-on", on); tab.setAttribute("aria-selected", on ? "true" : "false"); }
+  var PANELS = { sup: "sup-view", gc: "gc-view" };
+  var HEADS = {
+    sup: {
+      title: "Plant overview",
+      sub: "What every MV block at Humaij is making across one simulated day, and where the simulated meter and the model disagree.",
+    },
+    gc: {
+      title: "Gradient control",
+      sub: "A cloud crosses Humaij block by block, and Raseen holds export on a declared ramp.",
+    },
+  };
+
+  function dress(which) {
+    for (var k in PANELS) {
+      var panel = document.getElementById(PANELS[k]);
+      if (panel) panel.hidden = k !== which;
     }
+    var head = HEADS[which] || HEADS.sup;
+    document.getElementById("page-title").textContent = head.title;
+    document.getElementById("page-sub").textContent = head.sub;
+    // The clock is the gradient run's own state; it reads nothing on the supervisory view.
+    document.getElementById("page-clock").hidden = which !== "gc";
+  }
+
+  /* Both views own a [data-mode] segmented control — Output/Deviation here, the map colouring
+     over there. They no longer collide: control.js scopes its handlers to #rs-root, so it
+     cannot reach ours. Do not widen either selector back to the document. */
+  function show(which) {
+    dress(which);
     if (which === "gc") {
       if (window.RaseenGC) window.RaseenGC.mount();
     } else if (window.RaseenGC) {
       window.RaseenGC.pause();   // don't animate a hidden view
     }
-    try { history.replaceState(null, "", which === "gc" ? "#gradient" : "#supervisory"); } catch (e) { /* ignore */ }
   }
   window.rsShowView = show;
-  document.addEventListener("DOMContentLoaded", function () {
-    document.getElementById("view-sup").addEventListener("click", function () { show("sup"); });
-    document.getElementById("view-gc").addEventListener("click", function () { show("gc"); });
-    // Deep link: the sidebar's Gradient Control tab lands here with #gradient.
-    if (location.hash === "#gradient") show("gc");
-  });
-  window.addEventListener("hashchange", function () {
-    show(location.hash === "#gradient" ? "gc" : "sup");
-  });
+
+  function fromHash() { show(location.hash === "#gradient" ? "gc" : "sup"); }
+
+  // Dress the page now so the right view is up before first paint; the mount has to wait for
+  // control.js, which is a module and so runs before DOMContentLoaded.
+  dress(location.hash === "#gradient" ? "gc" : "sup");
+  document.addEventListener("DOMContentLoaded", fromHash);
+  window.addEventListener("hashchange", fromHash);
 })();
 </script>
 <script type="module" src="/rs/control.js"></script>

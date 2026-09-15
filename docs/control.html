@@ -1,12 +1,13 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Raseen · Gradient Control</title>
+<title>Raseen · Gradient control</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<script src="rs/splash.js"></script>
 <link rel="stylesheet" href="rs/shell.css">
 <link rel="stylesheet" href="rs/vendor/maplibre-gl.css">
 <link rel="stylesheet" href="rs/control.css">
@@ -15,9 +16,16 @@
 </head>
 <body class="rs-page">
 <header class="rs-topbar">
-  <h1>Gradient Control</h1>
-  <span class="rs-sub">A cloud crosses Humaij, block by block · simulated</span>
-  <div class="rs-right"><span class="rs-clock" id="rs-clock">t —</span></div>
+  <div>
+    <h1>Gradient control</h1>
+    <p class="rs-sub">A cloud crosses Humaij. Raseen holds power back on the blocks still in
+      sun and lets it go as the cloud lands on the others, so export follows a declared ramp
+      instead of the sun.</p>
+  </div>
+  <div class="rs-right">
+    <span class="rs-phase" id="rs-phase">—</span>
+    <span class="rs-clock" id="rs-clock">t —</span>
+  </div>
 </header>
 <div id="rs-banner" class="rs-banner" hidden></div>
 <main id="rs-root" class="rs-body"><p class="rs-loading">Preparing the plant…</p></main>

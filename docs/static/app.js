@@ -48,7 +48,7 @@ async function loadStatus() {
   $("data-source-chip").title = status.disclaimer;
   $("status-calibration").textContent = status.calibration_status.replace("not-", "un");
   $("sb-blocks").textContent = status.block_count.toLocaleString();
-  $("clock-date").textContent = `${status.simulated_day} · simulated`;
+  $("clock-date").textContent = `${status.simulated_day}, simulated`;
 
   $("kpi-blocks").textContent = status.block_count.toLocaleString();
   $("kpi-blocks-note").textContent = status.scaling_label;
@@ -178,7 +178,7 @@ async function refreshBlockDetail() {
   const detail = await getJSON(
     `/api/block/${state.selectedBlock}?t=${encodeURIComponent(currentTime())}`,
   );
-  $("block-note").textContent = `${stationLabel(detail.block_id)} · simulated values`;
+  $("block-note").textContent = `${stationLabel(detail.block_id)}, simulated values`;
   const list = $("block-detail");
   list.replaceChildren();
   for (const [label, read] of DETAIL_ROWS) {
@@ -201,7 +201,7 @@ async function refreshModel() {
   if (!state.selectedBlock || !isReady()) return;
   const model = await getJSON(`/api/block/${state.selectedBlock}/model`);
   state.modelParts = model.parts;
-  $("model-block-name").textContent = `· ${stationLabel(model.block_id)}`;
+  $("model-block-name").textContent = stationLabel(model.block_id);
   $("model-note").textContent = model.note;
   await loadModel(model.file, model.parts);
   renderFaultList(model.faults);
@@ -278,7 +278,7 @@ function renderFaultList(faults) {
 async function selectBlock(blockId) {
   state.selectedBlock = blockId;
   if (isMapReady() && state.overviewStyle === "map") focusSiteBlock(blockId);
-  $("trend-block-name").textContent = `· ${stationLabel(blockId)}`;
+  $("trend-block-name").textContent = stationLabel(blockId);
   state.trends = await getJSON(`/api/trends/${blockId}`);
   buildTimeline(state.trends);
   renderTrends();
@@ -320,7 +320,7 @@ async function refreshAlarms() {
         block.textContent = stationLabel(a.block_id);
         const what = document.createElement("span");
         what.className = "alarm-what";
-        what.textContent = `${a.label.replace(/^INJECTED[^:]*:\s*/, "")} · ${a.asset}`;
+        what.textContent = `${a.label.replace(/^INJECTED[^:]*:\s*/, "")} — ${a.asset}`;
         const when = document.createElement("span");
         when.className = "alarm-when";
         when.textContent = (a.injected_at || "").slice(11, 19);
@@ -338,14 +338,14 @@ async function refreshAlarms() {
 async function refreshDiagnostics() {
   if (!state.selectedBlock) return;
   const body = await getJSON(`/api/diagnostics/${state.selectedBlock}`);
-  $("diag-block").textContent = `· ${stationLabel(body.block_id)}`;
+  $("diag-block").textContent = stationLabel(body.block_id);
   $("diag-basis").textContent = body.finding
     ? body.finding.basis
     : "Rule-based attribution over simulated signals.";
   const panel = $("diag-body");
 
   if (!body.finding) {
-    $("diag-confidence").textContent = "NOMINAL";
+    $("diag-confidence").textContent = "Nominal";
     panel.replaceChildren(
       Object.assign(document.createElement("p"), {
         className: "diag-healthy",
@@ -356,10 +356,10 @@ async function refreshDiagnostics() {
   }
 
   const f = body.finding;
-  $("diag-confidence").textContent = `${f.confidence.toUpperCase()} CONFIDENCE`;
+  $("diag-confidence").textContent = `${f.confidence} confidence`;
   const title = document.createElement("p");
   title.className = "diag-title";
-  title.textContent = `${f.title} · ${f.deviation_percent.toFixed(1)}%`;
+  title.textContent = `${f.title}, ${f.deviation_percent.toFixed(1)} %`;
   const text = document.createElement("p");
   text.className = "diag-text";
   text.textContent = f.explanation;
@@ -382,7 +382,7 @@ async function refreshPerformance() {
     $("kpi-pr-note").textContent =
       p.expected_pr === null
         ? "measured / expected"
-        : `expected ${p.expected_pr.toFixed(3)} · simulated measurement`;
+        : `expected ${p.expected_pr.toFixed(3)}, simulated measurement`;
   } catch (error) {
     $("kpi-pr").textContent = "—";
   }
@@ -628,7 +628,7 @@ async function refreshAtCurrentTime() {
   $("wx-tamb").textContent = fmt(weather.temp_ambient_c);
   $("wx-wind").textContent = fmt(weather.wind_speed_m_s);
   $("weather-source").textContent =
-    `Source classification: ${weather.classification} · ${weather.disclaimer}`;
+    `Source classification: ${weather.classification}. ${weather.disclaimer}`;
 
   $("kpi-poa").textContent = fmt(weather.poa_w_m2, 0);
   if (state.trends) {

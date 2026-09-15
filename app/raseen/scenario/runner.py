@@ -19,6 +19,12 @@ from raseen.scenario.economics import economics
 from raseen.scenario.params import ScenarioParams
 from raseen.shadow.fields import build_field, cloud_polygons
 
+#: Bumped whenever the controller or the shadow model changes what a scenario computes.
+#: It is part of the cache key, so an engine change invalidates every stored scenario rather
+#: than silently serving numbers the current code would never produce. "r2" is the move to
+#: placing curtailment farthest-arrival first (see raseen.control.allocate).
+ENGINE_REVISION = "r2"
+
 PLANT_MW = 3000.0
 T_START = -40.0
 T_END = 100.0

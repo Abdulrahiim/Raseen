@@ -106,7 +106,7 @@ static build and the container deploy. Start there for anything beyond running i
 | Page | What it shows |
 |---|---|
 | **Kingdom** | Saudi utility-scale renewable projects (indicative registry) and the 380 kV transmission backbone (schematic) on a map, with layer, technology and status filters. |
-| **Plant** | The reference plant — named *Humaij* in the dashboard, 3,000 MWac — in two views: a **supervisory** view (the 363-station site on satellite imagery, real block layout, 3D drill-down, expected-vs-measured trends, fault injection) and a **Gradient Control** view where a cloud front crosses the plant block by block while Raseen holds export to the declared ramp. The sidebar links to each view directly. |
+| **Plant** | The reference plant — named *Humaij* in the dashboard, 3,000 MWac — in two views. **Overview** is the supervisory desk: the 363-station site on satellite imagery, real block layout, 3D drill-down, expected-vs-measured trends and fault injection. **Gradient control** is the cloud crossing: power at the connection point with the held headroom shaded under it, a readout of what the cloud took and what the blocks still in sun gave back to cover it, the 30 block set-points, and sliders for the cloud's speed, size, position and direction. The left rail is the only place either view is reached from. |
 
 ---
 
@@ -137,7 +137,9 @@ Tests and lint (from `app/`):
 GitHub Pages serves static files only, so `tools/build_static.py` pre-renders the dashboard
 into `docs/` — the pages, their assets, the registry and geometry as JSON, a curated set of
 scenarios, and a day bundle for the Plant page. The static build is read-only: manual fault
-injection is not included, and the Gradient Control sliders become pre-rendered presets.
+injection is not included, and the gradient-control sliders step between pre-rendered clouds
+one axis at a time (the four cloud sliders each have their own spine of scenarios; moving one
+returns the other three to their defaults). Run the app locally for free movement.
 
 ```powershell
 .venv\Scripts\python.exe tools\build_static.py          # regenerate ../docs

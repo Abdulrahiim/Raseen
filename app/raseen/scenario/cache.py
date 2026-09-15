@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from raseen.scenario.params import ScenarioParams
-from raseen.scenario.runner import run_scenario
+from raseen.scenario.runner import ENGINE_REVISION, run_scenario
 
 DEFAULT_DIR = Path(__file__).resolve().parents[2] / ".cache"
 
@@ -19,7 +19,10 @@ class ScenarioCache:
         self.memory: dict[str, dict[str, Any]] = {}
 
     def _path(self, scenario_id: str) -> Path:
-        return self.dir / f"{scenario_id}.json"
+        # The engine revision is part of the filename: the parameters alone do not identify a
+        # result, because the same parameters through a changed controller give a different
+        # answer, and a cache that cannot tell them apart serves stale physics.
+        return self.dir / f"{ENGINE_REVISION}-{scenario_id}.json"
 
     def get(self, scenario_id: str) -> dict[str, Any] | None:
         if scenario_id in self.memory:

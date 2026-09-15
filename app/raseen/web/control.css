@@ -1,108 +1,151 @@
-/* Gradient Control page — sage "Power BI" theme. Pairs with shell.css. */
+/* Gradient control — the page that has to make one mechanism obvious.
 
-.rs-topbar .rs-clock { font: 600 15px var(--rs-mono); font-variant-numeric: tabular-nums; color: var(--rs-accent-2); background: color-mix(in srgb, var(--rs-accent) 12%, transparent); border: 1px solid color-mix(in srgb, var(--rs-accent) 35%, transparent); border-radius: 6px; padding: 5px 11px; }
+   Everything is arranged around a single reading order: what the connection point is doing
+   (the plot, full width, at the top, with the transport welded to it), then the numbers
+   behind it, then the sentence that explains them, then the plant, then the blocks.
 
-.rs-body { display: flex; flex-direction: column; gap: 16px; }
+   The plot is the one place any boldness is spent. Every other panel is a flat instrument
+   face and stays quiet. Pairs with shell.css, which owns the tokens. */
 
-.rs-control-grid { display: grid; grid-template-columns: minmax(0, 1.42fr) minmax(320px, 0.58fr); gap: 16px; }
-@media (max-width: 1080px) { .rs-control-grid { grid-template-columns: 1fr; } }
-.rs-side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.rs-body { display: flex; flex-direction: column; gap: 14px; }
 
-.rs-map-box { height: 540px; border-radius: 8px; border: 1px solid var(--rs-border); overflow: hidden; background: #0a0d12; }
+.rs-topbar .rs-clock {
+  font: 500 16px var(--rs-mono); font-variant-numeric: tabular-nums; white-space: nowrap;
+  color: var(--pb-deep); background: var(--rs-surface-3);
+  border-radius: var(--rs-radius-sm); padding: 5px 11px;
+}
+
+/* ── the plot, and the timeline that lives inside it ────────────────────── */
+.rs-hero { padding-bottom: 12px; }
+.rs-chart { width: 100%; }
+.rs-chart svg { display: block; width: 100%; height: auto; }
+.rs-grid-line { stroke: var(--rs-surface-3); stroke-width: 1; }
+.rs-axis-text { fill: var(--rs-muted); font: 10.5px var(--rs-sans); }
+.rs-marker-line { stroke: var(--rs-border-strong); stroke-width: 1; stroke-dasharray: 2 4; }
+.rs-marker-text { fill: var(--rs-text-2); font: 500 10px var(--rs-mono); }
+.rs-series-line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.rs-cursor-line { stroke: var(--pb-deep); stroke-width: 1; opacity: 0.55; }
+.rs-cursor-knob { fill: var(--pb-deep); }
+
+/* The scrubber sits under the plot it drives, in the same panel, at the top of the page —
+   it used to be the last thing on a long scroll. */
+.rs-transport { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; padding-top: 11px; border-top: 1px solid var(--rs-border); }
+.rs-transport .rs-range { flex: 1; min-width: 200px; }
+.rs-marks { display: flex; gap: 14px; flex-wrap: wrap; }
+.rs-marks span { color: var(--rs-muted); font: 11px var(--rs-sans); }
+.rs-marks b { font: 500 11px var(--rs-mono); font-variant-numeric: tabular-nums; color: var(--rs-text-2); }
+
+/* ── the mechanism, stated at the current instant ───────────────────────── */
+/* No battery is involved and the copy must never imply one: what is drawn here is power
+   being held back and then let go, minute by minute. */
+.rs-balance { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 340px); gap: 22px; align-items: center; }
+@media (max-width: 900px) { .rs-balance { grid-template-columns: 1fr; } }
+.rs-balance-say { font: 400 15px/1.55 var(--rs-sans); color: var(--rs-text); margin: 0; max-width: 56ch; }
+.rs-balance-say b { font-weight: 600; font-family: var(--rs-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.rs-balance-say .lost { color: var(--rs-amber-text); }
+.rs-balance-say .back { color: var(--rs-violet-text); }
+.rs-balance-say .meter { color: var(--rs-teal-text); }
+.rs-balance-bar { display: flex; height: 26px; border-radius: 4px; overflow: hidden; background: var(--rs-surface-3); }
+.rs-balance-bar span { display: block; height: 100%; transition: width 160ms linear; }
+.rs-balance-bar .covered { background: var(--rs-violet); }
+.rs-balance-bar .through { background: var(--rs-amber); }
+.rs-balance-key { display: flex; justify-content: space-between; gap: 12px; margin-top: 7px; font-size: 11.5px; color: var(--rs-text-2); }
+.rs-balance-key span { display: inline-flex; align-items: center; gap: 6px; }
+@media (prefers-reduced-motion: reduce) { .rs-balance-bar span { transition: none; } }
+
+/* ── plant and scenario ─────────────────────────────────────────────────── */
+.rs-control-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(320px, 0.5fr); gap: 14px; }
+@media (max-width: 1100px) { .rs-control-grid { grid-template-columns: 1fr; } }
+.rs-side { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+
+.rs-map-box { height: clamp(360px, 52vh, 560px); border-radius: var(--rs-radius-sm); border: 1px solid var(--rs-border); overflow: hidden; background: var(--map-ground); }
 .rs-map-box .map-fallback svg { width: 100%; height: auto; display: block; }
 .maplibregl-map { font: inherit; }
 .maplibregl-ctrl-attrib { font-size: 9px; }
-.zone-label { color: #fff; font: 600 10px/1 var(--rs-mono); letter-spacing: 0.05em; text-shadow: 0 1px 3px rgba(0,0,0,0.9); white-space: nowrap; pointer-events: none; }
+.zone-label { color: #fff; font: 600 10px/1 var(--rs-mono); text-shadow: 0 1px 3px rgba(0,0,0,0.9); white-space: nowrap; pointer-events: none; }
 .block-label { color: #fff; font: 500 10px/1.2 var(--rs-mono); text-align: center; text-shadow: 0 1px 3px rgba(0,0,0,0.95); white-space: nowrap; pointer-events: none; }
 .block-label small { display: block; font-weight: 400; opacity: 0.85; }
 
-.rs-seg { display: inline-flex; border: 1px solid var(--rs-border-strong); border-radius: 7px; overflow: hidden; background: var(--rs-surface-2); }
-.rs-seg button { font: 500 11px var(--rs-sans); padding: 6px 12px; cursor: pointer; border: 0; background: transparent; color: var(--rs-text-2); }
-.rs-seg button:hover { color: var(--rs-text); }
-.rs-seg button.is-on { background: var(--rs-accent); color: var(--rs-ink); font-weight: 600; }
+/* ── controls ───────────────────────────────────────────────────────────── */
+.rs-seg { display: inline-flex; border: 1px solid var(--rs-border-strong); border-radius: var(--rs-radius-sm); overflow: hidden; background: var(--rs-surface-2); }
+.rs-seg button { font: 500 12px var(--rs-sans); padding: 6px 12px; cursor: pointer; border: 0; background: transparent; color: var(--rs-text-2); }
+.rs-seg button:hover { color: var(--rs-text); background: var(--rs-surface-3); }
+.rs-seg button.is-on { background: var(--pb-deep); color: #fff; }
 
-.rs-ctl { display: grid; gap: 5px; margin-bottom: 12px; }
-.rs-ctl-label { font-size: 11px; color: var(--rs-text-2); display: flex; justify-content: space-between; gap: 8px; }
-.rs-ctl-label b { font-family: var(--rs-mono); font-weight: 500; color: var(--rs-accent-2); }
-.rs-ctl input[type="range"] { width: 100%; accent-color: var(--rs-accent); }
-.rs-ctl select { font: 12px var(--rs-sans); padding: 7px 9px; border-radius: 7px; border: 1px solid var(--rs-border-strong); background: var(--rs-surface-2); color: var(--rs-text); }
-.rs-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.rs-check { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--rs-text-2); margin-bottom: 10px; }
-.rs-check input, .rs-ctl input[type="checkbox"] { accent-color: var(--rs-accent); }
-.rs-btn { font: 500 12px var(--rs-sans); padding: 8px 13px; border-radius: 7px; cursor: pointer; border: 1px solid var(--rs-border-strong); background: var(--rs-surface-2); color: var(--rs-text); transition: filter .12s, background .12s; }
+.rs-group { margin-bottom: 4px; }
+.rs-group + .rs-group { margin-top: 15px; padding-top: 14px; border-top: 1px solid var(--rs-border); }
+.rs-group > h3 { margin: 0 0 11px; font: 600 12.5px var(--rs-sans); color: var(--rs-text); }
+
+.rs-ctl { display: grid; gap: 3px; margin-bottom: 13px; }
+.rs-ctl:last-child { margin-bottom: 0; }
+.rs-ctl-label { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 12px; color: var(--rs-text-2); }
+.rs-ctl-label b { font: 500 12.5px var(--rs-mono); font-variant-numeric: tabular-nums; color: var(--pb-deep); }
+.rs-ctl select { font: 12.5px var(--rs-sans); padding: 7px 9px; border-radius: var(--rs-radius-sm); border: 1px solid var(--rs-border-strong); background: var(--pb-card); color: var(--rs-text); width: 100%; }
+.rs-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; }
+.rs-check { display: flex; align-items: flex-start; gap: 9px; font-size: 12.5px; color: var(--rs-text-2); line-height: 1.45; margin: 4px 0 12px; }
+.rs-check input { accent-color: var(--pb-green); margin-top: 2px; flex: none; }
+.rs-btn { font: 500 12.5px var(--rs-sans); padding: 8px 13px; border-radius: var(--rs-radius-sm); cursor: pointer; border: 1px solid var(--rs-border-strong); background: var(--pb-card); color: var(--rs-text); }
 .rs-btn:hover { background: var(--rs-surface-3); }
-.rs-btn.primary { background: var(--rs-accent); border-color: var(--rs-accent); color: var(--rs-ink); font-weight: 600; }
-.rs-btn.primary:hover { background: var(--rs-accent-2); }
-.rs-btn.warn { border-color: color-mix(in srgb, var(--rs-bad) 50%, var(--rs-border)); color: var(--rs-bad); background: color-mix(in srgb, var(--rs-bad) 8%, transparent); }
-.rs-btn.warn:hover { background: color-mix(in srgb, var(--rs-bad) 18%, transparent); }
+.rs-btn.primary { background: var(--pb-deep); border-color: var(--pb-deep); color: #fff; min-width: 74px; }
+.rs-btn.primary:hover { background: color-mix(in srgb, var(--pb-deep) 86%, #000); }
+/* The two buttons that break the forecast on purpose. Tinted from --rs-bad so the whole
+   family moves together if that token ever changes. */
+.rs-btn.warn { border-color: color-mix(in srgb, var(--rs-bad) 34%, var(--pb-card)); color: color-mix(in srgb, var(--rs-bad) 86%, #000); background: color-mix(in srgb, var(--rs-bad) 6%, var(--pb-card)); }
+.rs-btn.warn:hover { background: color-mix(in srgb, var(--rs-bad) 13%, var(--pb-card)); }
+.rs-btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
-/* The headline numbers lead the page, across the full width above the map. */
-.rs-kpi-row .rs-tiles { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
-
-/* KPI tiles: an instrument readout with an amber tick */
-.rs-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(124px, 1fr)); gap: 10px; }
-.rs-tile { background: var(--rs-surface-2); border: 1px solid var(--rs-border); border-left: 2px solid var(--rs-border-strong); border-radius: 8px; padding: 11px 13px; display: flex; flex-direction: column; gap: 3px; }
-.rs-tile .k { font: 500 10px var(--rs-mono); letter-spacing: 0.06em; color: var(--rs-muted); text-transform: uppercase; }
-.rs-tile .v { font: 500 23px var(--rs-mono); letter-spacing: -0.01em; font-variant-numeric: tabular-nums; color: var(--rs-text); line-height: 1.1; }
-.rs-tile .v.big { font-size: 30px; }
-.rs-tile .u { font-size: 10.5px; color: var(--rs-muted); }
-.rs-tile.accent { border-left-color: var(--rs-teal); }
-.rs-tile.accent .v { color: var(--rs-teal); }
-.rs-tile.amber { border-left-color: var(--rs-amber); }
-.rs-tile.amber .v { color: var(--rs-amber); }
-/* Firm reserve / held headroom — slate blue, its own quantity. */
-.rs-tile.reserve { border-left-color: var(--rs-violet); }
-.rs-tile.reserve .v { color: var(--rs-violet); }
-/* Blocks still in full sun — where the firm reserve is actually standing. */
-.rs-tile.sun { border-left-color: var(--rs-amber); }
-.rs-tile.sun .v { color: var(--rs-amber); }
-
-.rs-phase { font: 600 10px var(--rs-mono); letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 9px; border-radius: 5px; border: 1px solid var(--rs-border-strong); color: var(--rs-text-2); background: var(--rs-surface-2); }
-.rs-phase[data-phase="before"] { border-color: var(--rs-cyan); color: var(--rs-cyan); }
-.rs-phase[data-phase="transit"] { border-color: var(--rs-amber); color: var(--rs-amber); }
-.rs-phase[data-phase="cover"] { border-color: var(--rs-bad); color: var(--rs-bad); }
-.rs-phase[data-phase="exit"] { border-color: var(--rs-good); color: var(--rs-good); }
-.rs-phase[data-phase="released"] { border-color: var(--rs-violet); color: var(--rs-violet); }
-
-.rs-ramp-big { font: 500 30px var(--rs-mono); letter-spacing: -0.01em; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-.rs-ramp-big .from { color: var(--rs-bad); }
-.rs-ramp-big .to { color: var(--rs-teal); }
-.rs-ramp-big .arrow { color: var(--rs-muted); font-size: 22px; }
-.rs-ramp-big .u { font-size: 12px; color: var(--rs-muted); font-family: var(--rs-sans); }
-
-.rs-dl { margin: 0; display: grid; grid-template-columns: 1fr auto; gap: 7px 12px; }
+/* The scenario's derived quantities: what the sliders imply, not what they set. */
+.rs-dl { margin: 12px 0 0; display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; padding-top: 12px; border-top: 1px solid var(--rs-border); }
 .rs-dl dt { font-size: 12px; color: var(--rs-text-2); }
 .rs-dl dd { margin: 0; font: 12px var(--rs-mono); text-align: right; font-variant-numeric: tabular-nums; color: var(--rs-text); }
 
-.rs-chart { width: 100%; }
-.rs-chart svg { display: block; width: 100%; height: auto; }
-.rs-grid-line { stroke: #e4ece7; stroke-width: 1; }
-.rs-axis-text { fill: var(--rs-muted); font: 10px var(--rs-mono); }
-.rs-marker-line { stroke: var(--rs-border-strong); stroke-width: 1; stroke-dasharray: 2 4; }
-.rs-marker-text { fill: var(--rs-muted); font: 9px var(--rs-mono); }
-.rs-series-line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
-.rs-cursor-line { stroke: var(--rs-accent); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0.7; }
-.rs-bar-cap { fill: #eef4f0; }
-.rs-bar-id { fill: var(--rs-muted); font: 9px var(--rs-mono); }
-.rs-bar-eta { fill: var(--rs-cyan); font: 9px var(--rs-mono); }
+/* Where the event has got to. One chip, always the same shape and the same weight of text;
+   only the dot changes colour. Five tinted chips meant five more colours on the page for a
+   label that is read once a minute. */
+.rs-phase { display: inline-flex; align-items: center; gap: 7px; font: 500 11.5px var(--rs-sans); white-space: nowrap; padding: 5px 10px; border-radius: var(--rs-radius-sm); border: 1px solid var(--rs-border-strong); color: var(--rs-text-2); background: var(--pb-card); }
+.rs-phase::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--rs-muted); flex: none; }
+.rs-phase[data-phase="before"]::before { background: var(--rs-cyan); }
+.rs-phase[data-phase="transit"]::before { background: var(--rs-amber); }
+.rs-phase[data-phase="cover"]::before { background: var(--rs-bad); }
+.rs-phase[data-phase="exit"]::before { background: var(--rs-good); }
+.rs-phase[data-phase="released"]::before { background: var(--rs-violet); }
+
+/* ── block bars ─────────────────────────────────────────────────────────── */
+.rs-bar-cap { fill: var(--rs-surface-3); }
+.rs-bar-cloud { fill: var(--cloud); opacity: 0.30; }
+.rs-bar-rise { fill: var(--rs-violet); }
+.rs-bar-id { fill: var(--rs-muted); font: 9.5px var(--rs-mono); }
+.rs-bar-eta { fill: var(--rs-cyan); font: 9.5px var(--rs-mono); }
 .rs-bar-eta.is-here { fill: var(--rs-amber); }
 
-.rs-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; font-size: 11px; color: var(--rs-text-2); }
+.rs-legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 11px; font-size: 11.5px; color: var(--rs-text-2); }
 .rs-legend span { display: inline-flex; align-items: center; gap: 6px; }
-.rs-sw { width: 14px; height: 8px; border-radius: 2px; display: inline-block; }
+.rs-sw { width: 13px; height: 8px; border-radius: 2px; display: inline-block; flex: none; }
 
-.rs-honesty { font-size: 12px; color: var(--rs-text-2); border-left: 2px solid var(--rs-sim); padding: 9px 12px; margin: 12px 0 0; background: color-mix(in srgb, var(--rs-sim) 8%, transparent); border-radius: 4px; line-height: 1.55; }
+/* ── event summary ──────────────────────────────────────────────────────── */
+.rs-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0; border: 1px solid var(--rs-border); border-radius: var(--rs-radius-sm); overflow: hidden; }
+.rs-tile { padding: 12px 14px; border-left: 1px solid var(--rs-border); border-top: 1px solid var(--rs-border); background: var(--rs-surface-2); }
+.rs-tile .k { display: block; font: 400 12px var(--rs-sans); color: var(--rs-text-2); }
+.rs-tile .v { display: block; margin-top: 4px; font: 500 20px var(--rs-mono); font-variant-numeric: tabular-nums; color: var(--rs-text); }
+.rs-tile .u { display: block; margin-top: 2px; font-size: 11px; color: var(--rs-muted); }
+.rs-tile.reserve .v { color: var(--rs-violet-text); }
 
-.rs-timeline { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.rs-timeline input[type="range"] { flex: 1; min-width: 220px; accent-color: var(--rs-accent); }
-.rs-marks { display: flex; justify-content: space-between; font: 10px var(--rs-mono); color: var(--rs-muted); margin-top: 8px; }
+.rs-honesty { font-size: 12.5px; color: var(--rs-text-2); border-left: 2px solid var(--rs-sim); padding: 10px 13px; margin: 13px 0 0; background: var(--rs-surface-2); border-radius: 0 var(--rs-radius-sm) var(--rs-radius-sm) 0; line-height: 1.6; max-width: 78ch; }
 
-.rs-tooltip { position: fixed; pointer-events: none; opacity: 0; transform: translate(-50%, -115%); background: var(--rs-surface-3); border: 1px solid var(--rs-border-strong); border-radius: 7px; padding: 8px 10px; font-size: 12px; box-shadow: var(--rs-shadow-lg); z-index: 4000; min-width: 150px; transition: opacity 90ms linear; }
+.rs-ramp-big { font: 500 30px var(--rs-mono); font-variant-numeric: tabular-nums; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; letter-spacing: -0.02em; }
+.rs-ramp-big .from { color: var(--rs-rust-text); }
+.rs-ramp-big .to { color: var(--rs-teal-text); }
+.rs-ramp-big .arrow { color: var(--rs-muted); font-size: 20px; }
+.rs-ramp-big .u { font: 400 12px var(--rs-sans); color: var(--rs-muted); }
+
+.rs-split { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 14px; }
+@media (max-width: 1100px) { .rs-split { grid-template-columns: 1fr; } }
+
+.rs-tooltip { position: fixed; pointer-events: none; opacity: 0; transform: translate(-50%, -115%); background: var(--pb-card); border: 1px solid var(--rs-border-strong); border-radius: var(--rs-radius-sm); padding: 9px 11px; font-size: 12px; box-shadow: var(--rs-shadow-lg); z-index: 4000; min-width: 158px; transition: opacity 90ms linear; }
 .rs-tooltip.on { opacity: 1; }
-.rs-tt-head { color: var(--rs-muted); font: 11px var(--rs-mono); margin-bottom: 4px; }
-.rs-tt-row { display: flex; justify-content: space-between; gap: 10px; }
-.rs-tt-row .val { font-family: var(--rs-mono); color: var(--rs-text); }
+.rs-tt-head { color: var(--rs-text-2); font: 500 11.5px var(--rs-sans); margin-bottom: 5px; }
+.rs-tt-row { display: flex; justify-content: space-between; gap: 12px; }
+.rs-tt-row .val { font-family: var(--rs-mono); font-variant-numeric: tabular-nums; color: var(--rs-text); }
+@media (prefers-reduced-motion: reduce) { .rs-tooltip { transition: none; } }
 
-.rs-busy { opacity: 0.5; pointer-events: none; }
-.rs-split { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; }
-@media (max-width: 1080px) { .rs-split { grid-template-columns: 1fr; } }
+.rs-busy { opacity: 0.45; pointer-events: none; }

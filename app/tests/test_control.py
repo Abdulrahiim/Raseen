@@ -9,11 +9,17 @@ from raseen.control.simulate import simulate_scheme
 
 # Pinned reference numbers for the abstract design case D1 (30 x 100 MW blocks, perfectly
 # forecast front). These are the targets the controller must keep reproducing.
+#
+# Spill, lead and gradient are properties of the declared line and have never moved. The
+# firm reserve did: placing the curtailment farthest-arrival first instead of nearest-first
+# leaves the headroom on blocks the cloud has not reached, where it is still releasable at
+# contact. The earlier figures (287.5 / 218.9 / 188.1 / 154.3) were what the same plant held
+# when most of its curtailment sat on blocks about to be shaded, where it expired unused.
 ABSTRACT_D1 = {  # g: (spill_total, lead, firm_at_contact_bgc)
-    60.0: (605.0, 19.8, 287.5),
-    90.0: (305.0, 9.8, 218.9),
-    120.0: (155.0, 4.8, 188.1),
-    150.0: (65.0, 1.8, 154.3),
+    60.0: (605.0, 19.8, 712.6),
+    90.0: (305.0, 9.8, 651.8),
+    120.0: (155.0, 4.8, 414.6),
+    150.0: (65.0, 1.8, 185.0),
 }
 
 
@@ -89,7 +95,7 @@ def test_flat_mode_holds_the_transit_minimum_for_a_thin_band():
     assert abs(result.POI[mid] - plan.A_min) < 5.0
 
 
-def test_reserve_slice_sits_on_far_blocks_and_release_frees_near_blocks_first():
+def test_curtailment_sits_on_the_blocks_the_cloud_reaches_last():
     A = [100.0, 100.0, 100.0]
     floor = [40.0, 40.0, 40.0]
     eta = [1.0, 5.0, 10.0]
@@ -98,13 +104,41 @@ def test_reserve_slice_sits_on_far_blocks_and_release_frees_near_blocks_first():
     kw = dict(delta=0.0, horizon=5.0, sigma=3.0, slew_lim=slew, prev=A)
     p = allocate_bgc(A, floor, eta, cap, 250.0, **kw)
     assert abs(sum(p) - 250.0) < 1e-6
-    assert p[0] < p[1] < p[2]                     # descend-first: nearest block lowest
+    # Farthest-arrival first: block 2 (ETA 10 min) is held lowest, so its headroom is still
+    # there to be released when block 0 (ETA 1 min) goes under the cloud.
+    assert p[2] < p[1] < p[0]
     r = allocate_bgc(A, floor, eta, cap, 250.0, release=True, **kw)
     assert abs(sum(r) - 250.0) < 1e-6
-    assert r[0] > r[2]                            # release mode: far block carries what remains
+    assert r[2] > r[0]                            # release mode: the reserve is given back first
     q = allocate_bgc(A, floor, eta, cap, 280.0, **{**kw, "delta": 30.0})
     # reserve slice on the far block only
     assert q[2] < 100.0 - 1e-6 and abs(q[0] - 100.0) < 1e-6
+
+
+def test_far_blocks_raise_output_as_the_cloud_lands_on_the_near_ones():
+    """The mechanism itself: headroom built before contact is spent to cover the loss.
+
+    Two blocks. The cloud reaches block 0 first; block 1 it never reaches. Holding the
+    aggregate flat at 150 MW while block 0's sun falls from 100 to 40 MW must be paid for by
+    block 1 *rising*, which it can only do because it was held below its available power to
+    begin with.
+
+    ``floor`` is the level the plant settles at under full cover, and the runner applies the
+    same one to every block — a block is not allowed to be curtailed below it, whether or not
+    the cloud reaches that block.
+    """
+    cap = [100.0, 100.0]
+    floor = [40.0, 40.0]
+    slew = [100.0, 100.0]
+    kw = dict(delta=0.0, horizon=5.0, sigma=3.0, slew_lim=slew)
+    before = allocate_bgc([100.0, 100.0], floor, [6.0, float("inf")], cap, 150.0,
+                          prev=[100.0, 100.0], **kw)
+    assert abs(sum(before) - 150.0) < 1e-6
+    assert before[1] < 100.0 - 1e-6               # headroom parked on the block that keeps sun
+    during = allocate_bgc([40.0, 100.0], floor, [0.0, float("inf")], cap, 140.0,
+                          prev=before, **kw)
+    assert abs(sum(during) - 140.0) < 1e-6
+    assert during[1] > before[1] + 1e-6           # …and released when the cloud lands
 
 
 def test_uniform_and_reactive_helpers():

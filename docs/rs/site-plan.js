@@ -1,11 +1,19 @@
 import { outputColour, headroomColour, etaColour, cssVar } from "./colour.js";
 import { fmt } from "./format.js";
 
+/* Headroom on a block is "firm" when the cloud is still further away than the reserve
+   horizon: far enough that the MW being held can actually be spent before that block goes
+   under cover. It is derived from the block's ETA rather than carried as a parallel array in
+   every frame, which keeps the pre-rendered static scenarios a good deal smaller. */
+let horizonMin = 5;
+export const setReserveHorizon = (minutes) => { horizonMin = Number(minutes) || 5; };
+export const isFirm = (eta) => eta === null || eta === undefined || eta > horizonMin;
+
 /** Colour of block i for the chosen map mode. `frame` may be null (clear day: all at capacity). */
 export function blockColour(mode, frame, i, controller, cap) {
   if (!frame) return mode === "output" ? outputColour(1) : cssVar("--surface-3");
   const P = frame[`P_${controller}`] ?? frame.P_bgc;
-  if (mode === "headroom") return headroomColour(Math.max(0, frame.A[i] - P[i]) / cap, Boolean(frame.firm?.[i]));
+  if (mode === "headroom") return headroomColour(Math.max(0, frame.A[i] - P[i]) / cap, isFirm(frame.eta?.[i]));
   if (mode === "eta") return etaColour(frame.eta?.[i] ?? null);
   return outputColour(Math.max(0, P[i]) / cap);
 }
@@ -18,7 +26,7 @@ export function blockRows(frame, i, controller, cap, label) {
   return [
     { name: "Available", value: `${fmt(frame.A[i], 0)} MW` },
     { name: "Set-point", value: `${fmt(P[i], 0)} MW` },
-    { name: "Headroom", value: `${fmt(Math.max(0, frame.A[i] - P[i]), 0)} MW${frame.firm?.[i] ? " · firm" : ""}` },
+    { name: "Headroom", value: `${fmt(Math.max(0, frame.A[i] - P[i]), 0)} MW${isFirm(eta) ? ", firm" : ", expiring"}` },
     { name: "Cloud ETA", value: eta === null ? "none" : eta <= 0 ? "reached" : `+${fmt(eta, 1)} min` },
     { name: "Coverage", value: `${fmt((frame.coverage?.[i] ?? 0) * 100, 0)} %` },
   ];

@@ -1,78 +1,158 @@
-/* Kingdom page — sage "Power BI" theme. Pairs with shell.css. */
+/* Kingdom — the national fleet view, and the first page anyone sees. Pairs with shell.css,
+   which owns every token used here.
 
-.rs-body { padding: 16px; }
+   The map is the subject of the page, so it is the only dark field on the desk and it takes
+   the height that is left once the numbers are placed; everything around it is a flat, quiet
+   instrument face. The numbers above it are one readout bar rather than a row of cards, and
+   they are cut two ways — by status in the cells, by technology in the bar under them. Both
+   cuts add to the same total, which is why they share a panel instead of sitting in six. */
 
-.rs-kingdom { display: grid; grid-template-columns: 284px minmax(0, 1fr); gap: 16px; }
-@media (max-width: 960px) { .rs-kingdom { grid-template-columns: 1fr; } }
+.rs-body { display: flex; flex-direction: column; gap: 14px; }
 
-.rs-list-panel { background: var(--rs-surface); border: 1px solid var(--rs-border); border-radius: var(--rs-radius); padding: 14px; display: flex; flex-direction: column; min-height: 0; max-height: calc(100vh - 250px); box-shadow: var(--rs-shadow); }
-.rs-list-head { display: flex; align-items: center; justify-content: space-between; }
-.rs-list-head h2 { margin: 0 0 10px; font: 700 13px var(--rs-sans); letter-spacing: 0.01em; color: var(--rs-accent-2); }
-.rs-count { font: 11px var(--rs-mono); color: var(--rs-muted); }
-.rs-search { font: 12px var(--rs-sans); padding: 8px 10px; border-radius: 7px; border: 1px solid var(--rs-border-strong); background: var(--rs-surface-2); color: var(--rs-text); width: 100%; margin-bottom: 10px; }
-.rs-search:focus { outline: 2px solid color-mix(in srgb, var(--rs-accent) 40%, transparent); border-color: var(--rs-accent); }
-.rs-list { overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
-.rs-prow { display: grid; grid-template-columns: 14px 1fr auto; align-items: center; gap: 9px; padding: 7px 9px; border-radius: 6px; border: 1px solid transparent; background: transparent; color: var(--rs-text); text-align: left; cursor: pointer; font-size: 12px; }
-.rs-prow:hover { background: var(--rs-surface-2); border-color: var(--rs-border); }
-.rs-prow .mw { color: var(--rs-text-2); font: 11px var(--rs-mono); }
-.rs-prow .twin { font: 600 9px var(--rs-mono); color: var(--rs-sim); border: 1px solid color-mix(in srgb, var(--rs-sim) 45%, transparent); border-radius: 3px; padding: 1px 4px; }
-.rs-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
-.rs-ring { width: 10px; height: 10px; border-radius: 50%; border: 2px solid; display: inline-block; }
+/* ── the registry bar ───────────────────────────────────────────────────── */
+/* Layout and typography come from .rs-readout in shell.css; the key square is coloured
+   inline per technology and status, which beats the shell's default. This page adds only the
+   panel that has to give up its padding so the strip reaches the edges, and the tint that
+   marks the total as the cell to read first. */
+.rs-registry { padding: 0; overflow: hidden; }
+.rs-cell.lead { background: var(--rs-surface-2); }
 
-.rs-map-panel { position: relative; background: var(--rs-surface); border: 1px solid var(--rs-border); border-radius: var(--rs-radius); padding: 7px; box-shadow: var(--rs-shadow); }
-.rs-map-box { height: calc(100vh - 262px); min-height: 460px; border-radius: 7px; overflow: hidden; background: #0a0d12; }
-.rs-map-box .map-fallback svg { width: 100%; height: auto; display: block; }
+/* The same fleet, cut by technology. One bar rather than four more cells, because the
+   proportion is the reading and the segments double as the key to the map's pin colours. */
+.rs-mix { display: flex; align-items: center; flex-wrap: wrap; gap: 9px 15px; padding: 11px 16px; border-top: 1px solid var(--rs-border); }
+.rs-mix .k { flex: none; font: 400 12.5px var(--rs-sans); color: var(--rs-text-2); }
+.rs-mixbar { flex: 1 1 200px; min-width: 150px; display: flex; height: 10px; border-radius: 3px; overflow: hidden; background: var(--rs-surface-3); }
+.rs-mixbar span { display: block; height: 100%; min-width: 2px; }
+.rs-mixkey { display: flex; flex-wrap: wrap; gap: 5px 15px; font-size: 11.5px; color: var(--rs-text-2); }
+.rs-mixkey span { display: inline-flex; align-items: center; gap: 6px; }
+.rs-mixkey i { width: 8px; height: 8px; border-radius: 2px; flex: none; }
+.rs-mixkey b { font: 500 11.5px var(--rs-mono); font-variant-numeric: tabular-nums; color: var(--rs-text); }
+
+/* The switches live in the same panel as the numbers they narrow — they filter the list and
+   the map together, so they belong to neither column. */
+.rs-filters { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 20px; padding: 10px 16px; border-top: 1px solid var(--rs-border); }
+.fl-set { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; }
+.fl-set + .fl-set { padding-left: 20px; border-left: 1px solid var(--rs-border); }
+.fl-k { font: 400 12.5px var(--rs-sans); color: var(--rs-text-2); }
+.rs-check { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: var(--rs-text); cursor: pointer; }
+.rs-check input { accent-color: var(--pb-green); flex: none; margin: 0; }
+/* The divider between the two sets only makes sense while they share a line; once Status
+   wraps below Technology a vertical rule floats next to nothing. */
+@media (max-width: 1380px) { .fl-set + .fl-set { padding-left: 0; border-left: 0; } }
+/* Narrow: the sets stack and each label takes its own line, so the switches under it read
+   as a group rather than as a run-on sentence. */
+@media (max-width: 700px) {
+  .fl-set { flex: 1 1 100%; }
+  .fl-set + .fl-set { padding-top: 8px; border-top: 1px solid var(--rs-border); }
+  .fl-k { flex: 1 1 100%; }
+}
+
+/* ── fleet and map ──────────────────────────────────────────────────────── */
+/* One height drives both columns so the list and the map end on the same line; inside each
+   panel the scroller and the map screen take whatever the panel's head leaves. */
+.rs-kingdom { display: grid; grid-template-columns: 316px minmax(0, 1fr); gap: 14px; }
+.rs-fleet, .rs-map-panel { box-sizing: border-box; display: flex; flex-direction: column; min-height: 0; height: clamp(440px, calc(100vh - 360px), 800px); }
+
+.rs-fleet .rs-panel-head { margin-bottom: 10px; }
+.rs-count { font: 400 11.5px var(--rs-mono); font-variant-numeric: tabular-nums; color: var(--rs-text-2); }
+.rs-search { box-sizing: border-box; width: 100%; font: 12.5px var(--rs-sans); padding: 7px 9px; border-radius: var(--rs-radius-sm); border: 1px solid var(--rs-border-strong); background: var(--pb-card); color: var(--rs-text); }
+.rs-search::placeholder { color: var(--rs-text-2); }
+.rs-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; margin-top: 10px; display: flex; flex-direction: column; gap: 1px; }
+.rs-prow { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; align-items: center; gap: 9px; width: 100%; padding: 6px 8px; border: 0; border-radius: var(--rs-radius-sm); background: transparent; color: var(--rs-text); text-align: left; cursor: pointer; font: 12.5px var(--rs-sans); }
+.rs-prow:hover { background: var(--rs-surface-3); }
+.rs-prow .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rs-prow .mw { font: 11.5px var(--rs-mono); font-variant-numeric: tabular-nums; color: var(--rs-text-2); }
+/* Humaij is the one row that leaves this page, so it is marked the way it is on the map. */
+.rs-prow.is-ref { font-weight: 600; box-shadow: inset 2px 0 0 var(--pb-green); }
+.rs-empty { margin: 8px 0 0; font-size: 12px; color: var(--rs-text-2); }
+
+/* A plant's mark, used in the list and in the filters so the map needs no separate key:
+   the fill is the technology, the ring is the status. Colours are set inline from
+   colour.js, which is the one place those two scales are defined. */
+.rs-dot { box-sizing: border-box; width: 16px; height: 16px; border-radius: 50%; border: 2px solid transparent; display: inline-block; flex: none; }
+.rs-ring { box-sizing: border-box; width: 13px; height: 13px; border-radius: 50%; border: 2px solid; display: inline-block; flex: none; }
+
+/* The map and its key are one instrument screen: the key sits on the dark, in the header's
+   own field, so the light panel around it stays clean and the swatches are the colours the
+   map actually draws. */
+.rs-map-panel .rs-panel-head { margin-bottom: 11px; }
+.rs-map-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; }
+.rs-btn { font: 500 12.5px var(--rs-sans); padding: 6px 12px; border-radius: var(--rs-radius-sm); cursor: pointer; border: 1px solid var(--rs-border-strong); background: var(--pb-card); color: var(--rs-text); }
+.rs-btn:hover { background: var(--rs-surface-3); }
+.rs-map-screen { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow: hidden; background: var(--rs-map-ink); border: 1px solid var(--rs-border); border-radius: var(--rs-radius-sm); }
+.rs-map-box { flex: 1 1 auto; min-height: 0; }
+/* The fallback plan is one fixed-ratio drawing (1000x762) in a box whose height the panel
+   decides, so it has to fit inside rather than run past the bottom edge: the screen clips,
+   and a clipped plan silently drops the southern plants — Bisha PV is 3 GW. Giving the SVG
+   both dimensions lets its own preserveAspectRatio letterbox it instead. */
+.rs-map-box .map-fallback { height: 100%; }
+.rs-map-box .map-fallback svg { width: 100%; height: 100%; display: block; }
+.rs-map-key { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 8px 12px; background: var(--pb-header); color: var(--rs-ink); font-size: 11.5px; }
+.rs-map-key span { display: inline-flex; align-items: center; gap: 7px; }
+.rs-map-key i { flex: none; box-sizing: border-box; }
+/* The pin in the key is deliberately colourless — the two scales it stands for are keyed
+   by the filter switches above, where they also do some work. */
+.rs-map-key .k-pin { width: 13px; height: 13px; border-radius: 50%; border: 2px solid var(--rs-map-node); background: var(--rs-muted); }
+.rs-map-key .k-ref { width: 13px; height: 13px; border-radius: 50%; border: 2px solid var(--rs-map-ref); }
+.rs-map-key .k-line { width: 18px; border-top: 2px dashed var(--rs-map-node); }
+.rs-map-key .k-line.is-evac { border-top-color: var(--rs-map-ref); }
+
 .maplibregl-map { font: inherit; }
 .maplibregl-ctrl-attrib { font-size: 9px; }
 
-/* The Kingdom headline numbers lead the page in a band above the map, rather than floating
-   over it — over the map they crowded the north-west corner and covered the coast. */
-.rs-kpi-strip { display: grid; grid-template-columns: repeat(5, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
-@media (max-width: 1250px) { .rs-kpi-strip { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 720px) { .rs-kpi-strip { grid-template-columns: repeat(2, 1fr); } }
-.rs-ktile { background: var(--rs-surface); border: 1px solid var(--rs-border); border-radius: var(--rs-radius); padding: 12px 14px; display: flex; flex-direction: column; gap: 1px; box-shadow: var(--rs-shadow); }
-.rs-ktile .k { font: 500 10px var(--rs-mono); color: var(--rs-text-2); }
-.rs-ktile .v { font: 500 20px var(--rs-mono); font-variant-numeric: tabular-nums; color: var(--rs-accent-2); }
-.rs-ktile .u { font-size: 10px; color: var(--rs-muted); }
-.rs-ktile .sub { font-size: 10px; color: var(--rs-muted); }
+/* ── sources ────────────────────────────────────────────────────────────── */
+/* Provenance is not decoration: the registry is a reading of public announcements, the grid
+   is a schematic, and neither claim may be softened. Both sit under the map they describe. */
+.rs-foot { line-height: 1.6; }
+.rs-scale { margin: 0 0 12px; max-width: 100ch; font: 400 12.5px/1.6 var(--rs-sans); color: var(--rs-text-2); }
+.rs-scale b { font: 500 12.5px var(--rs-mono); font-variant-numeric: tabular-nums; color: var(--rs-text); }
+.rs-source { margin: 0 0 7px; max-width: 110ch; font-size: 11.5px; color: var(--rs-text-2); }
+.rs-source:last-child { margin-bottom: 0; }
+.rs-source b { font-weight: 600; color: var(--rs-text); }
 
-.rs-layer-panel { position: absolute; top: 14px; right: 14px; z-index: 5; background: color-mix(in srgb, var(--rs-surface) 92%, transparent); border: 1px solid var(--rs-border); border-radius: 8px; padding: 11px 13px; display: flex; flex-direction: column; gap: 6px; min-width: 218px; box-shadow: var(--rs-shadow-lg); max-height: calc(100vh - 150px); overflow-y: auto; backdrop-filter: blur(8px); }
-.lp-title { font: 600 10px var(--rs-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--rs-muted); margin-top: 6px; }
-.rs-check2 { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--rs-text-2); cursor: pointer; }
-.rs-check2 input { accent-color: var(--rs-accent); }
-.rs-check2 .sub { color: var(--rs-muted); font: 10px var(--rs-mono); margin-left: auto; }
-.rs-fitbtn { margin-top: 8px; font: 500 12px var(--rs-sans); padding: 7px 11px; border-radius: 7px; border: 1px solid var(--rs-border-strong); background: var(--rs-surface-2); color: var(--rs-text); cursor: pointer; }
-.rs-fitbtn:hover { background: var(--rs-surface-3); }
-
-.rs-map-note { position: absolute; bottom: 14px; left: 14px; z-index: 5; font: 10px var(--rs-sans); color: var(--rs-text-2); max-width: 58%; background: color-mix(in srgb, var(--rs-surface) 88%, transparent); border: 1px solid var(--rs-border); padding: 5px 9px; border-radius: 6px; backdrop-filter: blur(6px); }
-
-/* ── map markers ──────────────────────────────────────────────────────────
-   The basemap is dark, so marker strokes are light rather than the page's deep sage.
-   A plant is a small solid pin dot (technology colour) inside a thin capacity ring
-   (status colour); the modelled plant, Humaij, carries an extra sage ring. Geometry
-   lives in kingdom-map.js — only the palette is here. */
-:root {
-  --rs-map-ink: #0b0e13;         /* basemap ink: separates a marker from the tiles */
-  --rs-map-pin-stroke: #f2f6fb;  /* light stroke around every pin dot */
-  --rs-map-ref: #a8d5c0;         /* the site sage, lifted to read on the dark basemap */
-  --rs-map-node: #dfe7f2;        /* grid substation dots */
+@media (max-width: 1000px) {
+  .rs-kingdom { grid-template-columns: 1fr; }
+  .rs-fleet { height: auto; }
+  .rs-map-panel { height: 70vh; min-height: 420px; }
+  .rs-list { max-height: 300px; }
+  /* A narrow row would clip "Humaij (reference plant)" to "Humaij (reference pla…", which
+     hides the one word that says what the row is. Let the name wrap instead. */
+  .rs-prow .nm { white-space: normal; }
+  .rs-prow .mw { align-self: start; padding-top: 2px; }
 }
 
-/* SVG fallback: lift the whole marker on hover so a dense cluster stays pickable. */
-.map-fallback .kp-plant { transition: filter 120ms linear; }
-.map-fallback .kp-plant:hover { filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.6)); }
-.map-fallback .kp-plant:hover .kp-ring { stroke-opacity: 1; }
-.map-fallback .kp-label { font-family: var(--rs-sans); }
-.map-fallback .kp-label.is-ref { font-weight: 700; }
+/* ── map markers ──────────────────────────────────────────────────────────
+   The basemap is dark, so the map's own ink is the inverse of the page's: light strokes,
+   light labels, a light backbone. shell.css has no dark palette, so each of these is an
+   alias onto the nearest token it does have rather than a colour invented here. Geometry
+   lives in kingdom-map.js; this is the whole palette it reads. */
+:root {
+  --rs-map-ink: var(--rs-text);         /* the ground under the tiles, and the fallback plan */
+  --rs-map-text: var(--rs-ink);         /* plant labels, and the stroke that keeps a pin crisp */
+  --rs-map-ref: var(--pb-green-2);      /* the sage marking Humaij — the modelled plant */
+  --rs-map-node: var(--rs-surface-3);   /* substations, their labels, the 380 kV backbone */
+}
 
-.node-label { color: #b7c3d3; font: 10px var(--rs-mono); text-shadow: 0 1px 2px #000; pointer-events: none; white-space: nowrap; }
-.plant-label { color: #eef2f8; font: 500 10px var(--rs-sans); text-shadow: 0 1px 3px #000; pointer-events: none; white-space: nowrap; }
-.plant-label.is-ref { color: var(--rs-map-ref); font-weight: 700; text-shadow: 0 1px 3px #000, 0 0 6px rgba(0, 0, 0, 0.9); }
+/* SVG fallback: thicken the capacity ring on hover so a dense cluster stays pickable. */
+.map-fallback .kp-ring { transition: stroke-width 120ms linear; }
+.map-fallback .kp-plant:hover .kp-ring { stroke-width: 3; }
+.map-fallback .kp-label { font-family: var(--rs-sans); }
+.map-fallback .kp-label.is-ref { font-weight: 600; }
+@media (prefers-reduced-motion: reduce) { .map-fallback .kp-ring { transition: none; } }
+
+.node-label { color: var(--rs-map-node); font: 10px var(--rs-mono); text-shadow: 0 1px 2px var(--rs-map-ink); pointer-events: none; white-space: nowrap; }
+.plant-label { color: var(--rs-map-text); font: 500 10px var(--rs-sans); text-shadow: 0 1px 3px var(--rs-map-ink); pointer-events: none; white-space: nowrap; }
+.plant-label.is-ref { color: var(--rs-map-ref); font-weight: 600; }
 .hide-labels .node-label, .hide-labels .plant-label, .hide-plants .plant-label, .hide-grid .node-label { display: none; }
 
-.rs-tooltip { position: fixed; pointer-events: none; opacity: 0; transform: translate(-50%, -115%); background: var(--rs-surface-3); border: 1px solid var(--rs-border-strong); border-radius: 7px; padding: 8px 10px; font-size: 12px; box-shadow: var(--rs-shadow-lg); z-index: 4000; min-width: 150px; transition: opacity 90ms linear; }
+/* Tooltips are one of the two things allowed to float above the desk. */
+.rs-tooltip { position: fixed; pointer-events: none; opacity: 0; transform: translate(-50%, -115%); background: var(--pb-card); border: 1px solid var(--rs-border-strong); border-radius: var(--rs-radius-sm); padding: 9px 11px; font-size: 12px; box-shadow: var(--rs-shadow-lg); z-index: 4000; min-width: 158px; transition: opacity 90ms linear; }
 .rs-tooltip.on { opacity: 1; }
-.rs-tt-head { color: var(--rs-muted); font: 11px var(--rs-mono); margin-bottom: 4px; }
-.rs-tt-row { display: flex; justify-content: space-between; gap: 10px; }
-.rs-tt-row .val { font-family: var(--rs-mono); color: var(--rs-text); }
-.rs-note { color: var(--rs-muted); font-size: 12px; }
+.rs-tt-head { color: var(--rs-text-2); font: 500 11.5px var(--rs-sans); margin-bottom: 5px; }
+.rs-tt-row { display: flex; justify-content: space-between; gap: 12px; }
+.rs-tt-row .val { font-family: var(--rs-mono); font-variant-numeric: tabular-nums; color: var(--rs-text); }
+@media (prefers-reduced-motion: reduce) { .rs-tooltip { transition: none; } }
+
+/* The list is a scroller, so overflow-x computes to auto and clips anything drawn outside a
+   row. The shell's focus ring sits 2px proud by default and loses its left edge here. */
+.rs-prow:focus-visible { outline-offset: -2px; }

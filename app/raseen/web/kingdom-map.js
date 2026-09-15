@@ -1,11 +1,11 @@
 /* The Kingdom map: every renewable plant and the transmission backbone over a dark basemap,
    with a SVG fallback when tiles or WebGL are unavailable. */
-import { TECH_COLOUR, STATUS_COLOUR, cssVar } from "/rs/colour.js";
+import { TECH_COLOUR, STATUS_COLOUR, TECH_LABEL, STATUS_LABEL, cssVar } from "/rs/colour.js";
 import { fmt } from "/rs/format.js";
 
 const DARK_TILES = window.RASEEN_TILES_DARK || "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}";
 const LABEL_TILES = "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}";
-const ATTRIBUTION = "Basemap &copy; Esri, HERE, Garmin · plants and grid indicative";
+const ATTRIBUTION = "Basemap &copy; Esri, HERE, Garmin. Plants and grid indicative.";
 export const KINGDOM_BOUNDS = [[34.4, 16.0], [55.8, 32.3]];
 
 function tileUrls(template) {
@@ -27,7 +27,7 @@ function tileUrls(template) {
    not swallow its neighbours. Ring radii below are pixels at zoom 7; the MapLibre path
    interpolates them 0.85x at Kingdom zoom → 1.18x when zoomed in, while the pin dot keeps
    a constant size so it is always crisp. */
-const REFERENCE_ID = "najm-3000";
+export const REFERENCE_ID = "najm-3000";
 const MW_FLOOR = 40, MW_CEIL = 3000;          // clamp: ends of the capacity scale
 const RING_MIN = 7, RING_MAX = 17;            // capacity ring radius, px
 const RING_W_MIN = 1.1, RING_W_MAX = 2.2;     // capacity ring thickness, px
@@ -70,12 +70,17 @@ const labelMinMw = (zoom) => LABEL_MIN_MW.find(([z]) => zoom < z)[1];
 /** Distance from the plant to the top of its label, so the text clears the whole marker. */
 const labelGap = (p) => ringRadius(p.capacity_mw) + (p.id === REFERENCE_ID ? REF_GAP + REF_W : 0) + 5;
 
-/** Marker colours live in kingdom.css so the dark-basemap palette stays in one place. */
+/** The basemap is dark, so the map's ink is the inverse of the page's. The four values live
+    in kingdom.css, each an alias onto a shell token; the fallbacks here are those tokens'
+    current values, used only if the stylesheet never arrives. */
 const token = (name, fallback) => cssVar(name) || fallback;
-const pinStroke = () => token("--rs-map-pin-stroke", "#f2f6fb");
-const refSage = () => token("--rs-map-ref", "#a8d5c0");
-const nodeFill = () => token("--rs-map-node", "#dfe7f2");
-const mapInk = () => token("--rs-map-ink", "#0b0e13");
+const mapText = () => token("--rs-map-text", "#ffffff");
+const refSage = () => token("--rs-map-ref", "#8faa9b");
+const nodeFill = () => token("--rs-map-node", "#eaf0ec");
+const mapInk = () => token("--rs-map-ink", "#1b2621");
+/** 380 kV is structure and stays achromatic; the 110 kV line is Humaij's own evacuation, so
+    it carries the same sage that marks Humaij everywhere else on the site. */
+const gridColour = () => ["match", ["get", "voltage_kv"], 380, nodeFill(), refSage()];
 
 /** Biggest first, so small plants draw last and stay on top of their large neighbours —
     this is what keeps the Riyadh and west-coast clusters pickable. */
@@ -165,17 +170,19 @@ export class KingdomMap {
     if (!this.map.getStyle()) return false;
 
     this.map.addSource("grid", { type: "geojson", data: this.grid });
-    this.map.addLayer({ id: "grid-glow", type: "line", source: "grid", filter: ["==", ["geometry-type"], "LineString"], paint: { "line-color": "#6aa8ee", "line-width": ["match", ["get", "voltage_kv"], 380, 6, 2.5], "line-blur": 6, "line-opacity": 0.35 } });
-    this.map.addLayer({ id: "grid-lines", type: "line", source: "grid", filter: ["==", ["geometry-type"], "LineString"], paint: { "line-color": ["match", ["get", "voltage_kv"], 380, "#9fc3ee", "#f2a33a"], "line-width": ["match", ["get", "voltage_kv"], 380, 1.8, 1.2], "line-dasharray": [3, 2], "line-opacity": 0.9 } });
+    // A soft halo under the backbone so it survives the busier tiles without being drawn
+    // heavily enough to compete with the plants, which are the subject.
+    this.map.addLayer({ id: "grid-glow", type: "line", source: "grid", filter: ["==", ["geometry-type"], "LineString"], paint: { "line-color": gridColour(), "line-width": ["match", ["get", "voltage_kv"], 380, 6, 2.5], "line-blur": 6, "line-opacity": 0.16 } });
+    this.map.addLayer({ id: "grid-lines", type: "line", source: "grid", filter: ["==", ["geometry-type"], "LineString"], paint: { "line-color": gridColour(), "line-width": ["match", ["get", "voltage_kv"], 380, 1.5, 1.4], "line-dasharray": [3, 2], "line-opacity": 0.8 } });
     this.map.addLayer({ id: "grid-nodes", type: "circle", source: "grid", filter: ["==", ["geometry-type"], "Point"], paint: { "circle-radius": 2.8, "circle-color": nodeFill(), "circle-stroke-color": mapInk(), "circle-stroke-width": 1, "circle-opacity": 0.95 } });
 
     // Plants: capacity ring (status colour) -> sage reference ring -> pin dot (technology
     // colour) → an invisible, slightly larger circle that carries click and hover.
     this.map.addSource("plants", { type: "geojson", data: plantsGeoJSON(this.plants) });
-    this.map.addLayer({ id: "plants-ring", type: "circle", source: "plants", paint: { "circle-radius": byZoom("r"), "circle-color": "#000", "circle-opacity": 0, "circle-stroke-color": ["get", "ring"], "circle-stroke-width": ["get", "rw"], "circle-stroke-opacity": 0.95 } });
-    this.map.addLayer({ id: "plants-ref", type: "circle", source: "plants", filter: REF_ONLY, paint: { "circle-radius": byZoom("refr"), "circle-color": "#000", "circle-opacity": 0, "circle-stroke-color": refSage(), "circle-stroke-width": REF_W, "circle-stroke-opacity": 0.95 } });
-    this.map.addLayer({ id: "plants", type: "circle", source: "plants", paint: { "circle-radius": ["get", "cr"], "circle-color": ["get", "colour"], "circle-opacity": 1, "circle-stroke-color": pinStroke(), "circle-stroke-width": ["case", ["get", "reference"], CORE_W_REF, CORE_W], "circle-stroke-opacity": 0.92 } });
-    this.map.addLayer({ id: "plants-hit", type: "circle", source: "plants", paint: { "circle-radius": ["get", "hit"], "circle-color": "#000", "circle-opacity": 0 } });
+    this.map.addLayer({ id: "plants-ring", type: "circle", source: "plants", paint: { "circle-radius": byZoom("r"), "circle-opacity": 0, "circle-stroke-color": ["get", "ring"], "circle-stroke-width": ["get", "rw"], "circle-stroke-opacity": 0.95 } });
+    this.map.addLayer({ id: "plants-ref", type: "circle", source: "plants", filter: REF_ONLY, paint: { "circle-radius": byZoom("refr"), "circle-opacity": 0, "circle-stroke-color": refSage(), "circle-stroke-width": REF_W, "circle-stroke-opacity": 0.95 } });
+    this.map.addLayer({ id: "plants", type: "circle", source: "plants", paint: { "circle-radius": ["get", "cr"], "circle-color": ["get", "colour"], "circle-opacity": 1, "circle-stroke-color": mapText(), "circle-stroke-width": ["case", ["get", "reference"], CORE_W_REF, CORE_W], "circle-stroke-opacity": 0.92 } });
+    this.map.addLayer({ id: "plants-hit", type: "circle", source: "plants", paint: { "circle-radius": ["get", "hit"], "circle-opacity": 0 } });
 
     for (const f of this.grid.features.filter((x) => x.geometry.type === "Point")) {
       const e = document.createElement("div"); e.className = "node-label"; e.textContent = f.properties.name;
@@ -240,7 +247,10 @@ export class KingdomMap {
     }
     this.updateLabels();
   }
-  flyTo(plant) { if (this.ready) this.map.flyTo({ center: [plant.lon, plant.lat], zoom: 8.5, duration: 1400, essential: true }); }
+  /* Not marked essential, so MapLibre cuts straight to the plant when the reader has asked
+     for reduced motion. The flight is orientation, not information. */
+  flyTo(plant) { if (this.ready) this.map.flyTo({ center: [plant.lon, plant.lat], zoom: 8.5, duration: 1400 }); }
+  static hasCamera = true;
   fitKingdom() { if (this.ready) this.map.fitBounds(KINGDOM_BOUNDS, { padding: 24, duration: 800 }); }
   resize() { this.map?.resize(); }
   destroy() { for (const m of this.markers) m.remove(); this.markers = []; this.map?.remove(); this.map = null; this.ready = false; }
@@ -262,10 +272,10 @@ export class KingdomPlan {
     const W = 1000, H = Math.round((W * (n0 - s0)) / (e0 - w0));
     const X = (lon) => ((lon - w0) / (e0 - w0)) * W, Y = (lat) => ((n0 - lat) / (n0 - s0)) * H;
     const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Kingdom renewables schematic" });
-    svg.append(el("rect", { x: 0, y: 0, width: W, height: H, fill: "#0f1216" }));
+    svg.append(el("rect", { x: 0, y: 0, width: W, height: H, fill: mapInk() }));
     if (this.layers.grid) for (const f of this.grid.features) {
-      if (f.geometry.type === "LineString") svg.append(el("polyline", { points: f.geometry.coordinates.map(([lon, lat]) => `${X(lon)},${Y(lat)}`).join(" "), fill: "none", stroke: f.properties.voltage_kv === 380 ? "#9fc3ee" : "#f2a33a", "stroke-width": 2, "stroke-dasharray": "6 4" }));
-      else { const [lon, lat] = f.geometry.coordinates; svg.append(el("circle", { cx: X(lon), cy: Y(lat), r: 3, fill: nodeFill(), stroke: mapInk(), "stroke-width": 1 })); if (this.layers.labels) { const t = el("text", { x: X(lon) + 7, y: Y(lat) + 4, fill: "#b8bcc6", "font-size": 12 }); t.textContent = f.properties.name; svg.append(t); } }
+      if (f.geometry.type === "LineString") svg.append(el("polyline", { points: f.geometry.coordinates.map(([lon, lat]) => `${X(lon)},${Y(lat)}`).join(" "), fill: "none", stroke: f.properties.voltage_kv === 380 ? nodeFill() : refSage(), "stroke-width": 2, "stroke-dasharray": "6 4" }));
+      else { const [lon, lat] = f.geometry.coordinates; svg.append(el("circle", { cx: X(lon), cy: Y(lat), r: 3, fill: nodeFill(), stroke: mapInk(), "stroke-width": 1 })); if (this.layers.labels) { const t = el("text", { x: X(lon) + 7, y: Y(lat) + 4, fill: nodeFill(), "font-size": 12 }); t.textContent = f.properties.name; svg.append(t); } }
     }
     // Same marker as the GL path: capacity ring (status colour) + optional sage reference
     // ring + a small technology-coloured pin dot, with an invisible circle carrying events.
@@ -277,29 +287,39 @@ export class KingdomPlan {
       const g = el("g", { class: `kp-plant${isRef ? " is-ref" : ""}` });
       g.append(el("circle", { class: "kp-ring", cx, cy, r, fill: "none", stroke: STATUS_COLOUR[p.status], "stroke-width": ringWidth(p.capacity_mw), "stroke-opacity": 0.95, "pointer-events": "none" }));
       if (isRef) g.append(el("circle", { class: "kp-ref", cx, cy, r: r + REF_GAP, fill: "none", stroke: refSage(), "stroke-width": REF_W, "stroke-opacity": 0.95, "pointer-events": "none" }));
-      g.append(el("circle", { class: "kp-core", cx, cy, r: isRef ? CORE_R_REF : CORE_R, fill: TECH_COLOUR[p.technology], stroke: pinStroke(), "stroke-width": isRef ? CORE_W_REF : CORE_W, "stroke-opacity": 0.92, "pointer-events": "none" }));
+      g.append(el("circle", { class: "kp-core", cx, cy, r: isRef ? CORE_R_REF : CORE_R, fill: TECH_COLOUR[p.technology], stroke: mapText(), "stroke-width": isRef ? CORE_W_REF : CORE_W, "stroke-opacity": 0.92, "pointer-events": "none" }));
       const hit = el("circle", { class: "kp-hit", cx, cy, r: hitRadius(p.capacity_mw, isRef), fill: "none", "pointer-events": "all", style: "cursor:pointer" });
       hit.addEventListener("click", () => this.onSelect?.(p.id));
       hit.addEventListener("mousemove", (e) => this.onHover?.(e, p.id));
       hit.addEventListener("mouseleave", (e) => this.onLeave?.(e));
       g.append(hit);
       svg.append(g);
-      if (this.layers.labels) { const t = el("text", { class: `kp-label${isRef ? " is-ref" : ""}`, x: cx, y: cy + labelGap(p) + 9, fill: isRef ? refSage() : "#f2f3f5", "font-size": 11, "text-anchor": "middle", "pointer-events": "none" }); t.textContent = planLabels.get(p.id); svg.append(t); }
+      if (this.layers.labels) { const t = el("text", { class: `kp-label${isRef ? " is-ref" : ""}`, x: cx, y: cy + labelGap(p) + 9, fill: isRef ? refSage() : mapText(), "font-size": 11, "text-anchor": "middle", "pointer-events": "none" }); t.textContent = planLabels.get(p.id); svg.append(t); }
     }
     const wrap = document.createElement("div"); wrap.className = "map-fallback"; wrap.append(svg);
     this.container.replaceChildren(wrap);
   }
   setLayers(l) { this.layers = { ...this.layers, ...l }; this.draw(); }
   setFilter(f) { this.filter = f; this.draw(); }
+  /* The drawn plan always shows the whole Kingdom at once, so it has no camera: nothing to
+     fly to, nothing to fit, nothing to resize. The page reads hasCamera and hides the
+     controls those would drive rather than leaving buttons that do nothing. */
+  static hasCamera = false;
   flyTo() {} fitKingdom() {} resize() {} destroy() { this.container.replaceChildren(); }
 }
 
+/* How good the coordinate is, said plainly. It is a provenance claim, not decoration: most
+   of these plants are pinned to their town, not to their fence. */
+const POSITION = { site: "site", town: "town-level", approximate: "approximate" };
+
 export function plantTooltipRows(p) {
   return [
-    { name: "Technology", value: p.technology.toUpperCase() },
+    { name: "Technology", value: TECH_LABEL[p.technology] ?? p.technology },
     { name: "Capacity", value: `${fmt(p.capacity_mw, 0)} MW` },
-    { name: "Status", value: p.status.replace("_", " ") },
+    { name: "Status", value: STATUS_LABEL[p.status] ?? p.status.replace("_", " ") },
+    // A year that has not happened yet is a target, and is named as one.
+    { name: p.status === "operational" ? "Commissioned" : "Target year", value: p.cod_year ?? "—" },
     { name: "Developer", value: p.developer ?? "—" },
-    { name: "Position", value: `${p.coordinate_quality}-level` },
+    { name: "Position", value: POSITION[p.coordinate_quality] ?? p.coordinate_quality },
   ];
 }

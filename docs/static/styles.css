@@ -557,3 +557,48 @@ main {
   box-shadow: 0 1px 2px rgba(20, 30, 50, 0.05), 0 2px 8px rgba(20, 30, 50, 0.06);
 }
 :root[data-theme="light"] .topbar { box-shadow: 0 1px 0 rgba(20, 30, 50, 0.03); }
+
+/* ── Raseen console theme (dark) ───────────────────────────────────────────
+   The Plant page runs inside Raseen's "grid operator's console". Remap the
+   dashboard's dark tokens to the shared amber-on-navy palette and IBM Plex type
+   so it matches the Kingdom and Gradient Control pages. */
+:root {
+  --sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+}
+:root[data-theme="dark"] {
+  --surface-0: #0d1119;
+  --surface-1: #151b25;
+  --surface-2: #1b2331;
+  --border:    #29323f;
+  --border-strong: #3a4656;
+
+  --text-primary:   #eaeef4;
+  --text-secondary: #a2adbd;
+  --text-muted:     #66707f;
+
+  --series-1: #f2b23a;   /* expected / irradiance — solar amber */
+  --series-2: #22d3c0;   /* measured — Raseen teal */
+
+  --ramp-0: #20242c;
+  --ramp-1: #3a3320;
+  --ramp-2: #5f4e1f;
+  --ramp-3: #8f7126;
+  --ramp-4: #c79433;
+  --ramp-5: #f2b23a;
+
+  --sim-accent: #8c7bf2;
+  --good: #34c08a;
+  --warning: #f2b23a;
+  --serious: #e8934f;
+  --critical: #ec6a5f;
+
+  --grid: #222b38;
+  --axis: #3a4656;
+}
+
+/* Panels get the console's faint depth; big readouts stay monospaced. */
+:root[data-theme="dark"] body { background: radial-gradient(1200px 500px at 70% -10%, #131a26 0%, var(--surface-0) 60%); }
+:root[data-theme="dark"] .panel, :root[data-theme="dark"] .tile { box-shadow: 0 8px 24px rgba(0,0,0,0.35); }
+:root[data-theme="dark"] .tile-value, :root[data-theme="dark"] .stat-v, :root[data-theme="dark"] .clock-time { font-family: var(--mono); }
+:root[data-theme="dark"] .topbar h1 { font-family: "IBM Plex Sans Condensed", var(--sans); font-weight: 700; }

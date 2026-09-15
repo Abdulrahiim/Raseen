@@ -283,7 +283,9 @@ async function selectBlock(blockId) {
   buildTimeline(state.trends);
   renderTrends();
   await refreshBlockDetail();
-  await refreshModel();
+  // Load the 3D station model in the background: it can be a large download and must not
+  // block the grid, trends and KPIs from rendering (Raseen static build / slow networks).
+  refreshModel().catch(() => {});
   await refreshPerformance();
   await refreshAlarms();
   await refreshDiagnostics();

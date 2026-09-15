@@ -160,9 +160,12 @@ function setPlaying(on) {
   }, 1000 / fps);
 }
 
+/* autocomplete="off" on every slider: the browser restores form values on a reload, and it
+   does so after the page has synced them to the loaded scenario — leaving a slider that
+   disagrees with the data it is supposed to describe. */
 const slider = (id, label, attrs, value) =>
   `<div class="rs-ctl"><label class="rs-ctl-label" for="${id}">${label}<b id="v-${id.slice(2)}">${value}</b></label>` +
-  `<input id="${id}" class="rs-range" type="range" ${attrs}></div>`;
+  `<input id="${id}" class="rs-range" type="range" autocomplete="off" ${attrs}></div>`;
 
 function layout() {
   $("rs-root").innerHTML = `
@@ -179,7 +182,7 @@ function layout() {
       <button id="rs-play" class="rs-btn primary" type="button">Play</button>
       <button id="rs-back" class="rs-btn" type="button">−1 min</button>
       <button id="rs-fwd" class="rs-btn" type="button">+1 min</button>
-      <input id="rs-scrub" class="rs-range" type="range" min="0" max="840" value="0" aria-label="Time through the event">
+      <input id="rs-scrub" class="rs-range" type="range" min="0" max="840" value="0" autocomplete="off" aria-label="Time through the event">
       <span class="rs-marks" id="rs-marks"></span>
     </div>
   </section>
@@ -244,7 +247,7 @@ function layout() {
         <div class="rs-panel-head"><h2>The response</h2></div>
         ${slider("p-g", "Declared down-gradient", 'min="30" max="180" step="5" value="90"', "90 MW/min")}
         ${slider("p-conf", "Confidence in the forecast", 'min="0.3" max="0.9" step="0.1" value="0.7"', "0.7")}
-        <label class="rs-check"><input id="p-flat" type="checkbox"> Hold the plant flat right through the event instead of ramping down</label>
+        <label class="rs-check"><input id="p-flat" type="checkbox" autocomplete="off"> Hold the plant flat right through the event instead of ramping down</label>
         <div class="rs-btn-row">
           <button id="rs-stall" class="rs-btn warn" type="button">Stall the front now</button>
           <button id="rs-deepen" class="rs-btn warn" type="button">Deepen it 20 % now</button>
@@ -256,7 +259,7 @@ function layout() {
       <div class="rs-panel">
         <div class="rs-panel-head"><h2>Situation</h2></div>
         <div class="rs-ctl"><label class="rs-ctl-label" for="p-situation">Load a prepared case</label>
-          <select id="p-situation">${SITUATIONS.map((p) => `<option value="${p.key}">${p.label}</option>`).join("")}</select></div>
+          <select id="p-situation" autocomplete="off">${SITUATIONS.map((p) => `<option value="${p.key}">${p.label}</option>`).join("")}</select></div>
       </div>
     </div>
   </section>

@@ -65,17 +65,24 @@ def plan_trajectory(
                 p = min(plant_mw, A_min + g_up * (tt - t_last))
             P_star.append(min(p, A_tot[k]))
     else:
-        L_down = D / g
-        t_desc_start = t_min - L_down
+        # Start the descent at the feasibility-binding point: the earliest time from which a
+        # straight line at gradient g stays at or below the available power at every shaded
+        # step. For a uniform (linear) front this is t_min - D/g, so the abstract v4 case is
+        # unchanged; for the real plant's concave front it starts earlier, so the declared
+        # line is tangent to the plunge rather than clamped by it, and the plant holds g.
+        shaded_desc = [
+            times[k] - (plant_mw - A_tot[k]) / g
+            for k in range(k_min + 1)
+            if A_tot[k] < plant_mw - 1e-6
+        ]
+        t_desc_start = min(shaded_desc) if shaded_desc else t_min - D / g
         k_rise = next((k for k in range(k_min, n) if A_tot[k] > A_min + 1e-6), n - 1)
         t_rise = times[k_rise]
         for k, tt in enumerate(times):
             if tt < t_desc_start:
                 p = plant_mw
-            elif tt <= t_min:
-                p = plant_mw - g * (tt - t_desc_start)
-            elif tt < t_rise:
-                p = A_min
+            elif tt <= t_rise:
+                p = max(A_min, plant_mw - g * (tt - t_desc_start))
             else:
                 p = min(plant_mw, A_min + g_up * (tt - t_rise))
             P_star.append(min(p, A_tot[k]))

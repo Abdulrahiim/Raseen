@@ -19,6 +19,20 @@
   --rs-good: #22b573;
   --rs-mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
   --rs-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* Tokens the shared map/colour modules read (unprefixed names, kept in one place). */
+  --surface-3: #242a33;
+  --accent: #3987e5;
+  --amber: #f2a33a;
+  --violet: #8b7cf6;
+  --violet-dim: #5a5570;
+  --cyan: #2ec4d6;
+  --ramp-0: #1d232c;
+  --ramp-1: #23334a;
+  --ramp-2: #274a72;
+  --ramp-3: #2c669e;
+  --ramp-4: #3987e5;
+  --ramp-5: #6aa8ee;
 }
 
 /* Offset any page body once the sidebar is present. */

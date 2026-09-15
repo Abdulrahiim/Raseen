@@ -1,121 +1,134 @@
-/* Raseen shell — "grid operator's console".
-   A deep desaturated navy console lit by solar amber, with the reserve-violet as the one
-   expressive colour, IBM Plex type throughout, and the declared ramp as the signature motif.
-   Shared by every page; the Plant page (vendored NAJM-3000 dashboard) reads the same tokens. */
+/* Raseen shell — Power BI style: a purple gradient banner, a lavender rail of pill
+   buttons, a light-lavender canvas of white cards, and deep-purple readouts. Shared by
+   every page; the Plant page (vendored dashboard) reads the same tokens. */
 
 :root {
-  --rs-sidebar-w: 224px;
+  --rs-sidebar-w: 210px;
+  --rs-banner-h: 58px;
 
-  /* console surfaces — navy-charcoal, not pure black */
-  --rs-bg: #0d1119;
-  --rs-surface: #151b25;
-  --rs-surface-2: #1b2331;
-  --rs-surface-3: #232d3d;
-  --rs-border: #29323f;
-  --rs-border-strong: #3a4656;
+  /* purple system */
+  --pb-banner: linear-gradient(100deg, #6b3f97 0%, #8a55ae 55%, #a56ec4 100%);
+  --pb-purple: #7a4aa5;
+  --pb-purple-2: #9c66c1;
+  --pb-deep: #582a86;            /* KPI numbers, chart fills */
+  --pb-lav: #e7dbf3;             /* sidebar */
+  --pb-canvas: #f2ecf9;          /* content */
+  --pb-card: #ffffff;
+  --pb-border: #e3d7f0;
+  --pb-border-2: #d3c3e8;
 
-  /* text */
-  --rs-text: #eaeef4;
-  --rs-text-2: #a2adbd;
-  --rs-muted: #66707f;
+  --rs-text: #2a2440;
+  --rs-text-2: #675e80;
+  --rs-muted: #9a93ad;
 
-  /* solar amber is the brand/UI accent; violet is the reserve; the rest are semantic */
-  --rs-accent: #f2b23a;
-  --rs-accent-2: #ffc95a;
-  --rs-accent-soft: #f7cd74;
-  --rs-ink: #0d1119;                 /* text that sits on amber */
-  --rs-violet: #8c7bf2;
-  --rs-violet-dim: #55507a;
-  --rs-cyan: #4fb6e6;
-  --rs-teal: #22d3c0;                /* the Raseen-controlled signal */
-  --rs-sim: #8c7bf2;
-  --rs-good: #34c08a;
-  --rs-warn: #f2b23a;
-  --rs-bad: #ec6a5f;
+  /* aliases the components read */
+  --rs-bg: var(--pb-canvas);
+  --rs-surface: var(--pb-card);
+  --rs-surface-2: #f6f1fc;
+  --rs-surface-3: #ede4f8;
+  --rs-border: var(--pb-border);
+  --rs-border-strong: var(--pb-border-2);
+  --rs-accent: var(--pb-purple);
+  --rs-accent-2: var(--pb-deep);
+  --rs-accent-soft: var(--pb-purple-2);
+  --rs-ink: #ffffff;
+  --rs-violet: #8a5cc4;
+  --rs-violet-dim: #c4addf;
+  --rs-cyan: #4aa3c7;
+  --rs-teal: #3aa6a0;
+  --rs-sim: #7a4aa5;
+  --rs-good: #3a9d6b;
+  --rs-warn: #d98b2b;
+  --rs-bad: #d1495b;
 
-  --rs-shadow: 0 1px 0 rgba(255,255,255,0.02) inset, 0 8px 24px rgba(0,0,0,0.35);
-  --rs-shadow-lg: 0 14px 40px rgba(0,0,0,0.5);
+  --rs-shadow: 0 1px 3px rgba(80, 40, 120, 0.08), 0 6px 18px rgba(80, 40, 120, 0.07);
+  --rs-shadow-lg: 0 12px 34px rgba(70, 30, 110, 0.22);
   --rs-radius: 10px;
-  --rs-ramp: linear-gradient(90deg, var(--rs-accent) 0%, color-mix(in srgb, var(--rs-accent) 30%, transparent) 55%, transparent 100%);
 
   --rs-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
-  --rs-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --rs-display: "IBM Plex Sans Condensed", "IBM Plex Sans", var(--rs-sans);
+  --rs-sans: "Segoe UI", "IBM Plex Sans", ui-sans-serif, system-ui, Roboto, sans-serif;
+  --rs-display: "Segoe UI", "IBM Plex Sans Condensed", var(--rs-sans);
 
-  /* tokens the shared map/colour modules read (unprefixed) */
-  --surface-3: #232d3d;
-  --accent: #22d3c0;                 /* Raseen line / set-point fill */
-  --amber: #f2b23a;                  /* available power */
-  --violet: #8c7bf2;
-  --violet-dim: #55507a;
-  --cyan: #4fb6e6;
-  --muted: #66707f;
-  --ramp-0: #20242c;
-  --ramp-1: #3a3320;
-  --ramp-2: #5f4e1f;
-  --ramp-3: #8f7126;
-  --ramp-4: #c79433;
-  --ramp-5: #f2b23a;
+  /* map/chart colour tokens */
+  --surface-3: #ede4f8;
+  --accent: #3aa6a0;             /* Raseen line / set-point fill (teal, distinct from purple) */
+  --amber: #d99a2c;              /* available power */
+  --violet: #8a5cc4;
+  --violet-dim: #c4addf;
+  --cyan: #4aa3c7;
+  --muted: #9a93ad;
+  --ramp-0: #efe8f8;
+  --ramp-1: #d9c6ec;
+  --ramp-2: #bd9fdd;
+  --ramp-3: #9d72c8;
+  --ramp-4: #7d49ac;
+  --ramp-5: #582a86;
 }
 
-.rs-has-sidebar body { padding-left: var(--rs-sidebar-w); }
-@media (max-width: 860px) { :root { --rs-sidebar-w: 58px; } }
+.rs-has-sidebar body { padding-left: var(--rs-sidebar-w); padding-top: var(--rs-banner-h); }
+@media (max-width: 860px) { :root { --rs-sidebar-w: 62px; } }
 
-/* ── sidebar ────────────────────────────────────────────────────────────── */
+/* ── banner (injected by sidebar.js, full width above everything) ────────── */
+.rs-banner-bar {
+  position: fixed; inset: 0 0 auto 0; height: var(--rs-banner-h); z-index: 1100;
+  background: var(--pb-banner);
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  box-shadow: 0 2px 10px rgba(60, 25, 95, 0.28);
+}
+.rs-banner-bar .bb-logo { position: absolute; left: 16px; display: flex; align-items: center; gap: 10px; color: #fff; }
+.rs-banner-bar .bb-mark { width: 30px; height: 30px; border-radius: 7px; background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.35); position: relative; }
+.rs-banner-bar .bb-mark::before { content: ""; position: absolute; inset: 5px; background: linear-gradient(to bottom right, transparent 46%, #fff 47%, #fff 53%, transparent 54%); opacity: 0.95; }
+.rs-banner-bar .bb-logo b { font: 700 14px var(--rs-display); letter-spacing: 0.02em; }
+.rs-banner-bar .bb-logo small { font: 400 11px var(--rs-mono); opacity: 0.8; }
+.rs-banner-bar h1 { margin: 0; color: #fff; font: 700 22px var(--rs-display); letter-spacing: 0.02em; text-shadow: 0 1px 2px rgba(0,0,0,0.18); }
+.rs-banner-bar .bb-chip { position: absolute; right: 18px; display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px; font: 700 10px/1 var(--rs-mono); letter-spacing: 0.1em; color: #fff; background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.4); }
+.rs-banner-bar .bb-chip i { width: 6px; height: 6px; border-radius: 50%; background: #d7c6ff; animation: rs-pulse 2.4s ease-in-out infinite; }
+@media (max-width: 720px) { .rs-banner-bar h1 { font-size: 16px; } .rs-banner-bar .bb-logo small { display: none; } }
+
+/* ── sidebar (lavender rail of pills) ───────────────────────────────────── */
 .rs-sidebar {
-  position: fixed;
-  inset: 0 auto 0 0;
-  width: var(--rs-sidebar-w);
-  background: linear-gradient(180deg, #10151e, #0c1017);
-  border-right: 1px solid var(--rs-border);
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding: 18px 12px;
-  z-index: 1000;
+  position: fixed; inset: var(--rs-banner-h) auto 0 0; width: var(--rs-sidebar-w);
+  background: var(--pb-lav); border-right: 1px solid var(--pb-border-2);
+  display: flex; flex-direction: column; gap: 14px; padding: 20px 12px; z-index: 1000;
   font-family: var(--rs-sans);
 }
-.rs-brand { display: flex; align-items: center; gap: 12px; padding: 2px 6px 18px; color: var(--rs-text); text-decoration: none; position: relative; margin-bottom: 10px; }
-.rs-brand::after { content: ""; position: absolute; left: 6px; right: 6px; bottom: 0; height: 2px; background: var(--rs-ramp); border-radius: 2px; }
-/* the brand mark is the declared ramp: a steep drop softened into a gentle slope */
-.rs-brand-mark { width: 26px; height: 26px; flex: none; border-radius: 6px; background: var(--rs-surface-2); border: 1px solid var(--rs-border-strong); position: relative; overflow: hidden; }
-.rs-brand-mark::before { content: ""; position: absolute; left: 4px; right: 4px; top: 5px; bottom: 5px; background:
-  linear-gradient(to bottom right, transparent 46%, var(--rs-accent) 47%, var(--rs-accent) 53%, transparent 54%); opacity: 0.9; }
-.rs-brand-text { display: flex; flex-direction: column; line-height: 1.15; }
-.rs-brand-text b { font: 700 16px/1 var(--rs-display); letter-spacing: 0.01em; }
-.rs-brand-text small { font-size: 12px; color: var(--rs-muted); font-family: var(--rs-mono); }
-.rs-nav { display: flex; align-items: center; gap: 11px; padding: 9px 11px; border-radius: 8px; color: var(--rs-text-2); text-decoration: none; font-size: 13px; font-weight: 500; position: relative; }
-.rs-nav:hover { background: var(--rs-surface-2); color: var(--rs-text); }
-.rs-nav.is-active { background: color-mix(in srgb, var(--rs-accent) 14%, transparent); color: var(--rs-accent-2); font-weight: 600; }
-.rs-nav.is-active::before { content: ""; position: absolute; left: -12px; top: 7px; bottom: 7px; width: 3px; border-radius: 0 3px 3px 0; background: var(--rs-accent); }
-.rs-nav-icon { width: 20px; text-align: center; font-size: 15px; }
-.rs-sidebar-foot { margin-top: auto; display: flex; flex-direction: column; gap: 8px; padding: 12px 6px 0; border-top: 1px solid var(--rs-border); }
-.rs-chip { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; padding: 3px 9px; border-radius: 5px; font: 600 10px/1 var(--rs-mono); letter-spacing: 0.1em; border: 1px solid color-mix(in srgb, var(--rs-sim) 45%, transparent); color: var(--rs-sim); background: color-mix(in srgb, var(--rs-sim) 12%, transparent); }
-.rs-chip-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--rs-sim); animation: rs-pulse 2.4s ease-in-out infinite; }
-@keyframes rs-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-@media (prefers-reduced-motion: reduce) { .rs-chip-dot { animation: none; } }
-.rs-ver { font: 10px var(--rs-mono); color: var(--rs-muted); }
-@media (max-width: 860px) {
-  .rs-nav-label, .rs-brand-text, .rs-ver { display: none; }
-  .rs-nav { justify-content: center; }
-  .rs-chip { font-size: 0; padding: 5px; }
-  .rs-chip-dot { width: 8px; height: 8px; }
+.rs-brand { display: none; }   /* brand lives in the banner now */
+.rs-nav {
+  display: flex; align-items: center; gap: 10px; justify-content: center;
+  padding: 11px 12px; border-radius: 22px; text-decoration: none;
+  background: #fff; border: 1.5px solid var(--pb-purple);
+  color: var(--pb-deep); font: 600 12.5px var(--rs-sans); text-align: center;
+  box-shadow: 0 2px 5px rgba(90, 45, 130, 0.12); transition: transform .08s, box-shadow .12s;
 }
+.rs-nav:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(90, 45, 130, 0.2); }
+.rs-nav.is-active {
+  background: linear-gradient(90deg, #7a4aa5, #a06cc4); color: #fff; border-color: transparent;
+  box-shadow: 0 4px 12px rgba(110, 55, 155, 0.4);
+}
+.rs-nav-icon { font-size: 14px; }
+.rs-sidebar-foot { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.rs-social { display: flex; gap: 12px; }
+.rs-social a { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: #fff; background: var(--pb-purple); font: 700 12px var(--rs-sans); text-decoration: none; box-shadow: 0 2px 5px rgba(90,45,130,0.25); }
+.rs-social a:hover { background: var(--pb-deep); }
+.rs-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px; font: 700 9px/1 var(--rs-mono); letter-spacing: 0.1em; color: var(--pb-deep); background: #fff; border: 1px solid var(--pb-purple); }
+.rs-chip-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--pb-purple); animation: rs-pulse 2.4s ease-in-out infinite; }
+@keyframes rs-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+@media (prefers-reduced-motion: reduce) { .rs-chip-dot, .rs-banner-bar .bb-chip i { animation: none; } }
+.rs-ver { font: 9px var(--rs-mono); color: var(--rs-muted); text-align: center; }
+@media (max-width: 860px) { .rs-nav-label { display: none; } .rs-ver, .rs-social { display: none; } .rs-chip { font-size: 0; padding: 5px; } .rs-chip-dot { width: 8px; height: 8px; } }
 
 /* ── page chrome ────────────────────────────────────────────────────────── */
-.rs-page { min-height: 100vh; background: radial-gradient(1200px 500px at 70% -10%, #131a26 0%, var(--rs-bg) 60%); color: var(--rs-text); font-family: var(--rs-sans); font-size: 13px; }
-.rs-topbar { display: flex; align-items: baseline; gap: 14px; padding: 16px 24px 14px; position: sticky; top: 0; z-index: 20; background: linear-gradient(180deg, rgba(13,17,25,0.96), rgba(13,17,25,0.7)); backdrop-filter: blur(8px); border-bottom: 1px solid var(--rs-border); }
-.rs-topbar::after { content: ""; position: absolute; left: 24px; bottom: -1px; width: 120px; height: 2px; background: var(--rs-ramp); }
-.rs-topbar h1 { margin: 0; font: 700 21px/1 var(--rs-display); letter-spacing: 0.005em; }
+.rs-page { min-height: 100vh; background: var(--pb-canvas); color: var(--rs-text); font-family: var(--rs-sans); font-size: 13px; }
+.rs-topbar { display: flex; align-items: baseline; gap: 12px; padding: 14px 22px 10px; position: sticky; top: var(--rs-banner-h); z-index: 20; background: var(--pb-canvas); }
+.rs-topbar h1 { margin: 0; font: 700 17px var(--rs-display); color: var(--pb-deep); }
 .rs-topbar .rs-sub { font-size: 12px; color: var(--rs-muted); }
 .rs-topbar .rs-right { margin-left: auto; display: flex; align-items: center; gap: 12px; align-self: center; }
-.rs-body { padding: 18px 24px; }
-.rs-loading { color: var(--rs-muted); font: 13px var(--rs-mono); padding: 60px 24px; }
-.rs-banner { margin: 0; padding: 10px 24px; background: color-mix(in srgb, var(--rs-bad) 18%, var(--rs-surface)); border-bottom: 1px solid color-mix(in srgb, var(--rs-bad) 40%, transparent); color: #ffd9d4; font-size: 13px; }
+.rs-body { padding: 6px 22px 20px; }
+.rs-loading { color: var(--rs-muted); font: 13px var(--rs-sans); padding: 60px 22px; }
+.rs-banner { margin: 0 22px 10px; padding: 10px 16px; background: #fff3f4; border: 1px solid #f0c4ca; border-radius: 8px; color: var(--rs-bad); font-size: 13px; }
 .rs-banner[hidden] { display: none; }
 
-/* shared card + head primitives (an "instrument panel": hairline + faint top light) */
-.rs-panel { background: var(--rs-surface); border: 1px solid var(--rs-border); border-radius: var(--rs-radius); padding: 16px; box-shadow: var(--rs-shadow); min-width: 0; position: relative; }
+.rs-panel { background: var(--pb-card); border: 1px solid var(--pb-border); border-radius: var(--rs-radius); padding: 15px 16px; box-shadow: var(--rs-shadow); min-width: 0; }
 .rs-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
-.rs-panel-head h2 { margin: 0; font: 600 11px/1.2 var(--rs-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--rs-text-2); }
-.rs-note { margin: 2px 0 0; font-size: 11.5px; color: var(--rs-muted); }
+.rs-panel-head h2 { margin: 0; font: 700 12px var(--rs-sans); letter-spacing: 0.01em; color: var(--pb-deep); }
+.rs-note { margin: 2px 0 0; font-size: 11.5px; color: var(--rs-muted); font-weight: 400; }

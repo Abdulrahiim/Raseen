@@ -1,4 +1,4 @@
-/* Gradient Control page — grid operator's console. Pairs with shell.css. */
+/* Gradient Control page — purple "Power BI" theme. Pairs with shell.css. */
 
 .rs-topbar .rs-clock { font: 600 15px var(--rs-mono); font-variant-numeric: tabular-nums; color: var(--rs-accent-2); background: color-mix(in srgb, var(--rs-accent) 12%, transparent); border: 1px solid color-mix(in srgb, var(--rs-accent) 35%, transparent); border-radius: 6px; padding: 5px 11px; }
 
@@ -33,7 +33,7 @@
 .rs-btn:hover { background: var(--rs-surface-3); }
 .rs-btn.primary { background: var(--rs-accent); border-color: var(--rs-accent); color: var(--rs-ink); font-weight: 600; }
 .rs-btn.primary:hover { background: var(--rs-accent-2); }
-.rs-btn.warn { border-color: color-mix(in srgb, var(--rs-bad) 50%, var(--rs-border)); color: #ffb3ac; background: color-mix(in srgb, var(--rs-bad) 10%, transparent); }
+.rs-btn.warn { border-color: color-mix(in srgb, var(--rs-bad) 50%, var(--rs-border)); color: var(--rs-bad); background: color-mix(in srgb, var(--rs-bad) 8%, transparent); }
 .rs-btn.warn:hover { background: color-mix(in srgb, var(--rs-bad) 18%, transparent); }
 
 /* KPI tiles: an instrument readout with an amber tick */
@@ -53,7 +53,7 @@
 .rs-phase { font: 600 10px var(--rs-mono); letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 9px; border-radius: 5px; border: 1px solid var(--rs-border-strong); color: var(--rs-text-2); background: var(--rs-surface-2); }
 .rs-phase[data-phase="before"] { border-color: var(--rs-cyan); color: var(--rs-cyan); }
 .rs-phase[data-phase="transit"] { border-color: var(--rs-amber); color: var(--rs-amber); }
-.rs-phase[data-phase="cover"] { border-color: var(--rs-bad); color: #ff9a90; }
+.rs-phase[data-phase="cover"] { border-color: var(--rs-bad); color: var(--rs-bad); }
 .rs-phase[data-phase="exit"] { border-color: var(--rs-good); color: var(--rs-good); }
 .rs-phase[data-phase="released"] { border-color: var(--rs-violet); color: var(--rs-violet); }
 
@@ -69,13 +69,13 @@
 
 .rs-chart { width: 100%; }
 .rs-chart svg { display: block; width: 100%; height: auto; }
-.rs-grid-line { stroke: #222b38; stroke-width: 1; }
+.rs-grid-line { stroke: #e8ddf5; stroke-width: 1; }
 .rs-axis-text { fill: var(--rs-muted); font: 10px var(--rs-mono); }
 .rs-marker-line { stroke: var(--rs-border-strong); stroke-width: 1; stroke-dasharray: 2 4; }
 .rs-marker-text { fill: var(--rs-muted); font: 9px var(--rs-mono); }
 .rs-series-line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
 .rs-cursor-line { stroke: var(--rs-accent); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0.7; }
-.rs-bar-cap { fill: #1d2530; }
+.rs-bar-cap { fill: #efe8f8; }
 .rs-bar-id { fill: var(--rs-muted); font: 9px var(--rs-mono); }
 .rs-bar-eta { fill: var(--rs-cyan); font: 9px var(--rs-mono); }
 .rs-bar-eta.is-here { fill: var(--rs-amber); }

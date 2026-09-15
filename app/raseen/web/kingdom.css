@@ -1,4 +1,4 @@
-/* Kingdom page — grid operator's console. Pairs with shell.css. */
+/* Kingdom page — purple "Power BI" theme. Pairs with shell.css. */
 
 .rs-body { padding: 16px; }
 
@@ -7,7 +7,7 @@
 
 .rs-list-panel { background: var(--rs-surface); border: 1px solid var(--rs-border); border-radius: var(--rs-radius); padding: 14px; display: flex; flex-direction: column; min-height: 0; max-height: calc(100vh - 100px); box-shadow: var(--rs-shadow); }
 .rs-list-head { display: flex; align-items: center; justify-content: space-between; }
-.rs-list-head h2 { margin: 0 0 10px; font: 600 11px var(--rs-mono); text-transform: uppercase; letter-spacing: 0.12em; color: var(--rs-text-2); }
+.rs-list-head h2 { margin: 0 0 10px; font: 700 13px var(--rs-sans); letter-spacing: 0.01em; color: var(--rs-accent-2); }
 .rs-count { font: 11px var(--rs-mono); color: var(--rs-muted); }
 .rs-search { font: 12px var(--rs-sans); padding: 8px 10px; border-radius: 7px; border: 1px solid var(--rs-border-strong); background: var(--rs-surface-2); color: var(--rs-text); width: 100%; margin-bottom: 10px; }
 .rs-search:focus { outline: 2px solid color-mix(in srgb, var(--rs-accent) 40%, transparent); border-color: var(--rs-accent); }

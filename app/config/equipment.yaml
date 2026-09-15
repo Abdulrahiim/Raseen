@@ -1,0 +1,520 @@
+# equipment.yaml — NAJM-3000 Digital Twin
+# =============================================================================
+# LIVE EQUIPMENT PARAMETER LIBRARY — CONFIDENTIAL, NOT COMMITTED (gitignored)
+# =============================================================================
+# Values extracted 2026-07-24 from audited datasheets/GTPs (see
+# DOCUMENT_REGISTER.md). All values Provisional: datasheet grade, not
+# flash-test / routine-test / as-built grade. Vendor identities are kept
+# to aliases per CONFIDENTIALITY.md.
+# =============================================================================
+
+pv_modules:
+
+  module_vendor_a_model_1:
+    description: "Bifacial n-type TOPCon dual-glass module — Vendor A, 645 Wp bin"
+    technology: "MonoSi"
+    bifacial: true
+    provenance_note: "SRC-006; 645 Wp bin selected per ASMP-016 (bin mix unconfirmed)"
+    pdc_stc:
+      value: 645.0
+      unit: "W"
+      provenance:
+        source_id: "SRC-006"
+        assumption_id: "ASMP-016"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+        date_extracted: "2026-07-24"
+        notes: "Top bin of 620-645 Wp range; delivered bin mix not confirmed"
+    v_mp_stc:
+      value: 41.44
+      unit: "V"
+      provenance:
+        source_id: "SRC-006"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+    i_mp_stc:
+      value: 15.57
+      unit: "A"
+      provenance:
+        source_id: "SRC-006"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+    v_oc_stc:
+      value: 50.08
+      unit: "V"
+      provenance:
+        source_id: "SRC-006"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+    i_sc_stc:
+      value: 16.38
+      unit: "A"
+      provenance:
+        source_id: "SRC-006"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+    gamma_pdc:
+      value: -0.0029
+      unit: "per_degC"
+      provenance:
+        source_id: "SRC-006"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+        notes: "Datasheet temperature coefficient of Pmax (-0.29%/degC); resolves ASMP-011 for Vendor A"
+    beta_voc:
+      value: -0.0025
+      unit: "per_degC"
+      provenance:
+        source_id: "SRC-006"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+    alpha_isc:
+      value: 0.00045
+      unit: "per_degC"
+      provenance:
+        source_id: "SRC-006"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+    bifaciality:
+      value: 0.80
+      unit: "dimensionless"
+      provenance:
+        source_id: "SRC-006"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+        notes: "Datasheet 80% +/-5%; resolves ASMP-003"
+    rear_mismatch_factor:
+      value: 0.02
+      unit: "dimensionless"
+      provenance:
+        assumption_id: "ASMP-004"
+        data_quality_status: "Assumed"
+        confidence: "Low"
+    max_series_fuse:
+      value: 35.0
+      unit: "A"
+      provenance:
+        source_id: "SRC-006"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+    module_width:
+      value: 1.134
+      unit: "m"
+      provenance:
+        source_id: "SRC-006"
+        data_quality_status: "Provisional"
+        confidence: "High"
+    module_length:
+      value: 2.382
+      unit: "m"
+      provenance:
+        source_id: "SRC-006"
+        data_quality_status: "Provisional"
+        confidence: "High"
+
+  module_vendor_b_model_1:
+    description: "Bifacial n-type TOPCon dual-glass module — Vendor B, 645 Wp bin"
+    technology: "MonoSi"
+    bifacial: true
+    provenance_note: "SRC-007; 645 Wp bin selected per ASMP-016 (bin mix unconfirmed)"
+    pdc_stc:
+      value: 645.0
+      unit: "W"
+      provenance:
+        source_id: "SRC-007"
+        assumption_id: "ASMP-016"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+    v_mp_stc:
+      value: 42.17
+      unit: "V"
+      provenance:
+        source_id: "SRC-007"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+    i_mp_stc:
+      value: 15.30
+      unit: "A"
+      provenance:
+        source_id: "SRC-007"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+    v_oc_stc:
+      value: 49.63
+      unit: "V"
+      provenance:
+        source_id: "SRC-007"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+    i_sc_stc:
+      value: 16.45
+      unit: "A"
+      provenance:
+        source_id: "SRC-007"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+    gamma_pdc:
+      value: -0.00274
+      unit: "per_degC"
+      provenance:
+        source_id: "SRC-007"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+        notes: "Datasheet -0.274%/degC; resolves ASMP-011 for Vendor B"
+    beta_voc:
+      value: -0.0025
+      unit: "per_degC"
+      provenance:
+        source_id: "SRC-007"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+    alpha_isc:
+      value: 0.00045
+      unit: "per_degC"
+      provenance:
+        source_id: "SRC-007"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+    bifaciality:
+      value: 0.80
+      unit: "dimensionless"
+      provenance:
+        source_id: "SRC-007"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+        notes: "Datasheet 80% +/-5%; resolves ASMP-003"
+    rear_mismatch_factor:
+      value: 0.02
+      unit: "dimensionless"
+      provenance:
+        assumption_id: "ASMP-004"
+        data_quality_status: "Assumed"
+        confidence: "Low"
+    max_series_fuse:
+      value: 35.0
+      unit: "A"
+      provenance:
+        source_id: "SRC-007"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+    module_width:
+      value: 1.134
+      unit: "m"
+      provenance:
+        source_id: "SRC-007"
+        data_quality_status: "Provisional"
+        confidence: "High"
+    module_length:
+      value: 2.382
+      unit: "m"
+      provenance:
+        source_id: "SRC-007"
+        data_quality_status: "Provisional"
+        confidence: "High"
+
+inverters:
+
+  inverter_vendor_a_model_1:
+    description: "Central inverter — Vendor A, 4.4 MW class @52 degC"
+    type: "central"
+    provenance_note: "SRC-008 GTP"
+    paco:
+      value: 4400000.0
+      unit: "W"
+      provenance:
+        source_id: "SRC-008"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+        notes: "Rated AC active power at 52 degC derating point (4463 kVA @50 degC; 5280 kVA @27 degC — GAP-012)"
+    eta_inv_nom:
+      value: 0.988
+      unit: "dimensionless"
+      provenance:
+        source_id: "SRC-008"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+        notes: "European efficiency; max 99.02%"
+    night_power:
+      value: 250.0
+      unit: "W"
+      provenance:
+        source_id: "SRC-008"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+        notes: "Datasheet night consumption upper bound (<250 W); resolves ASMP-009"
+    mppt_low:
+      value: 950.0
+      unit: "V"
+      provenance:
+        source_id: "SRC-008"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+        notes: "Operating MPP lower bound; full-power window 950-1300 V; resolves ASMP-014"
+    mppt_high:
+      value: 1500.0
+      unit: "V"
+      provenance:
+        source_id: "SRC-008"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+    max_dc_voltage:
+      value: 1500.0
+      unit: "V"
+      provenance:
+        source_id: "SRC-008"
+        data_quality_status: "Provisional"
+        confidence: "High"
+
+  inverter_vendor_b_model_1:
+    description: "Central inverter unit — Vendor B, 1.1 MVA class @52 degC"
+    type: "central"
+    provenance_note: "SRC-009 (re-audited 2026-07-24 — detailed datasheet)"
+    paco:
+      value: 1100000.0
+      unit: "W"
+      provenance:
+        source_id: "SRC-009"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+        notes: "1100 kVA @52 degC (1320 kVA @23 degC — GAP-012)"
+    eta_inv_nom:
+      value: 0.987
+      unit: "dimensionless"
+      provenance:
+        source_id: "SRC-009"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+        notes: "European efficiency; max 99.0%"
+    night_power:
+      value: 200.0
+      unit: "W"
+      provenance:
+        source_id: "SRC-009"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+        notes: "Datasheet night consumption upper bound (<200 W); resolves ASMP-009"
+    mppt_low:
+      value: 938.0
+      unit: "V"
+      provenance:
+        source_id: "SRC-009"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+        notes: "MPP range 938-1500 V; resolves ASMP-014 / GAP-016"
+    mppt_high:
+      value: 1500.0
+      unit: "V"
+      provenance:
+        source_id: "SRC-009"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+    max_dc_voltage:
+      value: 1500.0
+      unit: "V"
+      provenance:
+        source_id: "SRC-009"
+        data_quality_status: "Provisional"
+        confidence: "High"
+
+idts:
+
+  idt_vendor_a_8_932_mva:
+    description: "IDT — Vendor A, 8.932 MVA @50 degC, 33 kV / 2x660 V, Dy11y11"
+    rated_power_mva: 8.932
+    hv_voltage_kv: 33.0
+    lv_voltage_kv: 0.66
+    lv_windings: 2
+    provenance_note: "SRC-010 GTP"
+    p_no_load:
+      value: 8932.0
+      unit: "W"
+      provenance:
+        source_id: "SRC-010"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+        notes: "0.1% of rating at 75 degC, principal tap"
+    p_load_rated:
+      value: 62524.0
+      unit: "W"
+      provenance:
+        source_id: "SRC-010"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+        notes: "0.7% of rating at 75 degC, principal tap"
+
+  idt_vendor_a_4_466_mva:
+    description: "IDT — Vendor A, 4.466 MVA @50 degC, 33 kV / 660 V, Dy11"
+    rated_power_mva: 4.466
+    hv_voltage_kv: 33.0
+    lv_voltage_kv: 0.66
+    lv_windings: 1
+    provenance_note: "SRC-011 GTP — GAP-006 resolved 2026-07-24"
+    p_no_load:
+      value: 4466.0
+      unit: "W"
+      provenance:
+        source_id: "SRC-011"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+        notes: "0.1% of rating at 75 degC; previously ambiguous (GAP-006, ASMP-010)"
+    p_load_rated:
+      value: 31262.0
+      unit: "W"
+      provenance:
+        source_id: "SRC-011"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+        notes: "0.7% of rating at 75 degC, principal tap"
+
+trackers:
+
+  tracker_vendor_a_model_1:
+    description: "Single-axis tracker — Vendor A, 1-in-portrait"
+    type: "single_axis"
+    provenance_note: "SRC-012"
+    axis_tilt:
+      value: 0.0
+      unit: "degrees"
+      provenance:
+        source_id: "SRC-012"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+    axis_azimuth:
+      value: 180.0
+      unit: "degrees"
+      provenance:
+        source_id: "SRC-012"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+        notes: "N-S axis convention (pvlib axis_azimuth=180)"
+    max_angle:
+      value: 60.0
+      unit: "degrees"
+      provenance:
+        source_id: "SRC-012"
+        assumption_id: "ASMP-001"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+    backtrack: true
+    axis_height:
+      value: 1.5
+      unit: "m"
+      provenance:
+        assumption_id: "ASMP-002"
+        data_quality_status: "Assumed"
+        confidence: "Medium"
+
+  tracker_vendor_b_model_1:
+    description: "Single-axis tracker — Vendor B (datasheet received; extraction pending, GAP-010)"
+    type: "single_axis"
+    provenance_note: "SRC-021 — Vendor A values used as placeholder"
+    axis_tilt:
+      value: 0.0
+      unit: "degrees"
+      provenance:
+        assumption_id: "ASMP-001"
+        gap_id: "GAP-010"
+        data_quality_status: "Assumed"
+        confidence: "Low"
+    axis_azimuth:
+      value: 180.0
+      unit: "degrees"
+      provenance:
+        assumption_id: "ASMP-001"
+        gap_id: "GAP-010"
+        data_quality_status: "Assumed"
+        confidence: "Low"
+    max_angle:
+      value: 60.0
+      unit: "degrees"
+      provenance:
+        assumption_id: "ASMP-001"
+        gap_id: "GAP-010"
+        data_quality_status: "Assumed"
+        confidence: "Low"
+    backtrack: true
+    axis_height:
+      value: 1.5
+      unit: "m"
+      provenance:
+        assumption_id: "ASMP-002"
+        gap_id: "GAP-010"
+        data_quality_status: "Assumed"
+        confidence: "Low"
+
+  tracker_vendor_c_model_1:
+    description: "Single-axis tracker — Vendor C (datasheet received; extraction pending, GAP-010)"
+    type: "single_axis"
+    provenance_note: "SRC-022 — Vendor A values used as placeholder"
+    axis_tilt:
+      value: 0.0
+      unit: "degrees"
+      provenance:
+        assumption_id: "ASMP-001"
+        gap_id: "GAP-010"
+        data_quality_status: "Assumed"
+        confidence: "Low"
+    axis_azimuth:
+      value: 180.0
+      unit: "degrees"
+      provenance:
+        assumption_id: "ASMP-001"
+        gap_id: "GAP-010"
+        data_quality_status: "Assumed"
+        confidence: "Low"
+    max_angle:
+      value: 60.0
+      unit: "degrees"
+      provenance:
+        assumption_id: "ASMP-001"
+        gap_id: "GAP-010"
+        data_quality_status: "Assumed"
+        confidence: "Low"
+    backtrack: true
+    axis_height:
+      value: 1.5
+      unit: "m"
+      provenance:
+        assumption_id: "ASMP-002"
+        gap_id: "GAP-010"
+        data_quality_status: "Assumed"
+        confidence: "Low"
+
+smbs:
+
+  smb_vendor_a_model_1:
+    description: "SMB — Vendor A, 1500 V DC, 16-in/1-out"
+    system_voltage: 1500
+    string_inputs: 16
+    max_string_current:
+      value: 18.1
+      unit: "A"
+      provenance:
+        source_id: "SRC-013"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+
+  smb_vendor_b_model_1:
+    description: "SMB — Vendor B, 1500 V DC, 16-in/1-out"
+    system_voltage: 1500
+    string_inputs: 16
+    max_string_current:
+      value: 17.28
+      unit: "A"
+      provenance:
+        source_id: "SRC-014"
+        data_quality_status: "Provisional"
+        confidence: "Medium"
+
+  smb_vendor_c_model_1:
+    description: "SMB — Vendor C, 1500 V DC, 16-in/1-out"
+    system_voltage: 1500
+    string_inputs: 16
+    max_string_current:
+      value: 18.0
+      unit: "A"
+      provenance:
+        source_id: "SRC-015"
+        data_quality_status: "Provisional"
+        confidence: "Low"
+        notes: "30 A gPV string fuse stated; continuous string current not explicit"

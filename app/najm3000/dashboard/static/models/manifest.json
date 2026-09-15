@@ -1,0 +1,52 @@
+{
+  "file": "station.glb",
+  "note": "Representative 3D model, purpose-built for this proof of concept. Geometry and part names are illustrative and do not depict the specified equipment. Architecture only.",
+  "tag_prefix": "NAJM_",
+  "source_nodes": 395129,
+  "output_nodes": 519,
+  "bytes": 22758148,
+  "parts": [
+    {
+      "key": "inverter_01",
+      "group": "NAJM_inverter_01",
+      "asset": "inverter_01",
+      "label": "Inverter 01",
+      "present": true
+    },
+    {
+      "key": "inverter_02",
+      "group": "NAJM_inverter_02",
+      "asset": "inverter_02",
+      "label": "Inverter 02",
+      "present": true
+    },
+    {
+      "key": "rmu",
+      "group": "NAJM_rmu",
+      "asset": "rmu",
+      "label": "RMU",
+      "present": true
+    },
+    {
+      "key": "skid",
+      "group": "NAJM_skid",
+      "asset": "skid",
+      "label": "MVPS skid",
+      "present": true
+    },
+    {
+      "key": "transformer",
+      "group": "NAJM_transformer",
+      "asset": "idt_01",
+      "label": "Transformer",
+      "present": true
+    },
+    {
+      "key": "pss",
+      "group": "NAJM_pss",
+      "asset": "pss",
+      "label": "Pooling substation",
+      "present": true
+    }
+  ]
+}

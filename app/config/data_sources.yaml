@@ -1,0 +1,108 @@
+# data_sources.yaml — NAJM-3000 Digital Twin
+# =============================================================================
+# LIVE WEATHER / DATA SOURCE CONFIGURATION — CONFIDENTIAL, NOT COMMITTED
+# =============================================================================
+# Only SYNTHETIC_SOFTWARE_TEST is authorized for the POC.
+# Do not download public weather. See docs/weather_data_policy.md.
+# =============================================================================
+
+data_sources:
+
+  synthetic_clearsky:
+    classification: "SYNTHETIC_SOFTWARE_TEST"
+    description: "pvlib clear-sky irradiance with synthetic temperature and wind profiles"
+    disclaimer: "SYNTHETIC DEMONSTRATION — NOT PRODUCTION VALIDATION"
+    authorized: true
+    requires_download: false
+
+    clearsky_method: "ineichen"
+
+    synthetic_temperature:
+      description: "Diurnal sinusoidal temperature profile — software test only"
+      t_min:
+        value: 22.0
+        unit: "degC"
+        provenance:
+          data_quality_status: "Assumed"
+          assumption_id: "ASMP-005"
+          notes: "Synthetic summer-day minimum, loosely informed by design-basis climate (SRC-026) — NOT site data"
+      t_max:
+        value: 45.0
+        unit: "degC"
+        provenance:
+          data_quality_status: "Assumed"
+          assumption_id: "ASMP-005"
+          notes: "Synthetic summer-day maximum, loosely informed by design-basis climate (SRC-026) — NOT site data"
+
+    synthetic_wind:
+      description: "Constant wind speed — software test only"
+      wind_speed:
+        value: 2.0
+        unit: "m/s"
+        provenance:
+          data_quality_status: "Assumed"
+          assumption_id: "ASMP-005"
+          notes: "Constant wind speed placeholder — not representative of site"
+
+    albedo:
+      value: 0.20
+      unit: "dimensionless"
+      provenance:
+        assumption_id: "ASMP-005"
+        data_quality_status: "Assumed"
+        confidence: "Low"
+
+  measured_site:
+    classification: "MEASURED_SITE"
+    description: "On-site pyranometer and meteorological station data"
+    authorized: false
+    available: false
+    gap_id: "GAP-002"
+    notes: >
+      19 weather stations fully specified (SRC-025) but not yet installed.
+      Do not substitute synthetic data as MEASURED_SITE.
+
+  official_tmy:
+    classification: "OFFICIAL_TMY"
+    description: "Owner-provided TMY dataset (referenced by design basis as OTS annex)"
+    authorized: false
+    available: false
+    gap_id: "GAP-020"
+    notes: >
+      A project TMY exists per SRC-025/SRC-026 but has not been supplied to this
+      repository and is not approved for Digital Twin use. Data request DR-001
+      logged. Do not download PVGIS, NSRDB, ERA5, or similar as a substitute.
+
+  provisional_public:
+    classification: "PROVISIONAL_PUBLIC"
+    description: "Publicly available data — not formally approved for NAJM-3000"
+    authorized: false
+    notes: >
+      Provisional public data may be used ONLY for sensitivity studies with
+      explicit approval and must be clearly labeled PROVISIONAL_PUBLIC.
+
+  # ---------------------------------------------------------------------------
+  # PVGIS public satellite weather — AUTHORIZED 2026-08-02 by the project lead.
+  # Classification PROVISIONAL_PUBLIC: this is real weather but it is NOT
+  # site-measured and NOT the owner TMY. It cannot calibrate or validate the
+  # model. See DATA_REGISTER.md (SRC-027) and the weather data policy.
+  # ---------------------------------------------------------------------------
+  public_pvgis:
+    classification: "PROVISIONAL_PUBLIC"
+    description: >
+      PVGIS (EU JRC) hourly data, radiation database PVGIS-SARAH3
+      (Meteosat satellite-derived), meteorological database ERA5.
+      Coverage 2005-2023. Queried at exact site coordinates per project-lead
+      decision of 2026-08-02 (see DATA_REGISTER.md).
+    disclaimer: "PROVISIONAL PUBLIC DATA — NOT SITE-MEASURED, NOT VALIDATED"
+    authorized: true
+    provider: "pvgis"
+    radiation_database: "PVGIS-SARAH3"
+    albedo:
+      value: 0.20
+      unit: "dimensionless"
+      provenance:
+        assumption_id: "ASMP-005"
+        data_quality_status: "Assumed"
+        confidence: "Low"
+        notes: "Ground albedo remains assumed; PVGIS does not supply site albedo"

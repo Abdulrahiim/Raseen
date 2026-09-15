@@ -1,0 +1,74 @@
+# project.yaml — NAJM-3000 Digital Twin
+# =============================================================================
+# LIVE PROJECT CONFIGURATION — CONFIDENTIAL, NOT COMMITTED (gitignored)
+# =============================================================================
+# Site coordinates are confidential and must never leave this gitignored file.
+# All values Provisional — from design-basis documents, not as-built records.
+# =============================================================================
+
+project:
+  name: "NAJM-3000"
+  version: "0.1.0.dev0"
+  status: "pre-operational"
+  description: "NAJM-3000 3,000 MWac Utility-Scale Solar PV Digital Twin"
+  calibration_status: "not-calibrated"
+  validation_status: "not-validated"
+
+location:
+  latitude:
+    value: 25.058417
+    unit: "degrees"
+    provenance:
+      source_id: "SRC-026"
+      source_section: "Plant Summary"
+      data_quality_status: "Provisional"
+      confidence: "High"
+      date_extracted: "2026-07-24"
+      notes: "Design-basis coordinates; CONFIDENTIAL — gitignored file only"
+  longitude:
+    value: 41.106583
+    unit: "degrees"
+    provenance:
+      source_id: "SRC-026"
+      source_section: "Plant Summary"
+      data_quality_status: "Provisional"
+      confidence: "High"
+      date_extracted: "2026-07-24"
+      notes: "Design-basis coordinates; CONFIDENTIAL — gitignored file only"
+  altitude:
+    value: 1100.0
+    unit: "m"
+    provenance:
+      source_id: "SRC-026"
+      source_section: "Plant Summary"
+      data_quality_status: "Provisional"
+      confidence: "Medium"
+      date_extracted: "2026-07-24"
+      notes: "Design maximum elevation above sea level"
+  timezone: "Asia/Riyadh"
+  name: "NAJM-3000 Site"
+
+simulation:
+  timestep_minutes: 10
+  start_date: null
+  end_date: null
+  weather_source: "SYNTHETIC_SOFTWARE_TEST"
+
+outputs:
+  directory: "outputs/"
+  format: "parquet"
+  include_provenance: true
+  include_assumptions: true
+  disclaimer: "SYNTHETIC DEMONSTRATION — NOT PRODUCTION VALIDATION"
+
+model_selection:
+  solar_position: "nrel_numpy"
+  irradiance_transposition: "perez"
+  temperature_model: "pvsyst_cell"
+  dc_model: "pvwatts"
+  inverter_model: "pvwatts"
+  bifacial_model: "infinite_sheds"
+
+physics_baseline:
+  availability_fraction: 1.00
+  curtailment_fraction: 0.00

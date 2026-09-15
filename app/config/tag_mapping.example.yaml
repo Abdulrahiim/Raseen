@@ -1,0 +1,48 @@
+# tag_mapping.example.yaml — NAJM-3000 Digital Twin
+#
+# EXAMPLE ONLY. Sanitized placeholder identifiers.
+#
+# The real tag mapping (config/tag_mapping.yaml) is gitignored.
+#
+# NEVER commit: IP addresses, hostnames, Modbus/register addresses,
+# credentials, or any live SCADA naming. Parsing rejects these patterns —
+# see src/najm3000/scada/tag_mapping.py and CONFIDENTIALITY.md.
+#
+# SCADA is NOT commissioned for NAJM-3000. No operational data exists.
+# This file documents the interface shape only.
+
+tag_mappings:
+  - tag_id: "BLOCK_A_INV_01_PAC"
+    description: "Inverter 01, representative block A, AC active power"
+    asset_id: "representative_block_a.inverter_01"
+    asset_class: "Inverter"
+    physical_quantity: "ac_power"
+    unit: "W"
+    expected_range: [0.0, 5.0e6]
+    quality_checks:
+      - "non_negative"
+      - "range_check"
+      - "flatline_check"
+
+  - tag_id: "BLOCK_A_IDT_01_PLOSS"
+    description: "IDT 01, representative block A, transformer loss"
+    asset_id: "representative_block_a.idt_01"
+    asset_class: "IDT"
+    physical_quantity: "power_loss"
+    unit: "W"
+    expected_range: [0.0, 5.0e4]
+    quality_checks:
+      - "non_negative"
+      - "range_check"
+
+  - tag_id: "MET_ZONE_01_GHI"
+    description: "Weather station zone 01, global horizontal irradiance"
+    asset_id: "weather_zone_01.pyranometer_ghi"
+    asset_class: "WeatherStation"
+    physical_quantity: "ghi"
+    unit: "W/m2"
+    expected_range: [0.0, 1400.0]
+    quality_checks:
+      - "non_negative"
+      - "range_check"
+      - "night_zero_check"

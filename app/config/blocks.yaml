@@ -1,0 +1,166 @@
+# blocks.yaml — NAJM-3000 Digital Twin
+# =============================================================================
+# LIVE MV BLOCK CONFIGURATION — CONFIDENTIAL, NOT COMMITTED (gitignored)
+# =============================================================================
+# Two representative block variants (one per inverter vendor). Block
+# assignment matrix is NOT final (GAP-001, GAP-019) — these are engineering
+# representations for the POC, clearly labeled.
+# =============================================================================
+
+blocks:
+
+  representative_block_a:
+    description: "Representative MV block — Vendor A chain (2 x 4.4 MW inverters on 8.932 MVA dual-LV IDT)"
+    status: "provisional"
+    warning: "Provisional POC block — not a confirmed NAJM-3000 block configuration (GAP-001)"
+
+    pv_module: "module_vendor_a_model_1"
+    inverter: "inverter_vendor_a_model_1"
+    idt: "idt_vendor_a_8_932_mva"
+    tracker: "tracker_vendor_a_model_1"
+    smb: "smb_vendor_a_model_1"
+
+    modules_per_string: 28          # ASMP-017 (Assumed — string sizing calc pending)
+    strings_per_smb: 16             # SRC-013/014/015 + SRC-026 (Provisional)
+    smbs_per_inverter: 17           # ASMP-018 (Assumed — from DC/AC ~1.1)
+    inverters_per_idt: 2            # SRC-010 (dual LV windings)
+    idts_per_block: 1               # SRC-026 (MVPS = 1 IDT skid)
+
+    gcr:
+      value: 0.35
+      unit: "dimensionless"
+      provenance:
+        assumption_id: "ASMP-013"
+        data_quality_status: "Assumed"
+        confidence: "Low"
+    cross_axis_tilt:
+      value: 0.0
+      unit: "degrees"
+      provenance:
+        data_quality_status: "Assumed"
+        assumption_id: "ASMP-013"
+        notes: "Flat terrain assumed for POC; update with terrain data"
+    albedo:
+      value: 0.20
+      unit: "dimensionless"
+      provenance:
+        assumption_id: "ASMP-005"
+        data_quality_status: "Assumed"
+        confidence: "Low"
+    soiling_factor:
+      value: 0.98
+      unit: "dimensionless"
+      provenance:
+        assumption_id: "ASMP-006"
+        data_quality_status: "Assumed"
+        confidence: "Low"
+    dc_cable_loss_fraction:
+      value: 0.005
+      unit: "dimensionless"
+      provenance:
+        assumption_id: "ASMP-007"
+        data_quality_status: "Assumed"
+        confidence: "Low"
+        notes: "Design basis requires string-to-inverter loss <= 1.7% at STC; allowance retained"
+    ac_cable_loss_fraction:
+      value: 0.003
+      unit: "dimensionless"
+      provenance:
+        assumption_id: "ASMP-008"
+        data_quality_status: "Assumed"
+        confidence: "Low"
+        notes: "Design basis requires LV+MV AC loss <= 0.5% at STC; allowance retained"
+    dc_mismatch_loss_fraction:
+      value: 0.01
+      unit: "dimensionless"
+      provenance:
+        data_quality_status: "Assumed"
+        assumption_id: "ASMP-013"
+        notes: "Industry design allowance — not site-specific"
+
+    physics_baseline:
+      availability_fraction: 1.00
+      curtailment_fraction: 0.00
+      label: "PHYSICS BASELINE — NOT AN OPERATIONAL FORECAST"
+
+  representative_block_b:
+    description: "Representative MV block — Vendor B chain (4 x 1.1 MVA inverter units on 4.466 MVA IDT, ASMP-019)"
+    status: "provisional"
+    warning: "Provisional POC block — pairing assumed (ASMP-019); not a confirmed NAJM-3000 block configuration"
+
+    pv_module: "module_vendor_b_model_1"
+    inverter: "inverter_vendor_b_model_1"
+    idt: "idt_vendor_a_8_932_mva"
+    tracker: "tracker_vendor_b_model_1"   # placeholder values (GAP-010)
+    smb: "smb_vendor_b_model_1"
+
+    modules_per_string: 28          # ASMP-017
+    strings_per_smb: 16             # SRC-013/014/015 + SRC-026
+    smbs_per_inverter: 4            # Assumed — DC/AC ~1.05 per 1.1 MVA unit (ASMP-018 analogue)
+    inverters_per_idt: 8            # ASMP-019 rev.2 (SRC-026): 8 x 1.1 MVA = 8.8 MVA,
+                                    # four per LV winding of the 8.932 MVA dual-winding IDT.
+                                    # Was 4, which modelled the 4.466 MVA LV WINDING as a
+                                    # whole transformer and produced a half-size MVPS.
+    idts_per_block: 1
+
+    gcr:
+      value: 0.35
+      unit: "dimensionless"
+      provenance:
+        assumption_id: "ASMP-013"
+        data_quality_status: "Assumed"
+        confidence: "Low"
+    cross_axis_tilt:
+      value: 0.0
+      unit: "degrees"
+      provenance:
+        data_quality_status: "Assumed"
+        assumption_id: "ASMP-013"
+    albedo:
+      value: 0.20
+      unit: "dimensionless"
+      provenance:
+        assumption_id: "ASMP-005"
+        data_quality_status: "Assumed"
+        confidence: "Low"
+    soiling_factor:
+      value: 0.98
+      unit: "dimensionless"
+      provenance:
+        assumption_id: "ASMP-006"
+        data_quality_status: "Assumed"
+        confidence: "Low"
+    dc_cable_loss_fraction:
+      value: 0.005
+      unit: "dimensionless"
+      provenance:
+        assumption_id: "ASMP-007"
+        data_quality_status: "Assumed"
+        confidence: "Low"
+    ac_cable_loss_fraction:
+      value: 0.003
+      unit: "dimensionless"
+      provenance:
+        assumption_id: "ASMP-008"
+        data_quality_status: "Assumed"
+        confidence: "Low"
+    dc_mismatch_loss_fraction:
+      value: 0.01
+      unit: "dimensionless"
+      provenance:
+        data_quality_status: "Assumed"
+        assumption_id: "ASMP-013"
+
+    physics_baseline:
+      availability_fraction: 1.00
+      curtailment_fraction: 0.00
+      label: "PHYSICS BASELINE — NOT AN OPERATIONAL FORECAST"
+
+
+plant_scaling_scenario:
+  description: "Illustrative plant-level scaling — NOT confirmed block count"
+  warning: "ILLUSTRATIVE ONLY — block count Conflicting: IDT BOQ lists 286 Vendor-A-class units vs 365 MVPS in design basis (GAP-019)"
+  representative_block: "representative_block_a"
+  block_count: 365                  # SRC-026/SRC-028 plant summary: 365 MVPS.
+                                    # Was 286, taken from the IDT GTP BOQ (GAP-019).
+  label: "PROVISIONAL SCALING — NOT PRODUCTION VALIDATION"

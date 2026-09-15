@@ -19,7 +19,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Raseen {__version__} — {CLASSIFICATION}")
     print("*** SIMULATED TELEMETRY — NOT MEASURED DATA — NOT CALIBRATED — NOT VALIDATED ***")
     uvicorn.run(
-        "raseen.api:app", host=args.host, port=args.port, reload=args.reload, log_level="info"
+        "raseen.webapp:app", host=args.host, port=args.port, reload=args.reload, log_level="info"
     )
     return 0
 

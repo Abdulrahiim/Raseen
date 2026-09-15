@@ -4,14 +4,21 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "raseen"
-version = "0.1.0"
-description = "Raseen (رَصين) — Block Gradient Control dashboard for gigawatt solar. Prototype."
+version = "0.2.0"
+description = "Raseen (رَصين) — Block Gradient Control dashboard for gigawatt solar, built on the NAJM-3000 pre-commissioning twin."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.110",
     "uvicorn[standard]>=0.27",
     "pydantic>=2.0",
+    # Physics engine vendored from the NAJM-3000 twin (feeds the Plant page's simulated telemetry).
+    "pvlib>=0.10",
+    "pandas>=2.0",
+    "numpy>=1.26",
+    "scipy>=1.11",
+    "pyyaml>=6.0",
+    "pyarrow>=14.0",
 ]
 
 [project.optional-dependencies]
@@ -26,10 +33,11 @@ dev = [
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["raseen*"]
+include = ["raseen*", "najm3000*"]
 
 [tool.setuptools.package-data]
-raseen = ["static/**/*", "registry/data/*.json"]
+raseen = ["static/**/*", "web/**/*", "registry/data/*.json"]
+najm3000 = ["dashboard/static/**/*", "py.typed"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -39,6 +47,8 @@ markers = ["e2e: browser smoke tests (need `playwright install chromium`)"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+# The vendored NAJM-3000 package keeps its own upstream style; Raseen lints only its own code.
+extend-exclude = ["najm3000"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]

@@ -1,0 +1,1664 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NAJM-3000 Grid Twin — Full Logic Audit and the Definitive Hackathon Idea (v3)</title>
+<style>
+:root{
+  --ink:#141a24; --ink-2:#4b5563; --muted:#6b7280; --line:#d9dee6; --line-2:#eceff3;
+  --paper:#ffffff; --tint:#f4f6f9; --tint-2:#eaf3f1;
+  --navy:#1f3a5f; --teal:#0f6e6a; --gold:#a16207; --red:#b42318; --amber:#b54708; --green:#067647;
+  --ar-font:"Noto Naskh Arabic","Sakkal Majalla","Traditional Arabic","Arial",sans-serif;
+  --font:"Inter","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono","Consolas","SFMono-Regular",Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{color-scheme:light}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);font-size:14.5px;line-height:1.55;padding:0 20px}
+main,header.titleblock,nav.toc,footer.docfoot{max-width:960px;margin:0 auto}
+header.titleblock{padding:44px 0 18px;border-bottom:3px solid var(--teal);margin-bottom:20px}
+.kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);font-weight:700}
+h1.doc-title{font-size:30px;line-height:1.2;margin:10px 0 8px;color:var(--navy);font-weight:800}
+.doc-subtitle{font-size:15px;color:var(--ink-2);margin:0 0 6px}
+.doc-date{font-size:13px;color:var(--muted);margin:0}
+.meta{font-size:13px;color:var(--ink-2);background:var(--tint);border-left:4px solid var(--navy);padding:10px 14px;margin:0 0 22px;border-radius:0 6px 6px 0}
+nav.toc{font-size:13.5px;background:var(--tint);border:1px solid var(--line);border-radius:8px;padding:14px 18px;margin:0 auto 28px}
+nav.toc .toc-title{font-weight:700;color:var(--navy);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase;font-size:12px}
+nav.toc ul{list-style:none;margin:0;padding-left:0;columns:2;column-gap:28px}
+nav.toc ul ul{columns:1;padding-left:14px}
+nav.toc li{margin:2px 0;break-inside:avoid}
+nav.toc a{color:var(--ink);text-decoration:none}
+nav.toc a:hover{color:var(--teal)}
+h1{font-size:23px;color:var(--navy);margin:40px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--line);page-break-after:avoid;font-weight:800}
+h2{font-size:17.5px;color:var(--teal);margin:26px 0 8px;page-break-after:avoid;font-weight:700}
+h3{font-size:15px;color:var(--navy);margin:20px 0 6px;page-break-after:avoid;font-weight:700}
+p{margin:0 0 10px}
+strong{font-weight:700}
+em{color:var(--ink-2)}
+a{color:#0b5394}
+ul,ol{margin:4px 0 12px;padding-left:22px}
+li{margin:3px 0}
+table{border-collapse:collapse;width:100%;margin:10px 0 18px;font-size:12.6px;line-height:1.4;page-break-inside:auto}
+thead th{background:var(--navy);color:#fff;text-align:left;padding:7px 8px;font-weight:700;vertical-align:bottom}
+tbody td{border-bottom:1px solid var(--line-2);padding:6px 8px;vertical-align:top}
+tbody tr:nth-child(even) td{background:var(--tint)}
+tbody tr{page-break-inside:avoid}
+table th:first-child,table td:first-child{padding-left:8px}
+.callout{background:var(--tint-2);border-left:4px solid var(--teal);padding:10px 14px;margin:14px 0 18px;border-radius:0 6px 6px 0;page-break-inside:avoid}
+.note{background:#fff8e6;border-left:4px solid var(--gold);padding:10px 14px;margin:14px 0 18px;border-radius:0 6px 6px 0;page-break-inside:avoid}
+.callout p:last-child,.note p:last-child,.meta p:last-child{margin-bottom:0}
+figure{margin:14px 0 6px;text-align:center;page-break-inside:avoid}
+figure svg{max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px;background:#fcfcfb}
+figcaption{font-size:12.5px;color:var(--muted);margin-top:6px}
+code{font-family:var(--mono);font-size:.92em;background:var(--tint);padding:1px 4px;border-radius:3px}
+/* Arabic blocks */
+.ar{direction:rtl;text-align:right;font-family:var(--ar-font);font-size:15.5px;line-height:1.9;background:#fbfbf7;border-right:4px solid var(--navy);border-left:0;padding:12px 16px;margin:16px 0 22px;border-radius:6px 0 0 6px}
+.ar h1,.ar h2,.ar h3{font-family:var(--ar-font);text-align:right;border-bottom:none}
+.ar h1{font-size:22px;margin-top:6px}
+.ar h2{font-size:18px}
+.ar p{margin:0 0 10px}
+.ar strong{font-weight:700}
+.ar ol,.ar ul{padding-right:22px;padding-left:0}
+.ar em{font-style:normal;color:var(--ink-2)}
+/* severity colours in tables */
+td strong:only-child{white-space:nowrap}
+footer.docfoot{font-size:12px;color:var(--muted);border-top:1px solid var(--line);margin-top:40px;padding:14px 0 40px}
+@media (max-width:700px){nav.toc ul{columns:1} body{font-size:14px} td:first-child{white-space:normal}}
+@media print{
+  body{padding:0;font-size:11.2pt}
+  header.titleblock{padding-top:0}
+  nav.toc{page-break-after:always}
+  nav.toc ul{columns:2}
+  h1{page-break-before:always}
+  h1:first-of-type{page-break-before:auto}
+  main > h1:first-of-type{page-break-before:auto}
+  table{font-size:9.6pt}
+  .ar{font-size:12.2pt}
+  a{color:inherit;text-decoration:none}
+  figure svg{border:none}
+}
+
+</style>
+</head>
+<body>
+<header class="titleblock">
+  <div class="kicker">Hackathon logic audit · v3</div>
+  <h1 class="doc-title">NAJM-3000 Grid Twin — Full Logic Audit and the Definitive Hackathon Idea (v3)</h1>
+  <p class="doc-subtitle">Energy Hackathon 2026 · Track 1 Operational Efficiency · Challenge 2 — استقرار الشبكة الكهربائية مع تغير إنتاج الطاقة المتجددة</p>
+  <p class="doc-date">Friday 11 September 2026 · registration closes Wednesday 16 September</p>
+</header>
+<nav id="toc" class="toc">
+<div class="toc-title">Contents</div>
+<ul>
+<li><a href="#verdict-in-one-page" id="toc-verdict-in-one-page">0. Verdict in one page</a></li>
+<li><a href="#الخلاصة-في-صفحة-واحدة" id="toc-الخلاصة-في-صفحة-واحدة">٠. الخلاصة في صفحة واحدة</a></li>
+<li><a href="#what-was-audited-and-how" id="toc-what-was-audited-and-how">1. What was audited, and how</a></li>
+<li><a href="#regulatory-anchors-verified-in-the-mayjune-2026-texts" id="toc-regulatory-anchors-verified-in-the-mayjune-2026-texts">2. Regulatory anchors — verified in the May/June 2026 texts</a>
+<ul>
+<li><a href="#saudi-arabian-grid-code-may-2026-national-grid-sa-marafiq-approved-by-sera" id="toc-saudi-arabian-grid-code-may-2026-national-grid-sa-marafiq-approved-by-sera">2.1 Saudi Arabian Grid Code, May 2026 (National Grid SA &amp; Marafiq; approved by SERA)</a></li>
+<li><a href="#saudi-arabian-distribution-code-june-2026-saudi-energy-marafiq-spark-approved-by-sera" id="toc-saudi-arabian-distribution-code-june-2026-saudi-energy-marafiq-spark-approved-by-sera">2.2 Saudi Arabian Distribution Code, June 2026 (Saudi Energy, Marafiq, SPARK; approved by SERA)</a></li>
+<li><a href="#sera-transmission-planning-criteria-erd-ta-001-v2-published-27-jul-2025" id="toc-sera-transmission-planning-criteria-erd-ta-001-v2-published-27-jul-2025">2.3 SERA Transmission Planning Criteria (ERD-TA-001 V2, published 27 Jul 2025)</a></li>
+<li><a href="#sera-generation-expansion-planning-criteria-erd-ta-016-v0121" id="toc-sera-generation-expansion-planning-criteria-erd-ta-016-v0121">2.4 SERA Generation Expansion Planning Criteria (ERD-TA-016 V01/21)</a></li>
+</ul></li>
+<li><a href="#findings" id="toc-findings">3. Findings</a>
+<ul>
+<li><a href="#scope-and-internal-consistency" id="toc-scope-and-internal-consistency">3.1 Scope and internal consistency</a></li>
+<li><a href="#jurisdiction-and-regulation" id="toc-jurisdiction-and-regulation">3.2 Jurisdiction and regulation</a></li>
+<li><a href="#physics-and-arithmetic" id="toc-physics-and-arithmetic">3.3 Physics and arithmetic</a></li>
+<li><a href="#forecasting-and-ai-claims" id="toc-forecasting-and-ai-claims">3.4 Forecasting and AI claims</a></li>
+<li><a href="#latency-and-control-architecture" id="toc-latency-and-control-architecture">3.5 Latency and control architecture</a></li>
+<li><a href="#presentation-eligibility-evidence" id="toc-presentation-eligibility-evidence">3.6 Presentation, eligibility, evidence</a></li>
+<li><a href="#corrections-to-the-grilling-report-itself" id="toc-corrections-to-the-grilling-report-itself">3.7 Corrections to the grilling report itself</a></li>
+<li><a href="#kill-sentences-remove-from-every-document-slide-and-rehearsal" id="toc-kill-sentences-remove-from-every-document-slide-and-rehearsal">3.8 Kill sentences — remove from every document, slide and rehearsal</a></li>
+</ul></li>
+<li><a href="#the-logic-chain-twelve-propositions-each-with-its-evidence" id="toc-the-logic-chain-twelve-propositions-each-with-its-evidence">4. The logic chain — twelve propositions, each with its evidence</a></li>
+<li><a href="#the-definitive-idea-najm-3000-grid-twin-version-3" id="toc-the-definitive-idea-najm-3000-grid-twin-version-3">5. The definitive idea — NAJM-3000 Grid Twin, version 3</a>
+<ul>
+<li><a href="#definition" id="toc-definition">5.1 Definition</a></li>
+<li><a href="#roles-and-jurisdiction-who-does-what" id="toc-roles-and-jurisdiction-who-does-what">5.2 Roles and jurisdiction — who does what</a></li>
+<li><a href="#architecture-two-existing-layers-three-new-modules" id="toc-architecture-two-existing-layers-three-new-modules">5.3 Architecture — two existing layers, three new modules</a></li>
+<li><a href="#time-domain-separation-who-acts-at-which-timescale" id="toc-time-domain-separation-who-acts-at-which-timescale">5.4 Time-domain separation — who acts at which timescale</a></li>
+<li><a href="#the-forecast-stack-where-15-minutes-ahead-actually-comes-from" id="toc-the-forecast-stack-where-15-minutes-ahead-actually-comes-from">5.5 The forecast stack — where “15 minutes ahead” actually comes from</a></li>
+<li><a href="#the-ramp-event-notice-specification-and-code-mapping" id="toc-the-ramp-event-notice-specification-and-code-mapping">5.6 The Ramp Event Notice — specification and Code mapping</a></li>
+<li><a href="#design-case-d1-a-frontal-cloud-band-worked-to-the-megawatt" id="toc-design-case-d1-a-frontal-cloud-band-worked-to-the-megawatt">5.7 Design case D1 — a frontal cloud band, worked to the megawatt</a></li>
+<li><a href="#what-the-twin-claims-and-what-it-does-not" id="toc-what-the-twin-claims-and-what-it-does-not">5.8 What the twin claims — and what it does not</a></li>
+<li><a href="#kpi-table-for-the-results-slide" id="toc-kpi-table-for-the-results-slide">5.9 KPI table for the results slide</a></li>
+<li><a href="#data-plan-declared-real-versus-synthetic" id="toc-data-plan-declared-real-versus-synthetic">5.10 Data plan — declared, real versus synthetic</a></li>
+<li><a href="#demo-storyline-for-day-3-at-kapsarc-eight-minutes" id="toc-demo-storyline-for-day-3-at-kapsarc-eight-minutes">5.11 Demo storyline for Day 3 at KAPSARC — eight minutes</a></li>
+<li><a href="#jury-questions-with-the-answers-that-survive" id="toc-jury-questions-with-the-answers-that-survive">5.12 Jury questions — with the answers that survive</a></li>
+<li><a href="#build-plan-11-september-to-9-october-and-the-cut-list" id="toc-build-plan-11-september-to-9-october-and-the-cut-list">5.13 Build plan — 11 September to 9 October, and the cut list</a></li>
+<li><a href="#deck-fixes-carried-over-from-the-7-september-brief" id="toc-deck-fixes-carried-over-from-the-7-september-brief">5.14 Deck fixes carried over from the 7 September brief</a></li>
+</ul></li>
+<li><a href="#updated-idea-file-for-registration-appendix-a" id="toc-updated-idea-file-for-registration-appendix-a">6. Updated idea file for registration (Appendix A)</a>
+<ul>
+<li><a href="#a.1-english" id="toc-a.1-english">A.1 English</a></li>
+<li><a href="#أ.٢-النسخة-العربية" id="toc-أ.٢-النسخة-العربية">أ.٢ النسخة العربية</a></li>
+</ul></li>
+<li><a href="#sources-and-clause-index" id="toc-sources-and-clause-index">7. Sources and clause index</a></li>
+</ul>
+</nav>
+<main>
+<div class="meta">
+<p><strong>Prepared for</strong> Sarah Khashoggi and the NAJM-3000 team · <strong>Inputs audited</strong> the English <em>Comprehensive Reference Guide</em> (six modules, Smart Load Control), the Arabic <em>الدليل المرجعي النهائي</em> (three modules), the <em>OPUS Grilling</em> report of 9 September, the August deck, and the full texts of the Saudi Arabian Grid Code (May 2026), the Saudi Arabian Distribution Code (June 2026), SERA’s Transmission Planning Criteria (2025) and Generation Expansion Planning Criteria (2021), the challenge card, the MDPI paper and the IEA report. Every clause number below was read in those texts, not from memory.</p>
+</div>
+<h1 id="verdict-in-one-page">0. Verdict in one page</h1>
+<p><strong>The concept survives. The documents do not — yet.</strong> The idea of a grid-facing digital twin that forecasts its own ramps, shapes them with a co-located battery and tells the transmission operator early and precisely is correct, timely, and matches the challenge card line by line. But the team is carrying <strong>two contradictory “final” documents</strong> (six modules with Smart Load Control in English; three modules without it in Arabic), a grilling report that is right about scope and wrong about two technical points, and a handful of sentences that a National Grid SA or SERA engineer on the jury would stop you on within the first minute.</p>
+<p><strong>What breaks the logic today (must fix before the 16 September submission):</strong></p>
+<ol type="1">
+<li><strong>Smart Load Control is outside the plant’s jurisdiction — and the Grid Code says so.</strong> Demand Side Response and Interruptible Load are <em>System Services contracted by the TSP</em> (SAGC 2.14.1), under-frequency load shedding is the <em>Distribution Entity’s</em> obligation (SAGC 2.13.2–2.13.3), and every Demand Control method belongs to the <em>DSP</em> (Distribution Code OC.6). A generator switching EV chargers or building chillers is not a feature; it is a licence breach. The Arabic reference already dropped it. Make that official everywhere.</li>
+<li><strong>“The grid will collapse” is false and will offend the jury.</strong> The Grid Code sizes Operating Reserve on “the magnitude and number of the largest Generation infeed” (SAGC 4.42.1.1(vi)) and the Transmission Planning Criteria apply N-2 testing to renewable parks larger than the minimum spinning reserve. A 3 GW park is <em>already</em> a planned contingency. The twin’s value is not preventing collapse; it is turning an unscheduled 180 MW/min cliff into a scheduled 60 MW/min ramp, and letting the TSO carry less and cheaper reserve because “weather forecast uncertainty” — the exact phrase the Code uses to justify Contingency Reserve (SAGC 4.41.15) — shrinks.</li>
+<li><strong>“Battery 500 MW” without MWh, and “we compensate 600 MW” — power and energy are mixed.</strong> The SPPC standard block is 500 MW / 2,000 MWh. In the design case below a 500 MW battery cannot hold a 1,800 MW / 10-minute drop to any tight gradient by itself; it can hold <strong>130 MW/min</strong> (Plan A) — and, on a TSP gradient instruction with a 12-minute pre-ramp, the plant can deliver <strong>60 MW/min with the battery ending the event fuller than it started</strong> (Plan B). Those are the numbers to pitch, with their assumptions.</li>
+<li><strong>“15 minutes ahead” has no stated mechanism.</strong> It has a physical one: the plant is ~8 km wide with 19 weather stations and 365 metered blocks — the upwind edge sees the front 8–12 minutes before the downwind edge. Add satellite cloud motion (hours) and NCM’s 72-hour dust outlook (days), and the lead-time claim becomes a three-horizon forecast stack that a meteorologist will accept.</li>
+<li><strong>“We test LVRT and droop in the twin” cannot be defended with pvlib.</strong> Ride-through is a 300-millisecond electromagnetic phenomenon; pvlib is an energy model. Reframe to what the twin <em>can</em> verify continuously — set-point accuracy (2 % / 0.5 % within 10 min), gradient adherence (±10 % of the registered ramp rate), the P–Q envelope (±0.33 pu above 20 % load), SoC reserve for frequency response, and the SoC-limit ramps the Code requires the BESS operator to communicate — and treat ride-through as ingested certification.</li>
+<li><strong>The grilling report is right on scope (cut to three modules, drop new 3D work) and wrong on two points:</strong> a 16-interval MILP with one battery solves in milliseconds, not “seconds to minutes”; and LightGBM over an LSTM is a <em>strength</em> for a plant that has no operating history yet — there is nothing to train a deep model on before commissioning.</li>
+</ol>
+<p><strong>The definitive idea (Section 5):</strong> <em>NAJM-3000 Grid Twin</em> — physics engine (exists) + control room (exists) + three new modules: a <strong>three-horizon forecast stack</strong>, a <strong>battery scheduler</strong> that shapes ramps and pre-positions state of charge within the Grid Code’s own control modes (set-point, absolute limit, delta, gradient), and a <strong>Grid-Code compliance &amp; notice engine</strong> that turns every forecast into the Declarations the Code already asks renewable generators to update down to one hour before real time (SAGC 5.3.8.1(iii)) and the advance notifications it already requires for events with an Operational Effect (SAGC 4.46.3.2, “as far in advance as practicable”). Nothing in it needs a right the plant does not have, a data source it cannot get, or a physics it cannot model.</p>
+<div class="callout">
+<p><strong>Deadline logic.</strong> Registration closes 16 September (five days). Submit the idea file in Appendix A by Monday 14 September. Nothing in this audit requires new code before submission — it requires one canonical document, which this is.</p>
+</div>
+<section id="الخلاصة-في-صفحة-واحدة" class="ar" dir="rtl" lang="ar">
+<h1>٠. الخلاصة في صفحة واحدة</h1>
+<p><strong>الفكرة صحيحة، لكن مستنداتكم ليست جاهزة بعد.</strong> فكرة «توأم رقمي موجَّه نحو الشبكة» يتنبأ بتذبذب إنتاجه، ويلطّف الهبوط ببطارية مرافقة، ويُبلغ مشغل النقل مبكراً وبدقة — فكرة صائبة، ومناسبة للتوقيت، ومطابقة لبطاقة التحدي سطراً بسطر. لكن الفريق يحمل حالياً <strong>مستندين «نهائيين» متناقضين</strong> (ستة وحدات مع «التحكم الذكي بالأحمال» بالإنجليزية، وثلاث وحدات بدونه بالعربية)، وتقرير «شواء» أصاب في مسألة النطاق وأخطأ في نقطتين فنيتين، وبضع جمل سيوقفكم عندها أي مهندس من الشركة الوطنية لنقل الكهرباء أو هيئة تنظيم الكهرباء في الدقيقة الأولى.</p>
+<p><strong>ما يكسر منطق الفكرة اليوم (يجب إصلاحه قبل التقديم في 16 سبتمبر):</strong></p>
+<p>١. <strong>التحكم الذكي بالأحمال خارج صلاحية المحطة — والكود الكهربائي ينص على ذلك.</strong> الاستجابة من جانب الطلب والأحمال القابلة للقطع «خدمات نظام» يتعاقد عليها مشغّل النقل (الكود السعودي للشبكة 2.14.1)، وفصل الأحمال عند انخفاض التردد التزامٌ على منشأة التوزيع (2.13.2 و2.13.3)، وجميع أساليب التحكم بالطلب من اختصاص مقدم خدمة التوزيع (كود التوزيع OC.6). قيام مولّد بفصل شواحن سيارات أو مبرّدات مبانٍ ليس ميزة بل مخالفة للترخيص. النسخة العربية حذفته أصلاً؛ اجعلوا ذلك رسمياً في كل المستندات.</p>
+<p>٢. <strong>عبارة «الشبكة ستنهار» غير صحيحة وستُغضب اللجنة.</strong> الكود يحدد الاحتياطي التشغيلي وفق «حجم وعدد أكبر مصادر التغذية» (4.42.1.1 (vi))، ومعايير تخطيط النقل تُخضع محطات الطاقة المتجددة الأكبر من الحد الأدنى للاحتياطي الدوّار لاختبار N-2. محطة 3 جيجاواط هي أصلاً حالة طوارئ مخطط لها. قيمة التوأم ليست منع الانهيار، بل تحويل هبوط غير مجدول بمعدل 180 ميجاواط/دقيقة إلى منحدر مجدول بمعدل 60 ميجاواط/دقيقة، وتمكين المشغل من حمل احتياطي أقل وأرخص لأن «عدم يقين توقعات الطقس» — وهي العبارة الحرفية التي يبرر بها الكود احتياطي الطوارئ (4.41.15) — يتقلص.</p>
+<p>٣. <strong>«بطارية 500 ميجاواط» بلا ميجاواط-ساعة، و«عوّضنا 600 ميجاواط» — خلط بين القدرة والطاقة.</strong> الوحدة القياسية لدى الشركة السعودية لشراء الطاقة هي 500 ميجاواط / 2,000 ميجاواط-ساعة. في حالة التصميم أدناه لا تستطيع بطارية 500 ميجاواط وحدها تثبيت هبوط 1,800 ميجاواط خلال 10 دقائق عند أي منحدر ضيق؛ تستطيع تثبيت <strong>130 ميجاواط/دقيقة</strong> (الخطة أ)، وبتعليمات تدرّج من مشغل النقل مع تمهيد قبل 12 دقيقة تستطيع المحطة تسليم <strong>60 ميجاواط/دقيقة وتُنهي الحدث والبطارية أكثر امتلاءً مما بدأت</strong> (الخطة ب). هذه هي الأرقام التي تُعرض، مع افتراضاتها.</p>
+<p>٤. <strong>«قبل 15 دقيقة» بلا آلية مذكورة.</strong> الآلية فيزيائية: عرض المحطة نحو 8 كم بـ19 محطة أرصاد و365 كتلة مقاسة — الطرف المواجه للريح يرى الجبهة قبل الطرف الآخر بـ8–12 دقيقة. أضيفوا حركة السحب من الأقمار الصناعية (ساعات) وتوقعات الغبار للمركز الوطني للأرصاد لـ72 ساعة (أيام)، فيصبح ادعاء المهلة الزمنية «سلسلة تنبؤ بثلاثة آفاق» يقبلها أي خبير أرصاد.</p>
+<p>٥. <strong>«نختبر تجاوز الجهد المنخفض والاستجابة الترددية في التوأم» لا يمكن الدفاع عنها بمكتبة pvlib.</strong> تجاوز الأعطال ظاهرة كهرومغناطيسية في نطاق 300 ملّي ثانية، وpvlib نموذج طاقة. أعيدوا الصياغة إلى ما يستطيع التوأم التحقق منه باستمرار: دقة نقطة الضبط (2٪ / 0.5٪ خلال 10 دقائق)، والالتزام بمعدل التغير (±10٪ من المعدل المسجل)، ومنحنى P–Q (±0.33 وحدة نسبية فوق 20٪ حمل)، واحتياطي حالة الشحن للاستجابة الترددية، ومنحدرات حدود الشحن التي يلزم الكود مشغل البطارية بإبلاغها — وعاملوا تجاوز الأعطال كشهادة مصنّع تُستورد لا كمحاكاة.</p>
+<p>٦. <strong>تقرير «الشواء» مصيب في النطاق (اختزال إلى ثلاث وحدات، لا أعمال ثلاثية الأبعاد جديدة) ومخطئ في نقطتين:</strong> برمجة خطية مختلطة بـ16 فترة وبطارية واحدة تُحل في أجزاء من الثانية لا في «ثوانٍ إلى دقائق»؛ واختيار LightGBM بدل LSTM <strong>نقطة قوة</strong> لمحطة لا تملك تاريخ تشغيل بعد — لا يوجد ما يُدرَّب عليه نموذج عميق قبل التشغيل التجريبي.</p>
+<p><strong>الفكرة النهائية (القسم 5):</strong> <em>توأم نجم-3000 للشبكة</em> — محرك فيزيائي (موجود) + غرفة تحكم (موجودة) + ثلاث وحدات جديدة: <strong>سلسلة تنبؤ بثلاثة آفاق</strong>، و<strong>مجدول بطارية</strong> يلطّف المنحدرات ويهيئ حالة الشحن مسبقاً ضمن أنماط التحكم التي يعرّفها الكود نفسه (نقطة ضبط، حد مطلق، تنظيم دلتا، تدرّج)، و<strong>محرك التزام بالكود وإشعارات</strong> يحوّل كل توقع إلى «الإعلانات» التي يطلب الكود أصلاً من المولدات المتجددة تحديثها حتى ساعة قبل الوقت الفعلي (5.3.8.1 (iii)) وإلى الإشعارات المسبقة التي يفرضها للأحداث ذات الأثر التشغيلي (4.46.3.2 «في أبكر وقت ممكن عملياً»). لا شيء فيها يحتاج صلاحية لا تملكها المحطة، أو بيانات لا يمكن الحصول عليها، أو فيزياء لا يمكن نمذجتها.</p>
+<p><strong>منطق الموعد:</strong> يُغلق التسجيل في 16 سبتمبر (خمسة أيام). قدّموا ملف الفكرة في الملحق «أ» بحلول الاثنين 14 سبتمبر. لا شيء في هذا التدقيق يتطلب برمجة جديدة قبل التقديم — يتطلب مستنداً واحداً معتمداً، وهو هذا.</p>
+</section>
+<h1 id="what-was-audited-and-how">1. What was audited, and how</h1>
+<table>
+<colgroup>
+<col style="width: 21%" />
+<col style="width: 30%" />
+<col style="width: 48%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Input</th>
+<th>Version / date</th>
+<th>What it claims</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><em>The Comprehensive Reference Guide for NAJM-3000</em> (EN)</td>
+<td>undated, after the 7 Sep brief</td>
+<td>Six modules; closed loop predict → simulate → decide → execute → measure; <strong>Smart Load Control</strong> of EV chargers and building cooling; 1,800 MW event, 500 MW battery + 100 MW load shedding, “residual 1,200 MW”; “dual impact on Track 1 and Track 3”</td>
+</tr>
+<tr class="even">
+<td><em>الدليل المرجعي النهائي لفريق مشروع نجم-3000</em> (AR)</td>
+<td>undated, later</td>
+<td>Three modules (LightGBM forecast, MILP battery coordinator, grid-code compliance package); no load control; residual <strong>1,300 MW</strong>; repository with pvlib engine, 365-station hierarchy, dashboard, SCADA-ready structure, <strong>150 automated tests</strong>, “100 % ready”</td>
+</tr>
+<tr class="odd">
+<td><em>OPUS Grilling</em> (EN, two identical files)</td>
+<td>9 Sep 2026</td>
+<td>Verdict “market-first-derisk”; kill sentence on load-control jurisdiction; scope, latency, similarity and verifiability kills; weighted score 6.1/10; recommends 3 engines, 2D UI</td>
+</tr>
+<tr class="even">
+<td><em>NAJM-3000 Digital Twin</em> deck</td>
+<td>Aug 2026</td>
+<td>Pre-commissioning plant twin; 3,000 MWac, 365 MV stations, 19 weather stations; pvlib vs simulated SCADA; 3D from CAD/KML; rule-based fault attribution</td>
+</tr>
+<tr class="odd">
+<td>Regulatory corpus</td>
+<td>SAGC May 2026 · SADC June 2026 · TPC ERD-TA-001 V2 (2025) · GEPC ERD-TA-016 V01/21 · District Cooling Supply Code</td>
+<td>Full texts, used as the test bench for every regulatory claim</td>
+</tr>
+<tr class="even">
+<td>Challenge card</td>
+<td>نموذج داعم للمشارك — التحدي (2)</td>
+<td>Six “current methods”; supporting files (IEA, SERA, MDPI, open data, GASTAT, MoE)</td>
+</tr>
+<tr class="odd">
+<td>Literature</td>
+<td>MDPI <em>Appl. Sci.</em> 15(18):10031; IEA <em>Managing Seasonal and Interannual Variability of Renewables</em> (2023)</td>
+<td>Two-timescale DRL storage scheduling (wind only); flexibility by climate archetype</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Method.</strong> Every claim in the three team documents was tested against five questions: (1) is it physically true at this scale; (2) does the Grid Code, Distribution Code, TPC or GEPC permit it, require it, or forbid it; (3) can the data it needs actually be obtained by 7 October; (4) can it be built and demonstrated by a team of four in three weeks; (5) is it consistent with the other documents. Severity: <strong>BLOCKER</strong> (a jury can end the pitch on it), <strong>MAJOR</strong> (costs credibility or points), <strong>MINOR</strong> (polish), <strong>OK</strong> (keep).</p>
+<h1 id="regulatory-anchors-verified-in-the-mayjune-2026-texts">2. Regulatory anchors — verified in the May/June 2026 texts</h1>
+<p>This section exists because the 7 September brief quoted the 2021 Grid Code and flagged it for re-checking. The May 2026 edition changes several values and adds a BESS chapter. Use only the values below.</p>
+<h2 id="saudi-arabian-grid-code-may-2026-national-grid-sa-marafiq-approved-by-sera">2.1 Saudi Arabian Grid Code, May 2026 (National Grid SA &amp; Marafiq; approved by SERA)</h2>
+<table>
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 56%" />
+<col style="width: 29%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Clause</th>
+<th>Requirement (verbatim or near-verbatim)</th>
+<th>Why it matters for NAJM-3000</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>2.10.2</td>
+<td>Nominal 60 Hz; TSP keeps 59.9–60.1 Hz in normal operation; continuous 58.8–60.5 Hz; 57.5–58.7 / 60.6–61.5 Hz for 30 min; 57.0–57.4 / 61.6–62.5 Hz for 30 s</td>
+<td>Design envelope for any frequency scenario in the demo</td>
+</tr>
+<tr class="even">
+<td>2.11.12.2</td>
+<td>All units supply rated output within 59.5–60.5 Hz; output decrease in 57.0–59.5 Hz no more than 4 %/Hz</td>
+<td>Do not show PV output collapsing with frequency</td>
+</tr>
+<tr class="odd">
+<td>2.11.13.1–2</td>
+<td>PPM reactive capability Q = ±0.33 pu of rated P above 20 % output; ±0.05 pu below 20 %</td>
+<td>The P–Q envelope the twin monitors</td>
+</tr>
+<tr class="even">
+<td>2.11.13.4</td>
+<td>Ride through RoCoF up to <strong>2.5 Hz/s</strong> (500 ms sliding window)</td>
+<td>Certification item, not a twin simulation</td>
+</tr>
+<tr class="odd">
+<td>2.11.13.5</td>
+<td><strong>Synthetic Inertia</strong> mandatory for PPMs &gt; 25 MW without inherent inertia</td>
+<td>Certification item</td>
+</tr>
+<tr class="even">
+<td>2.11.13.6</td>
+<td>SCR at the connection point &gt; 3.0, else EMT study</td>
+<td>Connection-study item; mention, do not model</td>
+</tr>
+<tr class="odd">
+<td>2.11.13.7–10</td>
+<td>Active-power droop adjustable <strong>2–8 %, normal set point 5 %</strong>; total dead-band ≤ 0.05 Hz; Frequency Regulation activated/deactivated automatically on TSP request; regulation ranges [57, 59.8] and [60.2, 62.5] Hz</td>
+<td><em>Correction:</em> the 2021 text said 4 %; use 5 %</td>
+</tr>
+<tr class="even">
+<td>2.11.13.11</td>
+<td>PPM output controllable “as long as technically feasible based on the <strong>Available Active Power</strong>”; must accept a Dispatch Instruction with a set-point, <strong>Absolute Active Power Limitation, Active Power Delta Regulation and Active Power Gradient</strong>; accuracy 2 % of set-point or 0.5 % of rated, reached within <strong>10 minutes</strong></td>
+<td>The four control levers the twin plans around; the accuracy test the twin checks</td>
+</tr>
+<tr class="odd">
+<td>2.11.13.12–14</td>
+<td>Voltage-control and reactive-power-control modes; steady-state voltage within ±0.5 %; reactive damping ratio ≥ 0.3</td>
+<td>Monitored quantities</td>
+</tr>
+<tr class="even">
+<td>2.11.13.15</td>
+<td>Power Oscillation Damper for PPMs &gt; 25 MW (0.15–2.0 Hz)</td>
+<td>Certification item</td>
+</tr>
+<tr class="odd">
+<td>2.11.13.16–17</td>
+<td>Operate through 0 % voltage for <strong>300 ms</strong>; linear restoration to 80 % within 1.3 s; ≤ 120 % for 1 s</td>
+<td>Certification item — <em>not</em> a pvlib test</td>
+</tr>
+<tr class="even">
+<td>2.11.13.18</td>
+<td>Dynamic voltage support: additional reactive current up to 2 % per % voltage drop; 2/3 within 20 ms, target within 60 ms, held ≥ 400 ms</td>
+<td>Certification item</td>
+</tr>
+<tr class="odd">
+<td>2.11.13.20</td>
+<td>Post-fault active power &gt; 90 % of pre-fault within a <strong>configurable 1–10 s</strong> (default 1 s)</td>
+<td><em>Correction:</em> 2021 said “4 s”</td>
+</tr>
+<tr class="even">
+<td><strong>2.11.15 (new)</strong></td>
+<td>BESS: instantaneous active-power frequency response per Figure 9 (droop bands 4 %/8 %); behaviour in charging vs discharging mode at low/high frequency; ride-through as for PPMs; <strong>active SoC management</strong> with the controller described in documentation (2.11.15.8); <strong>SoC-limit ramps defined by the BESS operator and communicated to the TSP</strong> (2.11.15.9); full reactive capability across the SoC range (2.11.15.10)</td>
+<td>The scheduler’s constraints are Code obligations, not design choices</td>
+</tr>
+<tr class="odd">
+<td>2.12 · 4.31.1 · 4.41</td>
+<td>Reserve ladder: <strong>Fast Frequency Response</strong> fully available ≤ 1 s, sustained ≥ 5 s; <strong>Primary</strong> ≤ 5 s / ≥ 15 s; <strong>Secondary</strong> ≤ 15 s → 15 min; <strong>Tertiary</strong> Band 1 ≤ 90 s / ≥ 5 min, Band 2 ≤ 5 min / 30 min; <strong>Contingency Reserve</strong> 24 h ahead → real time, non-synchronised plant</td>
+<td>The timescales the plant’s ramp must be reconciled with; BESS FFR obligation (4.31.2)</td>
+</tr>
+<tr class="even">
+<td>4.41.15 · 2.12.10</td>
+<td>Contingency Reserve exists “to cover against uncertainties in availability of Generation Capacity and against <strong>weather forecast</strong> and Demand Forecast uncertainties”</td>
+<td>The economic case in one sentence</td>
+</tr>
+<tr class="odd">
+<td>4.41.7</td>
+<td>PPM frequency response initial delay ≤ 2 s</td>
+<td>Firmware, not the twin</td>
+</tr>
+<tr class="even">
+<td>4.42.1.1 (vi)–(viii)</td>
+<td>Operating Reserve considers “the magnitude and number of the largest Generation infeed”, ambient weather, and the simulated frequency drop on loss of the largest infeed</td>
+<td>A 3 GW park is a “largest infeed” candidate</td>
+</tr>
+<tr class="odd">
+<td>4.46.3.2 · 4.46.4.1</td>
+<td>A User <strong>shall notify</strong> an Operation/Event on its system that may have an Operational Effect on the Transmission System; notification “<strong>as far in advance as practicable</strong> and … of sufficient detail … to enable the recipient … to consider and assess the implications and risks”</td>
+<td>The Ramp Event Notice is a 4.46 notification, not a new protocol</td>
+</tr>
+<tr class="even">
+<td>4.5.5</td>
+<td>High-Density Rapid Large Demand Facilities must give a rolling 24-h forecast at 15-min resolution and a 72-h outlook at 60-min resolution, updated daily and on material change</td>
+<td>The Code already asks data centres for exactly the product NAJM-3000 will produce for a solar park</td>
+</tr>
+<tr class="odd">
+<td>5.3.2 · 5.3.4</td>
+<td>Availability Notice (hourly, next Schedule Day) and Nomination by <strong>10:00</strong> daily; “such Declaration will replace any previous Declaration”</td>
+<td>Day-ahead output of the forecast stack</td>
+</tr>
+<tr class="even">
+<td>5.3.3.2 (i)</td>
+<td>Generators must submit “details of any special factors which may have a Material Effect on the likely output”</td>
+<td>A dust outlook is a special factor</td>
+</tr>
+<tr class="odd">
+<td><strong>5.3.8.1 (iii)</strong></td>
+<td>“Between 15:00 hours on the day before the Schedule Day and <strong>1 hour before real time</strong>, each renewable Generator may provide the TSP <strong>updated Declarations based on updated renewable infeed forecasts</strong>. The TSP shall update the Generation Schedule to consider these updated Declarations.”</td>
+<td>The intra-day channel already exists — the twin automates it</td>
+</tr>
+<tr class="even">
+<td>5.3.12.2 · 5.3.12.4 (v)</td>
+<td>Under negative minimum-demand regulation, other generators are reduced before PPMs; a PPM is chosen for shutdown only if no other unit is available</td>
+<td>Surplus-period logic (Track 3) is the TSP’s, not the plant’s</td>
+</tr>
+<tr class="odd">
+<td>5.3.13</td>
+<td>Notification of Inadequate Operating Margin (NIOM) issued by the TSP</td>
+<td>The TSP’s counterpart signal</td>
+</tr>
+<tr class="even">
+<td>5.4.2.3</td>
+<td>Dispatch Instructions to PPMs are limited to Frequency Regulation, Active Power output, Absolute Limitation, Delta Regulation and <strong>Gradient</strong></td>
+<td>Plan B is executed on a Gradient instruction</td>
+</tr>
+<tr class="odd">
+<td>4.50.8.7–8 · A5.1</td>
+<td>Registered <strong>Ramp Rate</strong> (MW/min) is a Scheduling &amp; Dispatch Parameter; the Dispatch Accuracy Test passes within ±10 % of the registered ramp rate; the reactive test within ±5 % of registered capability; for renewable generation, Declared Data Capability Tests “may be undertaken by <strong>continuous monitoring</strong> of the environmental conditions, Output parameters and Grid parameters”</td>
+<td>The Code names continuous monitoring as the compliance method for renewables — the twin is that monitor</td>
+</tr>
+<tr class="even">
+<td>2.13.2–3 · 2.14.1</td>
+<td>Under-frequency Demand Disconnection is arranged by <strong>Distribution Entities</strong>; Demand Side Response and Interruptible Load are <strong>System Services under TSP agreements</strong></td>
+<td>Load control is not the generator’s</td>
+</tr>
+<tr class="odd">
+<td>Definitions</td>
+<td><em>Available Active Power</em> = the power the PPM “could deliver at the Connection Point based on renewable primary energy conditions (e.g. solar irradiance…) at any point in time”; <em>Active Power Delta Regulation</em> = output constrained to a value in proportion to the Available Active Power; <em>Ramp Rate</em> = MW per minute at which a unit can change output</td>
+<td>The pvlib expected-power stream <strong>is</strong> an Available Active Power estimate — use the Code’s term</td>
+</tr>
+</tbody>
+</table>
+<h2 id="saudi-arabian-distribution-code-june-2026-saudi-energy-marafiq-spark-approved-by-sera">2.2 Saudi Arabian Distribution Code, June 2026 (Saudi Energy, Marafiq, SPARK; approved by SERA)</h2>
+<table>
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 55%" />
+<col style="width: 29%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Clause</th>
+<th>Requirement</th>
+<th>Why it matters</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>OC.3</td>
+<td>Demand <em>and generation</em> forecasting obligations apply to MV customers and distributed generators &gt; 2 MW, coordinated by the DSP and transmitted to the TSP “in compliance with SAGC”</td>
+<td>Confirms the forecasting chain is DSP/TSP-owned at distribution level</td>
+</tr>
+<tr class="even">
+<td>OC.6.1–OC.6.3</td>
+<td>Demand Control is “provisions to be made by DSP(s) and Users”; methods are automatic low-frequency disconnection, automatic low-voltage disconnection, deliberate voltage reduction, manual load shedding — applied “in coordination between the DSP and the TSP” with staged relays, rotas and exemption policies</td>
+<td>A transmission-connected generator has no role in any of the four methods</td>
+</tr>
+</tbody>
+</table>
+<h2 id="sera-transmission-planning-criteria-erd-ta-001-v2-published-27-jul-2025">2.3 SERA Transmission Planning Criteria (ERD-TA-001 V2, published 27 Jul 2025)</h2>
+<table>
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 52%" />
+<col style="width: 30%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Item</th>
+<th>Content</th>
+<th>Why it matters</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>2.3.3 / Table 4-3</td>
+<td>N-1 includes loss of a renewable Power Park Module or a BESS; no loss of load allowed; transiently and dynamically stable</td>
+<td>The whole plant is a planned single contingency</td>
+</tr>
+<tr class="even">
+<td>2.3.4 / 2.4</td>
+<td><strong>N-2 applies to renewable generators whose capacity exceeds the minimum spinning reserve margin</strong> planned for KSA; “for large-scale renewables, priority must be given to system stability”</td>
+<td>A 3 GW park triggers the stricter test — the TSO already plans for losing it</td>
+</tr>
+<tr class="odd">
+<td>2.2.1 / 2.3.1</td>
+<td>Planners must consider “subsequent hour timespan analysis … including the use of flexible resources such as storage technology and demand side management” and “critical scenarios … high share of variable renewables, or low inertia situations”</td>
+<td>The twin produces exactly these scenarios for one plant</td>
+</tr>
+<tr class="even">
+<td>3.3</td>
+<td>Transient voltage recovery above 0.8 pu within 500 ms and above 0.9 pu within 10 s; damping successive-peak ratio &lt; 73 %</td>
+<td>Certification-level items</td>
+</tr>
+<tr class="odd">
+<td>3.6</td>
+<td>“Five-nines” reliability target (EENS₀ = 0.001 %)</td>
+<td>Language for the “why” slide</td>
+</tr>
+<tr class="even">
+<td>2.6</td>
+<td>Fault clearing 80 ms (380 kV), 100 ms (230 kV), 120 ms (110/115/132 kV); delayed 300 ms</td>
+<td>Explains the 300 ms ride-through figure</td>
+</tr>
+</tbody>
+</table>
+<h2 id="sera-generation-expansion-planning-criteria-erd-ta-016-v0121">2.4 SERA Generation Expansion Planning Criteria (ERD-TA-016 V01/21)</h2>
+<table>
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 50%" />
+<col style="width: 31%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Item</th>
+<th>Content</th>
+<th>Why it matters</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1-2-2</td>
+<td><strong>Generator Capacity Margin</strong> for intermittent plant is based on actual performance at system peak (worked example uses 0.5 for PV; “confirm that the system peak demand is during daylight hours”)</td>
+<td>A twin that documents actual performance feeds the plant’s capacity credit</td>
+</tr>
+<tr class="even">
+<td>1-2-3</td>
+<td>PV deterioration 0.5 %/yr; PV operational and economic life 25 years</td>
+<td>Long-run framing only</td>
+</tr>
+<tr class="odd">
+<td>1.3.2–1.3.6</td>
+<td>Forced outage rate 3 %; planning reserve margin 10–15 % (min 10 % per operating area); <strong>LoLE &lt; 5 h/yr</strong></td>
+<td>System-level context; do not claim to change these</td>
+</tr>
+</tbody>
+</table>
+<div class="note">
+<p><strong>Not relevant, do not cite:</strong> the District Cooling Services Supply Code (chilled-water supply obligations, 6 °C ± 0.5 °C, 99.5 % availability). It is on SERA’s codes page but has no bearing on a PV park. Citing it would signal that the team did not read it.</p>
+</div>
+<h1 id="findings">3. Findings</h1>
+<p>Twenty-four findings, grouped. “EN” = the English reference guide, “AR” = the Arabic final reference, “GR” = the grilling report, “Deck” = the August slides.</p>
+<h2 id="scope-and-internal-consistency">3.1 Scope and internal consistency</h2>
+<table>
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 10%" />
+<col style="width: 10%" />
+<col style="width: 38%" />
+<col style="width: 29%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Severity</th>
+<th>Where</th>
+<th>Finding</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>F1</td>
+<td><strong>BLOCKER</strong></td>
+<td>EN vs AR</td>
+<td>Two “official” documents disagree on the product: EN = six modules incl. Smart Load Control and a 3D “hero” UI; AR = three modules, no load control, dashboard “ready”. A jury reading the deck and hearing the pitch will get whichever version each presenter remembers.</td>
+<td>Retire EN §5, §6 and §7 as written. Adopt v3 (Section 5). One document, bilingual, version-stamped.</td>
+</tr>
+<tr class="even">
+<td>F2</td>
+<td><strong>MAJOR</strong></td>
+<td>EN §7 vs AR §3</td>
+<td>The residual deficit is 1,200 MW in EN (500 battery + 100 load) and 1,300 MW in AR (500 battery). Same event, different arithmetic.</td>
+<td>Use the design-case table in §5.7; state assumptions on the slide.</td>
+</tr>
+<tr class="odd">
+<td>F3</td>
+<td><strong>MAJOR</strong></td>
+<td>EN §9 (4)</td>
+<td>“Merging BESS with Smart Load fulfils the challenges of both Track 1 and Track 3.” The rules allow <strong>one idea in one track</strong> (registration condition, FAQ). Claiming two tracks reads as not having read the rules.</td>
+<td>Delete. Track 1 · Challenge 2 only.</td>
+</tr>
+<tr class="even">
+<td>F4</td>
+<td><strong>MINOR</strong></td>
+<td>AR §4 vs Deck</td>
+<td>AR says the existing code is “100 % ready” (جاهز بنسبة 100%); the deck’s own dashboard says “uncalibrated” and “provisional scaling — not production validation”. Both are visible to the jury.</td>
+<td>Say: “physics engine validated against pvlib reference cases with 150+ automated tests; uncalibrated to a real plant — calibration is the enablement-stage ask.”</td>
+</tr>
+<tr class="odd">
+<td>F5</td>
+<td><strong>MINOR</strong></td>
+<td>EN §10 vs Deck slide 7</td>
+<td>EN: “we will not build a full AI”; deck: “AI is the intelligence behind the digital twin”; dashboard: “rule-based attribution, not ML”. Three positions.</td>
+<td>One sentence, used everywhere: “Physics first (pvlib), machine learning only where it earns its place (forecast residuals and ramp probability), optimisation for decisions (MILP).”</td>
+</tr>
+</tbody>
+</table>
+<h2 id="jurisdiction-and-regulation">3.2 Jurisdiction and regulation</h2>
+<table>
+<colgroup>
+<col style="width: 7%" />
+<col style="width: 7%" />
+<col style="width: 7%" />
+<col style="width: 43%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Severity</th>
+<th>Where</th>
+<th>Finding</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>F6</td>
+<td><strong>BLOCKER</strong></td>
+<td>EN §1, §5, §7, §11</td>
+<td><strong>Smart Load Control.</strong> The plant “sends a command to temporarily curtail or disconnect” EV chargers and reduces cooling in “administrative buildings linked to the plant”. (a) <em>Jurisdiction:</em> SAGC 2.14.1 lists Demand Side Response and Interruptible Load as System Services contracted by the TSP; SAGC 2.13.2–3 put under-frequency load disconnection on Distribution Entities; SADC OC.6 assigns every Demand Control method to the DSP in coordination with the TSP. A generation licensee has none of these rights. (b) <em>Physics:</em> a 3 GW park sits in the desert; its own auxiliaries (trackers, HVAC, O&amp;M buildings) are a few MW, not 100 MW. (c) <em>Value:</em> even if legal, 100 MW is 5.6 % of an 1,800 MW event. (d) <em>Security:</em> the Track 3 card itself warns that linking loads to the provider “increases the risk of cyber-attacks”.</td>
+<td>Remove entirely. Replace with the honest demand-side sentence: <em>“Our advance notice gives the TSO and DSP the lead time to use their own Demand Control and Demand Side Response — SAGC 4.48 and SADC OC.6 — which is their jurisdiction, not ours.”</em> This still answers the card’s sixth “current method”.</td>
+</tr>
+<tr class="even">
+<td>F7</td>
+<td><strong>BLOCKER</strong></td>
+<td>GR §1; EN §2; AR §2</td>
+<td><strong>“The grid will collapse without predictive management — not if but when”; “the grid is caught off guard”.</strong> SAGC 4.42.1.1(vi) sizes Operating Reserve on the largest infeed; TPC 2.3.4/2.4 applies N-2 to renewable parks above the minimum spinning reserve; TPC Table 4-3 lists “renewable resource Park Module” and “BESS” as N-1 elements with <em>no loss of load allowed</em>. The system is planned to survive losing the whole park.</td>
+<td>Reframe: the twin does not prevent collapse; it converts an unscheduled contingency into a scheduled ramp, lowers the reserve the TSO must <em>carry</em> for weather uncertainty (SAGC 4.41.15) and improves how the reserve ladder is used.</td>
+</tr>
+<tr class="odd">
+<td>F8</td>
+<td><strong>MAJOR</strong></td>
+<td>EN §4, §7; AR §3</td>
+<td>“Sends a message to the grid: please prepare to cover 1,200 MW / please start the standby gas turbines” — presented as a new protocol, and phrased as an instruction to the TSO. The plant does not instruct the TSO.</td>
+<td>Map the message to existing Code channels: an <strong>updated Declaration</strong> (SAGC 5.3.8.1(iii), any time until H-1) and a <strong>4.46.3.2 notification</strong> “as far in advance as practicable” inside H-1. Name it the <em>Ramp Event Notice</em>. The TSO decides what to do with it.</td>
+</tr>
+<tr class="even">
+<td>F9</td>
+<td><strong>MAJOR</strong></td>
+<td>EN §6 M5, AR §5 (3)</td>
+<td>“Tests the plan on a simulated network model to ensure compliance with LVRT and droop.” pvlib is a quasi-steady-state energy model; LVRT (0 % for 300 ms), dynamic voltage support (20–60 ms) and RoCoF (2.5 Hz/s over 500 ms) are electromagnetic-transient phenomena needing inverter EMT/RMS models. A power-systems judge will ask which model, and the answer is none.</td>
+<td>Split compliance into (i) <strong>certified capabilities</strong> ingested as data (ride-through, RoCoF, synthetic inertia, POD, dynamic voltage support) and (ii) <strong>operational compliance the twin verifies continuously</strong>: set-point accuracy 2 %/0.5 % within 10 min (2.11.13.11), gradient adherence ±10 % of registered ramp rate (4.50.8.8), P–Q envelope ±0.33/±0.05 pu (2.11.13.1–2), BESS SoC management and SoC-limit ramps (2.11.15.8–9), FFR/primary headroom held (4.31.2).</td>
+</tr>
+<tr class="odd">
+<td>F10</td>
+<td><strong>MINOR</strong></td>
+<td>EN §8</td>
+<td>“Our solution smartly bypasses cybersecurity concerns: we do not control residential homes, we control large semi-independent loads.” Bypassing a regulator’s concern is not a selling point.</td>
+<td>Delete with F6. Keep the one-way, signed plant→TSO notice as the security posture.</td>
+</tr>
+<tr class="even">
+<td>F11</td>
+<td><strong>MINOR</strong></td>
+<td>all</td>
+<td>“Curtailment” is used loosely. Under the Code the plant is dispatched through Absolute Limitation / Delta Regulation / Gradient (5.4.2.3); self-initiated output reduction is a Declaration change, TSP-instructed reduction is compensable under the PPA.</td>
+<td>Use the Code’s words. Plan B is “executed on a TSP Active Power Gradient instruction”.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="physics-and-arithmetic">3.3 Physics and arithmetic</h2>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 36%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Severity</th>
+<th>Where</th>
+<th>Finding</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>F12</td>
+<td><strong>MAJOR</strong></td>
+<td>EN, AR, GR</td>
+<td>Battery stated as “500 MW” only. Power without energy cannot answer “for how long”. The SPPC standard block is <strong>500 MW / 2,000 MWh (4 h)</strong>, SAR ≈ 1.1 bn each (SAR 4.35 bn for four in the August 2026 award).</td>
+<td>Always “500 MW / 2,000 MWh”. Show SoC on every chart.</td>
+</tr>
+<tr class="even">
+<td>F13</td>
+<td><strong>MAJOR</strong></td>
+<td>EN §7, AR §6</td>
+<td>“We compensated 600 MW locally” for a 1,800 MW drop. A 500 MW battery injecting 500 MW leaves a 1,300 MW net drop <strong>at the same 180 MW/min slope</strong> once it saturates — it delays the cliff by ~3 minutes, it does not soften it, unless it is operated in ramp-shaping mode.</td>
+<td>Present the two modes with numbers (§5.7): Plan A shapes the slope to 130 MW/min; Plan B, on a TSP gradient instruction with a 12-min pre-ramp, holds 60 MW/min.</td>
+</tr>
+<tr class="odd">
+<td>F14</td>
+<td><strong>MAJOR</strong></td>
+<td>EN §3, §7</td>
+<td>The reference asks “will the ramp rate violate the limits set by the Grid Code?” — the Code has <strong>no fixed numeric PV ramp limit</strong>. Ramp Rate is a <em>registered</em> Scheduling &amp; Dispatch Parameter (A5.1; ±10 % in the 4.50.8.8 test) and Gradient is a <em>TSP-instructed</em> control mode (2.11.13.11, 5.4.2.3).</td>
+<td>Say “the registered ramp rate and any instructed gradient”, and let the demo use an assumed registered value (e.g. 2 %/min of capacity = 60 MW/min) labelled as an assumption.</td>
+</tr>
+<tr class="even">
+<td>F15</td>
+<td><strong>MINOR</strong></td>
+<td>EN §7</td>
+<td>“60 % drop over 10 minutes” is plausible but unstated: ~65 km² of trackers (~8 km across) crossed by a front at ~45–50 km/h takes ~10 min; a solid band cuts irradiance 60–80 %; partial cumulus is geographically smoothed.</td>
+<td>State the geometry on the slide; then <strong>replace the assumption with measured statistics</strong> — the card’s own “Preliminary Statistical Analysis of Variability in Renewable Energy Production” item — from K.A.CARE RRAtlas 1-minute irradiance at the nearest station (ramp-rate distribution, P99 10-minute drop).</td>
+</tr>
+<tr class="odd">
+<td>F16</td>
+<td><strong>MINOR</strong></td>
+<td>EN §6 M3</td>
+<td>Dust is treated as one thing. It is two: <strong>transient atmospheric attenuation</strong> (a forecast input, hours) and <strong>soiling</strong> deposited on modules (a persistent state, −10 to −20 % after a storm until cleaning; 2–50 % in Saudi measurements).</td>
+<td>Transient dust = a feature of the forecast stack; soiling = a state variable in the physics engine (pvlib soiling models) with a cleaning-dispatch output. Not a separate module.</td>
+</tr>
+<tr class="even">
+<td>F17</td>
+<td><strong>MINOR</strong></td>
+<td>EN §11</td>
+<td>“Reduce AC by 1 °C for 20 minutes … humans won’t notice due to thermal inertia” — building-side demand response language in a transmission-connected plant’s pitch.</td>
+<td>Delete with F6.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="forecasting-and-ai-claims">3.4 Forecasting and AI claims</h2>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 37%" />
+<col style="width: 34%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Severity</th>
+<th>Where</th>
+<th>Finding</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>F18</td>
+<td><strong>MAJOR</strong></td>
+<td>EN §7, AR §3</td>
+<td>“Predicts the event 15 minutes ahead via AI models” — no data source or mechanism. Machine learning cannot see a cloud that no sensor has seen.</td>
+<td>Three-horizon stack (§5.5): NCM 72-h dust outlook and NWP (days) → satellite cloud-motion vectors, 15-min imagery (hours) → <strong>sentinel nowcast</strong> from the plant’s own 19 stations + 365 block meters + wind vector (5–15 min), optionally an upwind mast 10 km out (+12 min). Lead time comes from geography, not from AI.</td>
+</tr>
+<tr class="even">
+<td>F19</td>
+<td><strong>MAJOR</strong></td>
+<td>GR §5</td>
+<td>GR flags “LightGBM instead of LSTM/Transformer” as a weakness. For a <strong>pre-commissioning</strong> plant there is no operating history; deep sequence models have nothing to learn from. Gradient boosting on physics features (clear-sky index, satellite features, station lags) is the standard, interpretable, defensible choice — and the pvlib physics carries most of the signal anyway.</td>
+<td>Turn it into the answer to “why not deep learning”: <em>“because the plant does not exist yet.”</em></td>
+</tr>
+<tr class="odd">
+<td>F20</td>
+<td><strong>MINOR</strong></td>
+<td>EN §6 M2</td>
+<td>“P50/P90 scenarios” are promised but never used downstream.</td>
+<td>Feed P90 into the scheduler as the trigger for Plan B and as the SoC pre-positioning target; report false-alarm rate as a KPI.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="latency-and-control-architecture">3.5 Latency and control architecture</h2>
+<table>
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 10%" />
+<col style="width: 10%" />
+<col style="width: 45%" />
+<col style="width: 22%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Severity</th>
+<th>Where</th>
+<th>Finding</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>F21</td>
+<td><strong>MAJOR</strong></td>
+<td>GR §4.5, §5</td>
+<td>GR: “MILP solvers take seconds to minutes; grid code requires 300 ms”. Two errors in one line. (a) A 16-interval (4 h × 15 min) MILP with one battery and one PV variable per interval has ~100 variables and solves in <strong>milliseconds</strong> with CBC/HiGHS; a 1-minute re-solve loop is trivial. (b) The 300 ms figure is <em>fault ride-through</em> — firmware — and was never the scheduler’s job.</td>
+<td>Keep GR’s correct conclusion (separate the time domains) with correct facts (§5.4 table).</td>
+</tr>
+<tr class="even">
+<td>F22</td>
+<td><strong>MINOR</strong></td>
+<td>GR §8</td>
+<td>GR recommends “2D dashboard (Streamlit) — saves 2 weeks”. Half right: build no <em>new</em> 3D, but the existing map/3D is exactly what shows the front sweeping across 365 blocks — the visual proof of the sentinel mechanism.</td>
+<td>Reuse the existing 3D/map view for the sweep animation only; everything new is 2D.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="presentation-eligibility-evidence">3.6 Presentation, eligibility, evidence</h2>
+<table>
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 43%" />
+<col style="width: 21%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Severity</th>
+<th>Where</th>
+<th>Finding</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>F23</td>
+<td><strong>MAJOR</strong></td>
+<td>Deck</td>
+<td>Deck errors from the 7 Sep brief remain: duplicated “Automatic Checking” headers (slide 8), fault-injection sentence pasted into “Browser-Based Control” (slide 9), title collision (slide 3), unsourced McKinsey/Deloitte benchmarks (slide 4), pine-forest backdrop, PR 0.796 without context, no architecture slide, no Arabic.</td>
+<td>Fix before submission; the idea file may be read alongside the deck.</td>
+</tr>
+<tr class="even">
+<td>F24</td>
+<td><strong>MINOR</strong></td>
+<td>AR, EN</td>
+<td>Neither document states the eligibility facts the portal enforces: team 2–5, all 18+, Saudi nationals or residents, <strong>Saudi team leader</strong>, leader + ≥ 1 member in person 7–9 Oct, one idea in one track, emerging technologies, integrated presentation.</td>
+<td>Add a one-line eligibility statement to the idea file and name the leader.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="corrections-to-the-grilling-report-itself">3.7 Corrections to the grilling report itself</h2>
+<p>The report is useful and its three central instincts — cut scope, fix load-control jurisdiction, separate time domains — are right. Four of its statements would hurt you if repeated to a jury:</p>
+<ol type="1">
+<li><strong>“The grid will collapse … not if but when”</strong> — see F7. Never say it.</li>
+<li><strong>“MILP takes seconds to minutes”</strong> — see F21. At this problem size it takes milliseconds.</li>
+<li><strong>“Why not LSTM/Transformer?”</strong> — see F19. The pre-commissioning context is the answer, and it is a strength.</li>
+<li><strong>“Dust engine can be a feature within LightGBM”</strong> — half right (F16): transient dust yes; soiling is a physical state and belongs in the physics engine, not in a regressor.</li>
+</ol>
+<p>Its weighted score (6.1/10) was driven by feasibility (3/10) and verifiability (4/10). Both are fixed by v3: three modules, and a results table produced by the simulation with stated assumptions.</p>
+<h2 id="kill-sentences-remove-from-every-document-slide-and-rehearsal">3.8 Kill sentences — remove from every document, slide and rehearsal</h2>
+<ul>
+<li>“The grid will collapse without predictive management.”</li>
+<li>“We control / disconnect EV chargers, smart thermostats, non-critical cooling.”</li>
+<li>“We compensated 600 MW locally” (or any MW figure without the time profile).</li>
+<li>“Battery 500 MW” without “/ 2,000 MWh”.</li>
+<li>“The system tests LVRT and droop virtually.”</li>
+<li>“AI is the intelligence behind the digital twin.”</li>
+<li>“Dual impact on Track 1 and Track 3.”</li>
+<li>“Please start the standby gas turbines now” (the TSO is not instructed by a generator).</li>
+<li>“Our code is 100 % ready.”</li>
+</ul>
+<h1 id="the-logic-chain-twelve-propositions-each-with-its-evidence">4. The logic chain — twelve propositions, each with its evidence</h1>
+<p>A “100 % logical” idea is one where every step is either a published fact, a clause, or arithmetic — and the conclusion follows. Read P1 to P12 in order; if a juror rejects any step, the evidence is beside it.</p>
+<table>
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 57%" />
+<col style="width: 27%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Proposition</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>P1</td>
+<td>Saudi Arabia is adding utility-scale PV at ≈ 20 GW/yr to reach 50 % renewable electricity by 2030; 12.5 GW of PV was installed by end-2025; the record peak load is 72.9 GW (summer 2024).</td>
+<td>pv magazine/GlobalData (Mar 2026); Attaqa/SEC; Vision 2030</td>
+</tr>
+<tr class="even">
+<td>P2</td>
+<td>A 3,000 MWac park is ≈ 4 % of that peak and, by regulation, a system-level contingency: N-1 covers “renewable resource Park Module” and BESS, and <strong>N-2 applies to renewable parks larger than the minimum spinning reserve</strong>.</td>
+<td>TPC 2025 §2.3.3, §2.3.4, §2.4, Table 4-3</td>
+</tr>
+<tr class="odd">
+<td>P3</td>
+<td>The cost of that contingency is carried today as reserve: Operating Reserve is sized on “the magnitude and number of the largest Generation infeed”, and Contingency Reserve exists “to cover against … <strong>weather forecast</strong> … uncertainties” from 24 h ahead to real time.</td>
+<td>SAGC 4.42.1.1(vi); 4.41.15; 2.12.10</td>
+</tr>
+<tr class="even">
+<td>P4</td>
+<td>Better plant-side forecasts therefore have a direct, Code-recognised value: they shrink the weather-forecast uncertainty the reserve is bought against.</td>
+<td>Follows from P3</td>
+</tr>
+<tr class="odd">
+<td>P5</td>
+<td>The Code already provides the channel: renewable generators may update Declarations “based on updated renewable infeed forecasts” until 1 h before real time and the TSP “shall update the Generation Schedule”; any event with an Operational Effect must be notified “as far in advance as practicable” with “sufficient detail”.</td>
+<td>SAGC 5.3.8.1(iii); 4.46.3.2; 4.46.4.1</td>
+</tr>
+<tr class="even">
+<td>P6</td>
+<td>The Code gives the plant four controllable levers — set-point, Absolute Limitation, Delta Regulation, Gradient — and requires a co-located BESS to manage SoC actively, communicate SoC-limit ramps, and provide fast frequency response.</td>
+<td>SAGC 2.11.13.11; 5.4.2.3; 2.11.15.8–9; 4.31.2</td>
+</tr>
+<tr class="odd">
+<td>P7</td>
+<td>Hence the highest-value, jurisdiction-clean action a plant can take is: forecast its own ramps, shape them with its BESS inside those levers, and declare/notify early. That is the whole product.</td>
+<td>Follows from P4–P6</td>
+</tr>
+<tr class="even">
+<td>P8</td>
+<td>Lead time is physical: an ~8 km-wide park with 19 stations and 365 metered blocks sees a 45 km/h front 8–12 min before its far edge; satellite imagery adds hours; NCM adds 72 h for dust.</td>
+<td>Plant geometry (deck: 365 MV stations, 19 stations); Meteosat 15-min cadence; dust.ncm.gov.sa</td>
+</tr>
+<tr class="odd">
+<td>P9</td>
+<td>The battery’s role is bounded and computable: 500 MW / 2,000 MWh shapes a 180 MW/min, 1,800 MW event to 130 MW/min alone, or to 60 MW/min with a TSP gradient instruction and a 12-min pre-ramp — while the reserve ladder (FFR ≤ 1 s → tertiary ≤ 30 min → contingency) takes the energy.</td>
+<td>§5.7 design case; SAGC 4.31.1</td>
+</tr>
+<tr class="even">
+<td>P10</td>
+<td>Demand control is the DSP/TSP’s: under-frequency disconnection (Distribution Entities), Demand Side Response and Interruptible Load (TSP System Services), all Demand Control methods (DSP, OC.6). The plant’s contribution to demand management is the <em>signal</em>, not the switch.</td>
+<td>SAGC 2.13.2–3, 2.14.1; SADC OC.6</td>
+</tr>
+<tr class="odd">
+<td>P11</td>
+<td>Because the plant has no operating history before commissioning, the forecast must be physics-first (pvlib Available Active Power) with light ML on residuals; the decision layer is a small MILP that solves in milliseconds; millisecond phenomena stay in inverter/BESS firmware.</td>
+<td>pvlib; problem size (~100 variables); SAGC 2.11.13.16–18</td>
+</tr>
+<tr class="even">
+<td>P12</td>
+<td>Everything above is demonstrable by 7 October with simulated telemetry plus real RRAtlas 1-minute irradiance, in three new modules on top of the existing engine and control room.</td>
+<td>§5.13 build plan</td>
+</tr>
+</tbody>
+</table>
+<div class="ar" dir="rtl" lang="ar">
+<p><strong>سلسلة المنطق في سطر واحد:</strong> المحطة حالةُ طوارئ مخطط لها بحكم النظام (P2)، وتكلفتها تُدفع اليوم كاحتياطي مقابل «عدم يقين توقعات الطقس» (P3)، والكود يفتح أصلاً قناة لتحديث الإعلانات حتى ساعة قبل الوقت الفعلي وللإشعار المسبق (P5)، ويمنح المحطة أربع أدوات تحكم ويُلزم البطارية بإدارة الشحن (P6) — فأعلى قيمة يمكن أن تقدمها المحطة ضمن صلاحيتها هي أن تتنبأ بهبوطها، وتلطّفه ببطاريتها، وتُعلن مبكراً (P7)؛ والمهلة الزمنية فيزيائية لا سحرية (P8)؛ ودور البطارية محدود ومحسوب (P9)؛ والتحكم بالطلب ليس لنا (P10)؛ والفيزياء أولاً لأن المحطة لم تُشغَّل بعد (P11)؛ وكل ذلك قابل للعرض في 7 أكتوبر (P12).</p>
+</div>
+<h1 id="the-definitive-idea-najm-3000-grid-twin-version-3">5. The definitive idea — NAJM-3000 Grid Twin, version 3</h1>
+<h2 id="definition">5.1 Definition</h2>
+<p><strong>NAJM-3000 Grid Twin</strong> is a grid-facing digital twin for a utility-scale PV park with a co-located battery. It forecasts the park’s own output ramps on three horizons, shapes those ramps with the battery inside the control modes the Saudi Arabian Grid Code already defines, and turns every forecast into the Declarations and advance notifications the Code already requires — so that a 1,800 MW cloud-band event reaches National Grid SA as a scheduled 60 MW/min ramp announced minutes to hours in advance, not as an unscheduled cliff. It is built before the plant is commissioned, on the team’s existing pvlib physics engine and control room, and it does nothing the plant does not have the right, the data or the physics to do.</p>
+<div class="ar" dir="rtl" lang="ar">
+<p><strong>توأم نجم-3000 للشبكة</strong> توأمٌ رقمي موجَّه نحو الشبكة لمحطة طاقة شمسية كبرى مع بطارية مرافقة. يتنبأ بتذبذب إنتاج المحطة على ثلاثة آفاق زمنية، ويلطّف هذا التذبذب بالبطارية ضمن أنماط التحكم التي يعرّفها الكود السعودي للشبكة أصلاً، ويحوّل كل توقع إلى «الإعلانات» والإشعارات المسبقة التي يفرضها الكود أصلاً — فيصل حدثُ سحابةٍ بحجم 1,800 ميجاواط إلى الشركة الوطنية لنقل الكهرباء منحدراً مجدولاً بمعدل 60 ميجاواط/دقيقة مُعلناً قبل دقائق إلى ساعات، لا هبوطاً مفاجئاً غير مجدول. يُبنى قبل التشغيل التجريبي، على محرك pvlib وغرفة التحكم الموجودَين لدى الفريق، ولا يفعل شيئاً لا تملك المحطة صلاحيته أو بياناته أو فيزياءه.</p>
+<p><strong>الشعار:</strong> نتنبأ، نلطّف، نُعلن — قبل أن يتدفق أول ميجاواط.</p>
+</div>
+<p><strong>Strapline:</strong> <em>Forecast. Shape. Declare — before the first megawatt flows.</em></p>
+<h2 id="roles-and-jurisdiction-who-does-what">5.2 Roles and jurisdiction — who does what</h2>
+<table>
+<colgroup>
+<col style="width: 18%" />
+<col style="width: 37%" />
+<col style="width: 25%" />
+<col style="width: 18%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Actor</th>
+<th>Role in the event</th>
+<th>What NAJM-3000 gives them</th>
+<th>What NAJM-3000 never does</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Plant operator / IPP</strong> (owner of the twin)</td>
+<td>Forecasts Available Active Power; operates PV and BESS inside dispatch instructions; submits Availability Notices, Nominations, updated Declarations; notifies events (4.46)</td>
+<td>Modules A–C</td>
+<td>Instruct the TSO; touch any load beyond its own auxiliaries</td>
+</tr>
+<tr class="even">
+<td><strong>National Grid SA (TSP)</strong></td>
+<td>Sizes and dispatches Operating and Contingency Reserve; issues set-point / Absolute Limitation / Delta / <strong>Gradient</strong> instructions; issues NIOM; contracts System Services incl. Demand Side Response</td>
+<td>The Ramp Event Notice (P50/P90 trajectory, BESS plan, residual by time band, Plan B option)</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td><strong>Distribution Service Provider</strong></td>
+<td>All Demand Control methods (OC.6) in coordination with the TSP</td>
+<td>Lead time, via the TSP</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td><strong>SPPC (Principal Buyer)</strong></td>
+<td>PPA off-take; instructed reductions settled under the PPA’s terms</td>
+<td>Auditable record of instructed vs self-initiated reductions</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td><strong>SERA</strong></td>
+<td>Codes, planning criteria, compliance</td>
+<td>A plant that produces its own compliance evidence</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h2 id="architecture-two-existing-layers-three-new-modules">5.3 Architecture — two existing layers, three new modules</h2>
+<table>
+<colgroup>
+<col style="width: 12%" />
+<col style="width: 11%" />
+<col style="width: 37%" />
+<col style="width: 20%" />
+<col style="width: 17%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Module</th>
+<th>Status</th>
+<th>What it does</th>
+<th>Method</th>
+<th>Inputs</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>P · Physics engine</strong></td>
+<td>Exists (pvlib, 365 blocks, 150+ tests)</td>
+<td>Computes <em>Available Active Power</em> (the Code’s term) per block and at the POI from irradiance, temperature, tracker geometry, soiling state</td>
+<td>pvlib ModelChain; soiling as a state variable</td>
+<td>Design data; 19 station feeds (simulated)</td>
+</tr>
+<tr class="even">
+<td><strong>U · Control room</strong></td>
+<td>Exists (dashboard + map/3D)</td>
+<td>Shows expected vs measured, alarms, block detail</td>
+<td>Existing</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td><strong>A · Forecast stack</strong></td>
+<td><strong>New</strong></td>
+<td>Three horizons: 72-h outlook (dust, NWP) → intra-day 15-min trajectory (satellite) → <strong>sentinel nowcast</strong> 5–15 min (station lags + block sweep). Outputs P50/P90 Available Active Power and ramp probability</td>
+<td>pvlib clear-sky index + LightGBM residual; optical-flow advection; spatial lag-correlation</td>
+<td>NCM dust outlook; NWP; Meteosat 15-min; on-site stations; block meters</td>
+</tr>
+<tr class="even">
+<td><strong>B · Battery scheduler</strong></td>
+<td><strong>New</strong></td>
+<td>Day-ahead hourly plan (evening-peak shift + SoC pre-positioning for forecast events) and a 15-min rolling, 4-h re-dispatch re-solved every minute; computes Plan A (BESS-only shaping) and Plan B (TSP gradient + pre-ramp) with SoC, FFR headroom and SoC-limit ramps as constraints</td>
+<td>MILP (PuLP/HiGHS) — the MDPI two-timescale structure with PV replacing wind; DRL only as a stretch goal</td>
+<td>Module A outputs; BESS parameters; registered ramp rate; instructed gradient</td>
+</tr>
+<tr class="odd">
+<td><strong>C · Compliance &amp; notice engine</strong></td>
+<td><strong>New</strong></td>
+<td>(i) Generates the Availability Notice/Nomination (10:00 D-1), updated Declarations (to H-1) and the <strong>Ramp Event Notice</strong> (inside H-1); (ii) verifies operational compliance continuously: set-point accuracy, gradient adherence, P–Q envelope, SoC reserve, SoC-limit ramp communication; (iii) holds certified ride-through/FFR capabilities as data</td>
+<td>Rule engine + message generator; mock TSP endpoint that renders the notice</td>
+<td>Modules A, B, P; certificate data</td>
+</tr>
+</tbody>
+</table>
+<h2 id="time-domain-separation-who-acts-at-which-timescale">5.4 Time-domain separation — who acts at which timescale</h2>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 24%" />
+<col style="width: 15%" />
+<col style="width: 18%" />
+<col style="width: 23%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Timescale</th>
+<th>Phenomenon</th>
+<th>Who acts</th>
+<th>Code basis</th>
+<th>Twin’s role</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>20 ms – 1.3 s</td>
+<td>Fault ride-through, dynamic voltage support</td>
+<td>Inverter / BESS firmware</td>
+<td>2.11.13.16–18; 2.11.15.7</td>
+<td>Ingest and display certified capability — <strong>no simulation</strong></td>
+</tr>
+<tr class="even">
+<td>≤ 1 s → 5 s</td>
+<td>Fast Frequency Response; primary droop (PPM delay ≤ 2 s)</td>
+<td>BESS / PPM controllers</td>
+<td>4.31.1(i–ii); 4.41.7; 2.11.15.4</td>
+<td>Hold SoC headroom; verify droop 5 % / dead-band ≤ 0.05 Hz settings</td>
+</tr>
+<tr class="odd">
+<td>15 s – 30 min</td>
+<td>Secondary and tertiary reserve</td>
+<td>TSO dispatch</td>
+<td>4.31.1(iii–iv)</td>
+<td>Make the ramp schedulable; publish the trajectory</td>
+</tr>
+<tr class="even">
+<td>1 – 15 min, re-solved every minute</td>
+<td>Sentinel nowcast; BESS ramp shaping; Plan A/B</td>
+<td>Twin → plant EMS</td>
+<td>2.11.13.11; 2.11.15.9</td>
+<td><strong>Modules A + B</strong></td>
+</tr>
+<tr class="odd">
+<td>15-min steps, 4-h rolling, to H-1</td>
+<td>Updated Declarations on infeed forecasts</td>
+<td>Twin → TSP</td>
+<td>5.3.8.1(iii)</td>
+<td><strong>Module C</strong></td>
+</tr>
+<tr class="even">
+<td>Hourly, by 10:00 D-1</td>
+<td>Availability Notice, Nomination, special factors</td>
+<td>Twin → TSP</td>
+<td>5.3.2; 5.3.4; 5.3.3.2(i)</td>
+<td><strong>Module C</strong></td>
+</tr>
+<tr class="odd">
+<td>72 h, 60-min</td>
+<td>Dust outlook; SoC pre-positioning; cleaning dispatch</td>
+<td>Twin → operator</td>
+<td>NCM; 4.5.5 format precedent</td>
+<td><strong>Module A</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 id="the-forecast-stack-where-15-minutes-ahead-actually-comes-from">5.5 The forecast stack — where “15 minutes ahead” actually comes from</h2>
+<table>
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 24%" />
+<col style="width: 19%" />
+<col style="width: 23%" />
+<col style="width: 21%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Horizon</th>
+<th>Data</th>
+<th>Product</th>
+<th>Method</th>
+<th>Honest accuracy claim</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>24–72 h</td>
+<td>NCM sand-and-dust forecast (dust.ncm.gov.sa); open NWP (cloud cover, aerosol optical depth)</td>
+<td>Hourly P50/P90 Available Active Power; dust-risk flag; SoC pre-positioning target</td>
+<td>pvlib clear-sky → cloud/aerosol transmittance → LightGBM residual</td>
+<td>Report your own day-ahead MAE on an RRAtlas year; PV literature typically 5–10 % of capacity</td>
+</tr>
+<tr class="even">
+<td>1–6 h</td>
+<td>Meteosat 15-min imagery (EUMETSAT), cloud-motion vectors</td>
+<td>15-min POI trajectory, 4 h ahead</td>
+<td>Optical-flow advection of the clear-sky index</td>
+<td>Ramp timing ±15–30 min</td>
+</tr>
+<tr class="odd">
+<td>5–15 min</td>
+<td>The plant’s <strong>19 weather stations and 365 block meters</strong> as a spatial sensor array; wind vector; optionally one upwind mast ~10 km out</td>
+<td>Minute-by-minute POI trajectory; arrival time and depth per block</td>
+<td>Station-to-station lag correlation → front speed and heading → per-block arrival; depth read from the first-hit blocks</td>
+<td>Timing ±1–2 min and depth ±10 % once ~20 % of blocks are hit; +10–12 min with the upwind mast</td>
+</tr>
+<tr class="even">
+<td>&lt; 1 s</td>
+<td>—</td>
+<td>—</td>
+<td>Firmware</td>
+<td>Not the twin’s</td>
+</tr>
+</tbody>
+</table>
+<p>The mechanism is geometric. A park of ~65 km² is ~8 km across; a front moving at 45–50 km/h needs 8–12 minutes to cross it. The blocks it hits first are upwind sentinels for the rest, and they report at 1-minute resolution. The twin does not “predict a cloud with AI”; it measures the front’s speed and depth on the first 20 % of the plant and integrates the rest.</p>
+<h2 id="the-ramp-event-notice-specification-and-code-mapping">5.6 The Ramp Event Notice — specification and Code mapping</h2>
+<p>One message type, three Code roles: outside H-1 it is an <strong>updated Declaration</strong> (5.3.8.1(iii)); inside H-1 it is a <strong>4.46.3.2 notification</strong> “as far in advance as practicable”; at 10:00 D-1 its hourly aggregate is the <strong>Availability Notice</strong> and its dust flag a <strong>special factor</strong> (5.3.3.2(i)). Sent over the TSP electronic interface (5.3.5.1), fallback per 1.12.3.</p>
+<table>
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 70%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Identity</td>
+<td>Plant, Connection Point, notice number, issue time, valid-from, confidence level (P50 / P90)</td>
+</tr>
+<tr class="even">
+<td>Event</td>
+<td>Expected onset (±), cause (cloud band / dust front / soiling), expected minimum Available Active Power (MW), expected duration, recovery time</td>
+</tr>
+<tr class="odd">
+<td>Plan A (no instruction needed)</td>
+<td>POI trajectory at 1-min resolution for 60 min; BESS MW and SoC; maximum down-gradient held (MW/min)</td>
+</tr>
+<tr class="even">
+<td>Plan B (offered)</td>
+<td>POI trajectory if the TSP issues a Gradient instruction of <em>g</em> MW/min at time <em>T</em>; PV energy not exported; BESS SoC; recovery up-gradient offered</td>
+</tr>
+<tr class="odd">
+<td>Residual by reserve band</td>
+<td>MW to be replaced by other plant in 0–15 min (secondary), 15–30 min (tertiary), &gt; 30 min (contingency) — for Plan A and Plan B</td>
+</tr>
+<tr class="even">
+<td>Compliance status</td>
+<td>Registered ramp rate; set-point tracking; P–Q position; SoC reserve held for FFR; SoC-limit ramp in force (2.11.15.9)</td>
+</tr>
+<tr class="odd">
+<td>Integrity</td>
+<td>Hash and signature; one-way plant → TSP</td>
+</tr>
+</tbody>
+</table>
+<h2 id="design-case-d1-a-frontal-cloud-band-worked-to-the-megawatt">5.7 Design case D1 — a frontal cloud band, worked to the megawatt</h2>
+<p><strong>Assumptions (state them on the slide).</strong> POI export limit 3,000 MWac; BESS 500 MW / 2,000 MWh AC-coupled at the POI; SoC 95 % at onset after forecast-driven pre-positioning; a front crossing the ~8 km park in 10 min cuts Available Active Power by 60 % (3,000 → 1,200 MW), holds for 40 min, clears in 10 min; sentinel lead time 12 min; Plan A shaping gradient 130 MW/min (the steepest a 500 MW battery can hold against a 180 MW/min event); Plan B instructed gradient 60 MW/min down / 150 MW/min up; minute-resolution simulation (script in the appendix).</p>
+<figure><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 380" width="860" height="380" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="12">
+<rect width="860" height="380" fill="#fcfcfb"/>
+<rect x="192.7" y="36" width="514.7" height="300" fill="#eceae4" opacity="0.6"/>
+<text x="450.0" y="50" text-anchor="middle" fill="#52514e" font-size="11">cloud band over the plant (t = 0 … 60 min)</text>
+<line x1="64" x2="836" y1="336.0" y2="336.0" stroke="#e4e2dc" stroke-width="1"/>
+<text x="56" y="340.0" text-anchor="end" fill="#52514e">0</text>
+<line x1="64" x2="836" y1="261.0" y2="261.0" stroke="#e4e2dc" stroke-width="1"/>
+<text x="56" y="265.0" text-anchor="end" fill="#52514e">800</text>
+<line x1="64" x2="836" y1="186.0" y2="186.0" stroke="#e4e2dc" stroke-width="1"/>
+<text x="56" y="190.0" text-anchor="end" fill="#52514e">1,600</text>
+<line x1="64" x2="836" y1="111.0" y2="111.0" stroke="#e4e2dc" stroke-width="1"/>
+<text x="56" y="115.0" text-anchor="end" fill="#52514e">2,400</text>
+<line x1="64" x2="836" y1="36.0" y2="36.0" stroke="#e4e2dc" stroke-width="1"/>
+<text x="56" y="40.0" text-anchor="end" fill="#52514e">3,200</text>
+<text x="64.0" y="354" text-anchor="middle" fill="#52514e">-15</text>
+<text x="192.7" y="354" text-anchor="middle" fill="#52514e">+0</text>
+<text x="321.3" y="354" text-anchor="middle" fill="#52514e">+15</text>
+<text x="450.0" y="354" text-anchor="middle" fill="#52514e">+30</text>
+<text x="578.7" y="354" text-anchor="middle" fill="#52514e">+45</text>
+<text x="707.3" y="354" text-anchor="middle" fill="#52514e">+60</text>
+<text x="836.0" y="354" text-anchor="middle" fill="#52514e">+75</text>
+<text x="450.0" y="372" text-anchor="middle" fill="#52514e">minutes from the front reaching the western fence</text>
+<text x="14" y="186.0" transform="rotate(-90 14 186.0)" text-anchor="middle" fill="#52514e">POI export, MW</text>
+<polyline points="64.0,54.8 72.6,54.8 81.2,54.8 89.7,54.8 98.3,54.8 106.9,54.8 115.5,54.8 124.0,54.8 132.6,54.8 141.2,54.8 149.8,54.8 158.4,54.8 166.9,54.8 175.5,54.8 184.1,54.8 192.7,54.8 201.2,71.6 209.8,88.5 218.4,105.4 227.0,122.2 235.6,139.1 244.1,156.0 252.7,172.9 261.3,189.8 269.9,206.6 278.4,223.5 287.0,223.5 295.6,223.5 304.2,223.5 312.8,223.5 321.3,223.5 329.9,223.5 338.5,223.5 347.1,223.5 355.6,223.5 364.2,223.5 372.8,223.5 381.4,223.5 390.0,223.5 398.5,223.5 407.1,223.5 415.7,223.5 424.3,223.5 432.8,223.5 441.4,223.5 450.0,223.5 458.6,223.5 467.2,223.5 475.7,223.5 484.3,223.5 492.9,223.5 501.5,223.5 510.0,223.5 518.6,223.5 527.2,223.5 535.8,223.5 544.4,223.5 552.9,223.5 561.5,223.5 570.1,223.5 578.7,223.5 587.2,223.5 595.8,223.5 604.4,223.5 613.0,223.5 621.6,223.5 630.1,206.6 638.7,189.8 647.3,172.9 655.9,156.0 664.4,139.1 673.0,122.2 681.6,105.4 690.2,88.5 698.8,71.6 707.3,54.8 715.9,54.8 724.5,54.8 733.1,54.8 741.6,54.8 750.2,54.8 758.8,54.8 767.4,54.8 776.0,54.8 784.5,54.8 793.1,54.8 801.7,54.8 810.3,54.8 818.8,54.8 827.4,54.8 836.0,54.8" fill="none" stroke="#2a78d6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="64.0,54.8 72.6,54.8 81.2,54.8 89.7,54.8 98.3,54.8 106.9,54.8 115.5,54.8 124.0,54.8 132.6,54.8 141.2,54.8 149.8,54.8 158.4,54.8 166.9,54.8 175.5,54.8 184.1,54.8 192.7,54.8 201.2,66.9 209.8,79.1 218.4,91.3 227.0,103.5 235.6,115.7 244.1,127.9 252.7,140.1 261.3,152.2 269.9,164.4 278.4,176.6 287.0,188.8 295.6,201.0 304.2,213.2 312.8,223.5 321.3,223.5 329.9,223.5 338.5,223.5 347.1,223.5 355.6,223.5 364.2,223.5 372.8,223.5 381.4,223.5 390.0,223.5 398.5,223.5 407.1,223.5 415.7,223.5 424.3,223.5 432.8,223.5 441.4,223.5 450.0,223.5 458.6,223.5 467.2,223.5 475.7,223.5 484.3,223.5 492.9,223.5 501.5,223.5 510.0,223.5 518.6,223.5 527.2,223.5 535.8,223.5 544.4,223.5 552.9,223.5 561.5,223.5 570.1,223.5 578.7,223.5 587.2,223.5 595.8,223.5 604.4,223.5 613.0,223.5 621.6,223.5 630.1,211.3 638.7,199.1 647.3,186.9 655.9,174.8 664.4,162.6 673.0,150.4 681.6,138.2 690.2,126.0 698.8,113.8 707.3,101.6 715.9,89.4 724.5,77.2 733.1,65.1 741.6,54.8 750.2,54.8 758.8,54.8 767.4,54.8 776.0,54.8 784.5,54.8 793.1,54.8 801.7,54.8 810.3,54.8 818.8,54.8 827.4,54.8 836.0,54.8" fill="none" stroke="#eb6834" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="64.0,54.8 72.6,54.8 81.2,54.8 89.7,60.4 98.3,66.0 106.9,71.6 115.5,77.2 124.0,82.9 132.6,88.5 141.2,94.1 149.8,99.8 158.4,105.4 166.9,111.0 175.5,116.6 184.1,122.2 192.7,127.9 201.2,133.5 209.8,139.1 218.4,144.8 227.0,150.4 235.6,156.0 244.1,161.6 252.7,167.2 261.3,172.9 269.9,178.5 278.4,184.1 287.0,189.8 295.6,195.4 304.2,201.0 312.8,206.6 321.3,212.2 329.9,217.9 338.5,223.5 347.1,223.5 355.6,223.5 364.2,223.5 372.8,223.5 381.4,223.5 390.0,223.5 398.5,223.5 407.1,223.5 415.7,223.5 424.3,223.5 432.8,223.5 441.4,223.5 450.0,223.5 458.6,223.5 467.2,223.5 475.7,223.5 484.3,223.5 492.9,223.5 501.5,223.5 510.0,223.5 518.6,223.5 527.2,223.5 535.8,223.5 544.4,223.5 552.9,223.5 561.5,223.5 570.1,223.5 578.7,223.5 587.2,223.5 595.8,223.5 604.4,223.5 613.0,223.5 621.6,223.5 630.1,209.4 638.7,195.4 647.3,181.3 655.9,167.2 664.4,153.2 673.0,139.1 681.6,125.1 690.2,111.0 698.8,96.9 707.3,82.9 715.9,68.8 724.5,54.8 733.1,54.8 741.6,54.8 750.2,54.8 758.8,54.8 767.4,54.8 776.0,54.8 784.5,54.8 793.1,54.8 801.7,54.8 810.3,54.8 818.8,54.8 827.4,54.8 836.0,54.8" fill="none" stroke="#1baf7a" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="278.4" cy="223.5" r="4.5" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
+<line x1="284.4" y1="223.5" x2="432.8" y2="257.5" stroke="#b8b6ae" stroke-width="1"/>
+<text x="441.4" y="261.5" fill="#0b0b0b" font-weight="600">1,800 MW lost in 10 min</text>
+<circle cx="278.4" cy="176.6" r="4.5" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/>
+<line x1="284.4" y1="176.6" x2="432.8" y2="150.6" stroke="#b8b6ae" stroke-width="1"/>
+<text x="441.4" y="154.6" fill="#0b0b0b" font-weight="600">1,300 MW in 10 min</text>
+<circle cx="278.4" cy="184.1" r="4.5" fill="#1baf7a" stroke="#fcfcfb" stroke-width="2"/>
+<line x1="284.4" y1="184.1" x2="432.8" y2="200.1" stroke="#b8b6ae" stroke-width="1"/>
+<text x="441.4" y="204.1" fill="#0b0b0b" font-weight="600">600 MW in 10 min</text>
+<line x1="76" x2="94" y1="274" y2="274" stroke="#2a78d6" stroke-width="2"/>
+<text x="100" y="278" fill="#0b0b0b" font-size="11">Baseline (no twin)</text>
+<line x1="76" x2="94" y1="294" y2="294" stroke="#eb6834" stroke-width="2"/>
+<text x="100" y="298" fill="#0b0b0b" font-size="11">Plan A · BESS shaping</text>
+<line x1="76" x2="94" y1="314" y2="314" stroke="#1baf7a" stroke-width="2"/>
+<text x="100" y="318" fill="#0b0b0b" font-size="11">Plan B · TSP gradient + BESS</text>
+</svg><figcaption>POI export during design case D1 — baseline, Plan A and Plan B</figcaption></figure>
+<table>
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 20%" />
+<col style="width: 24%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Metric</th>
+<th>Baseline (no twin)</th>
+<th>Plan A · BESS shaping</th>
+<th>Plan B · TSP gradient + BESS</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Maximum 10-minute POI drop</td>
+<td><strong>1,800 MW</strong></td>
+<td><strong>1,300 MW</strong></td>
+<td><strong>600 MW</strong></td>
+</tr>
+<tr class="even">
+<td>Maximum down-gradient at the POI</td>
+<td>180 MW/min</td>
+<td>130 MW/min</td>
+<td>60 MW/min</td>
+</tr>
+<tr class="odd">
+<td>Advance notice to the TSO</td>
+<td>none</td>
+<td>≥ 12 min (sentinel); hours (satellite)</td>
+<td>≥ 12 min; hours</td>
+</tr>
+<tr class="even">
+<td>Unscheduled deviation from the declared trajectory</td>
+<td>≈ 1,500 MWh</td>
+<td>forecast error only</td>
+<td>forecast error only</td>
+</tr>
+<tr class="odd">
+<td>Energy replaced by other units (scheduled)</td>
+<td>1,500 MWh, unscheduled</td>
+<td>1,500 MWh</td>
+<td>1,620 MWh</td>
+</tr>
+<tr class="even">
+<td>PV energy not exported</td>
+<td>0</td>
+<td>0</td>
+<td>27 MWh (≈ 0.1 % of a clear day’s ≈ 25 GWh)</td>
+</tr>
+<tr class="odd">
+<td>BESS discharged / charged during the event</td>
+<td>0 / 0</td>
+<td>58 / 58 MWh</td>
+<td>37 / 130 MWh</td>
+</tr>
+<tr class="even">
+<td>BESS SoC at event end</td>
+<td>1,900 MWh</td>
+<td>1,900 MWh</td>
+<td>1,993 MWh</td>
+</tr>
+</tbody>
+</table>
+<p>Trajectory, minute by minute (POI MW; BESS MW, negative = charging):</p>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 9%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>t (min)</th>
+<th>−12</th>
+<th>−6</th>
+<th>0</th>
+<th>5</th>
+<th>10</th>
+<th>15</th>
+<th>20–50</th>
+<th>55</th>
+<th>60</th>
+<th>65</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Baseline</td>
+<td>3,000</td>
+<td>3,000</td>
+<td>3,000</td>
+<td>2,100</td>
+<td>1,200</td>
+<td>1,200</td>
+<td>1,200</td>
+<td>2,100</td>
+<td>3,000</td>
+<td>3,000</td>
+</tr>
+<tr class="even">
+<td>Plan A</td>
+<td>3,000</td>
+<td>3,000</td>
+<td>3,000</td>
+<td>2,350 (+250)</td>
+<td>1,700 (+500)</td>
+<td>1,200</td>
+<td>1,200</td>
+<td>1,850 (−250)</td>
+<td>2,500 (−500)</td>
+<td>3,000</td>
+</tr>
+<tr class="odd">
+<td>Plan B</td>
+<td>2,940 (−60)</td>
+<td>2,580 (−420)</td>
+<td>2,220 (−500)</td>
+<td>1,920</td>
+<td>1,620 (+420)</td>
+<td>1,320 (+120)</td>
+<td>1,200</td>
+<td>1,950 (−150)</td>
+<td>2,700 (−300)</td>
+<td>3,000</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What the numbers say.</strong> Plan A needs no permission and no energy: the battery discharges 58 MWh on the way down and absorbs 58 MWh on the way up, ending where it started — it only changes the <em>shape</em>. Plan B, executed on a TSP Gradient instruction, starts the descent 12 minutes early and puts the pre-ramp surplus <em>into the battery</em> instead of spilling it: 130 MWh charged, 37 discharged, 27 MWh not exported, and the battery ends the event fuller than it began. The grid sees a 60 MW/min ramp it was told about — in Code terms an ordinary scheduled change, not an Event. The price is 120 MWh more energy from other, already-scheduled units.</p>
+<p><strong>What the numbers do not say.</strong> They are one design case with assumed geometry. The team must replace the assumptions with the ramp-rate distribution of a K.A.CARE RRAtlas station near the site (1-minute GHI/DNI) — which is also the “preliminary statistical analysis of variability” the challenge card asks for.</p>
+<h3 id="design-case-d2-a-dust-front-haboob-with-residual-soiling">Design case D2 — a dust front (haboob) with residual soiling</h3>
+<p>NCM’s outlook flags a dust front 48 h ahead; satellite confirms 3 h ahead; sentinels time the onset. Available Active Power falls 70 % (−2,100 MW) for 3 h, then modules carry 15 % soiling (−450 MW at midday) for two days until cleaning. The battery covers 500 MW for up to 4 h (1,500 MWh over the 3-h storm); the residual 1,600 MW × 3 h = 4,800 MWh must come from other plant — <strong>declared at H-1 or earlier</strong> under 5.3.8.1(iii), so the TSO schedules contingency units rather than holding spinning reserve. Two forecast-driven gains are quantifiable in the demo: (i) SoC at onset 95 % with the outlook versus ≈ 40 % after an unplanned evening cycle — 3.8 h of 500 MW support versus 1.6 h; (ii) a cleaning-dispatch order by block that recovers ≈ 450 MW × 6 h × 2 days ≈ 5.4 GWh sooner. Transient dust attenuation is a forecast input (Module A); deposited soiling is a physical state (Module P).</p>
+<h2 id="what-the-twin-claims-and-what-it-does-not">5.8 What the twin claims — and what it does not</h2>
+<table>
+<colgroup>
+<col style="width: 52%" />
+<col style="width: 47%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Claims</th>
+<th>Does not claim</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Forecasts the park’s own Available Active Power on three horizons with stated accuracy</td>
+<td>To predict weather better than NCM or ECMWF</td>
+</tr>
+<tr class="even">
+<td>Shapes ramps with a 500 MW / 2,000 MWh BESS to 130 MW/min alone, 60 MW/min with a TSP gradient instruction</td>
+<td>To make an 1,800 MW event disappear, or to replace the reserve ladder</td>
+</tr>
+<tr class="odd">
+<td>Turns forecasts into Code-conformant Declarations and 4.46 notices with residuals by reserve band</td>
+<td>To instruct the TSO, or to control any load beyond the plant’s own auxiliaries</td>
+</tr>
+<tr class="even">
+<td>Verifies operational compliance continuously (set-point, gradient, P–Q, SoC reserve, SoC-limit ramps)</td>
+<td>To simulate ride-through, RoCoF or dynamic voltage support — those are certified in hardware</td>
+</tr>
+<tr class="odd">
+<td>Reduces the weather-forecast uncertainty that Contingency Reserve is bought against</td>
+<td>A specific SAR saving before the annual simulation is run on real irradiance data</td>
+</tr>
+<tr class="even">
+<td>Runs before commissioning on simulated telemetry, then live</td>
+<td>To be calibrated to a real plant today</td>
+</tr>
+</tbody>
+</table>
+<h2 id="kpi-table-for-the-results-slide">5.9 KPI table for the results slide</h2>
+<table>
+<colgroup>
+<col style="width: 28%" />
+<col style="width: 22%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>KPI</th>
+<th>How measured</th>
+<th>Baseline</th>
+<th>Plan A</th>
+<th>Plan B</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Maximum 10-minute POI drop (MW)</td>
+<td>Design case D1</td>
+<td>1,800</td>
+<td>1,300</td>
+<td>600</td>
+</tr>
+<tr class="even">
+<td>Maximum POI down-gradient (MW/min)</td>
+<td>D1</td>
+<td>180</td>
+<td>130</td>
+<td>60</td>
+</tr>
+<tr class="odd">
+<td>Advance notice to the TSO (min)</td>
+<td>REN timestamp vs onset</td>
+<td>0</td>
+<td>≥ 12</td>
+<td>≥ 12</td>
+</tr>
+<tr class="even">
+<td>Unscheduled deviation energy, ∫|POI − declared| (MWh)</td>
+<td>D1</td>
+<td>≈ 1,500</td>
+<td>forecast error</td>
+<td>forecast error</td>
+</tr>
+<tr class="odd">
+<td>PV energy not exported (MWh, % of day)</td>
+<td>D1</td>
+<td>0</td>
+<td>0</td>
+<td>27 (0.1 %)</td>
+</tr>
+<tr class="even">
+<td>BESS SoC at event end (MWh)</td>
+<td>D1</td>
+<td>1,900</td>
+<td>1,900</td>
+<td>1,993</td>
+</tr>
+<tr class="odd">
+<td>H-1 Declaration error (MAE, % of capacity)</td>
+<td>Annual RRAtlas-year simulation, hold-out months</td>
+<td>persistence</td>
+<td>model</td>
+<td>model</td>
+</tr>
+<tr class="even">
+<td>Plan B false-alarm rate (%)</td>
+<td>Annual simulation; P90 trigger</td>
+<td>—</td>
+<td>—</td>
+<td>target &lt; 10</td>
+</tr>
+<tr class="odd">
+<td>Operational compliance checks passed (%)</td>
+<td>Compliance engine on scripted instructions</td>
+<td>—</td>
+<td>100</td>
+<td>100</td>
+</tr>
+<tr class="even">
+<td>Reserve-MW-hours the TSO could release for weather uncertainty</td>
+<td>Annual simulation, assumptions stated</td>
+<td>—</td>
+<td>computed</td>
+<td>computed</td>
+</tr>
+</tbody>
+</table>
+<h2 id="data-plan-declared-real-versus-synthetic">5.10 Data plan — declared, real versus synthetic</h2>
+<table>
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 44%" />
+<col style="width: 32%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Data</th>
+<th>Source</th>
+<th>Real or synthetic in the demo</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1-minute GHI/DNI/DHI</td>
+<td>K.A.CARE Renewable Resource Atlas (rratlas.energy.gov.sa), nearest station</td>
+<td><strong>Real</strong> — drives the variability statistics and the annual simulation</td>
+</tr>
+<tr class="even">
+<td>Dust outlook</td>
+<td>dust.ncm.gov.sa (72-h)</td>
+<td>Real page; scraped or requested; cached sample if access is delayed</td>
+</tr>
+<tr class="odd">
+<td>Satellite cloud motion</td>
+<td>EUMETSAT Meteosat 15-min</td>
+<td>Real sample day if obtainable; else synthetic advection field labelled as such</td>
+</tr>
+<tr class="even">
+<td>Plant telemetry (365 blocks, 19 stations)</td>
+<td>Existing simulator</td>
+<td><strong>Synthetic</strong>, labelled “SIM” as today</td>
+</tr>
+<tr class="odd">
+<td>National context</td>
+<td>open.data.gov.sa peak load 2023–2024, consumption by operational region, consumers and energy sold; GASTAT Electrical/Renewable Energy Statistics 2024; MoE energy data</td>
+<td>Real</td>
+</tr>
+<tr class="even">
+<td>Hourly national demand</td>
+<td>Not published; synthesised from annual peak load and regional consumption shaped by the regulator’s load-duration and daily curves</td>
+<td>Synthetic, stated on the slide</td>
+</tr>
+<tr class="odd">
+<td>BESS parameters</td>
+<td>SPPC standard block 500 MW / 2,000 MWh; Bisha 500 MW / 2,000 MWh</td>
+<td>Real specification</td>
+</tr>
+<tr class="even">
+<td>Grid Code envelopes</td>
+<td>SAGC May 2026, TPC 2025</td>
+<td>Real clauses</td>
+</tr>
+</tbody>
+</table>
+<h2 id="demo-storyline-for-day-3-at-kapsarc-eight-minutes">5.11 Demo storyline for Day 3 at KAPSARC — eight minutes</h2>
+<ol type="1">
+<li><strong>Context (45 s).</strong> 72.9 GW peak; 50 % renewables by 2030 at ≈ 20 GW of PV a year; every battery the Kingdom buys is 4 hours long; a 3 GW park is 4 % of the peak and, by SERA’s own planning criteria, an N-2 contingency.</li>
+<li><strong>The cost of not knowing (45 s).</strong> Read SAGC 4.41.15 on the slide: Contingency Reserve exists to cover <em>weather forecast uncertainty</em>. That is what the Kingdom pays for today.</li>
+<li><strong>The twin you already have (60 s).</strong> The control room: 365 blocks, expected vs measured, fault attribution, 150+ tests. Credibility first.</li>
+<li><strong>The sentinel sweep (90 s).</strong> Real RRAtlas minute data drives a front across the map; the west-edge stations report; the twin computes speed, heading, depth and the minute-by-minute POI trajectory — 12 minutes before the far edge is hit.</li>
+<li><strong>Plan A and Plan B (90 s).</strong> Split screen: baseline cliff (180 MW/min) versus Plan A (130) versus Plan B (60, battery ends fuller). Show SoC, the gradient instruction, the 27 MWh.</li>
+<li><strong>The notice (60 s).</strong> The Ramp Event Notice appears on the mock TSP screen: trajectory, residual by reserve band, Plan B offer — and the clause numbers it satisfies (5.3.8.1(iii), 4.46.3.2).</li>
+<li><strong>Compliance (45 s).</strong> The engine ticks: set-point within 2 %, gradient within ±10 % of registered, Q inside ±0.33 pu, SoC reserve held, SoC-limit ramp communicated.</li>
+<li><strong>Results and ask (45 s).</strong> The KPI table; the business model in three lines; the enablement-stage ask: one real plant’s SCADA feed and one K.A.CARE station to calibrate.</li>
+</ol>
+<h2 id="jury-questions-with-the-answers-that-survive">5.12 Jury questions — with the answers that survive</h2>
+<ol type="1">
+<li><strong>“Your battery is 500 MW and the drop is 1,800 MW. So what?”</strong> — “Correct, and we never claim otherwise. Alone, the battery turns a 180 MW/min cliff into 130 MW/min and gives you 12 minutes’ notice. With a gradient instruction from you, the plant delivers 60 MW/min and the battery ends the event fuller than it started. The energy comes from your reserve ladder — which the Code sized for exactly this — but it comes on a schedule you were told about.”</li>
+<li><strong>“Who gave a generator the right to shed loads?”</strong> — “Nobody, and we don’t. Demand control is the DSP’s under OC.6 and Demand Side Response is your System Service under 2.14.1. What we give you is the lead time to use them.”</li>
+<li><strong>“Isn’t ramp-rate control already in the inverters?”</strong> — “Gradient limitation is a control mode we must accept (2.11.13.11). What the inverters cannot do is know the front is coming, pre-position the battery’s state of charge, or write your Declaration. That is the twin.”</li>
+<li><strong>“The Grid Code has no PV ramp limit. Why do you talk about violations?”</strong> — “We don’t. We talk about the registered ramp rate and any instructed gradient — and we show adherence within the ±10 % the performance test uses.”</li>
+<li><strong>“Where does ‘12 minutes ahead’ come from?”</strong> — “From geometry. The park is 8 km wide; the west-edge stations see the front first at one-minute resolution. With an upwind mast ten kilometres out we gain another ten minutes. Satellite gives hours; NCM gives days for dust.”</li>
+<li><strong>“Why LightGBM and not a deep model?”</strong> — “Because the plant does not exist yet. There is no operating history to train a sequence model on. Physics carries the signal; boosting corrects the residual; when the plant has a year of data, the architecture accepts a deep model without redesign.”</li>
+<li><strong>“Can a MILP run in real time?”</strong> — “At this size — sixteen intervals, one battery — it solves in milliseconds. We re-solve every minute. Anything faster than a second is inverter and BESS firmware, and we do not pretend otherwise.”</li>
+<li><strong>“Do you simulate LVRT?”</strong> — “No. Ride-through is certified hardware behaviour in the 300-millisecond domain. The twin holds the certificates and verifies what is operational: set-point accuracy, gradient adherence, the P–Q envelope, SoC reserve, and the SoC-limit ramps the Code makes us communicate.”</li>
+<li><strong>“Why not just curtail all PV on cloudy days?”</strong> — “Because that spills energy all day. Plan B spills 27 MWh — 0.1 % of a day — and only when a P90 event is minutes away.”</li>
+<li><strong>“What if the forecast is wrong?”</strong> — “Plan A costs nothing on a false alarm; Plan B costs about 27 MWh. We trigger Plan B on P90, and we report the false-alarm rate as a KPI rather than hide it.”</li>
+<li><strong>“Doesn’t National Grid SA already forecast renewables?”</strong> — “Centrally, yes. It cannot see our 19 stations, our 365 block meters, our soiling state or our battery’s state of charge. The Code asks <em>us</em> to declare; the twin makes our declaration the best in the system, and yours better for it.”</li>
+<li><strong>“Is NAJM-3000 a real project?”</strong> — “It is a representative 3 GW park modelled on the current NREP round — 365 MV stations, 19 weather stations, SPPC’s 500 MW / 2,000 MWh battery block. The engine is real; the plant is a stand-in until a developer gives us theirs.”</li>
+<li><strong>“What is new versus a vendor EMS?”</strong> — “An EMS executes set-points. It does not nowcast ramps from a spatial sensor array, pre-position SoC from a dust outlook, or generate Grid-Code Declarations and 4.46 notices with residuals by reserve band. And it does not exist before the plant does.”</li>
+<li><strong>“Cyber risk?”</strong> — “The only external message is one-way, signed, plant to TSP. We removed the one feature — load control — that would have widened the attack surface.”</li>
+<li><strong>“Who pays?”</strong> — “IPPs and EPCs bidding NREP rounds pay for grid-readiness before connection; a per-MW licence for the live twin; a fleet view for the TSO. The enablement-stage ask is one real SCADA feed and one K.A.CARE station to calibrate.”</li>
+</ol>
+<h2 id="build-plan-11-september-to-9-october-and-the-cut-list">5.13 Build plan — 11 September to 9 October, and the cut list</h2>
+<table>
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 77%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Dates</th>
+<th>Deliverable</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Fri 11 – Sun 13 Sep</td>
+<td>Adopt this document as canonical. Fix the deck errors (F23). Fill Appendix A. Confirm the Saudi team leader and attendance.</td>
+</tr>
+<tr class="even">
+<td>Mon 14 Sep</td>
+<td><strong>Submit</strong> on hackathon.moenergy.gov.sa. Do not wait for the 16th.</td>
+</tr>
+<tr class="odd">
+<td>15 – 16 Sep</td>
+<td>Buffer; email hackathon@moenergy.gov.sa the questions in §8 of the 7 Sep brief (rubric, data during camp).</td>
+</tr>
+<tr class="even">
+<td>17 – 23 Sep · Week 1</td>
+<td><strong>Module A.</strong> RRAtlas ingestion and ramp statistics (P99 10-min drop, gradient distribution). Sentinel nowcast on the existing 365-block simulator (front speed/heading from station lags). Day-ahead pvlib + LightGBM residual on one RRAtlas year. NCM dust page ingestion.</td>
+</tr>
+<tr class="odd">
+<td>24 – 30 Sep · Week 2</td>
+<td><strong>Module B</strong> MILP: day-ahead plan with SoC pre-positioning; 15-min rolling re-dispatch; Plan A and Plan B; SoC reserve and SoC-limit ramps as constraints. <strong>Module C</strong>: notice generator, mock TSP screen, compliance checks. First KPI table from D1 and D2; annual simulation started.</td>
+</tr>
+<tr class="even">
+<td>30 Sep</td>
+<td>Qualifiers announced.</td>
+</tr>
+<tr class="odd">
+<td>1 – 6 Oct · Week 3</td>
+<td>UI: 2D panels for forecast, scheduler, notice, compliance; sweep animation on the existing map. Bilingual deck; 3-minute recorded fallback demo; two Q&amp;A drills with someone playing a National Grid SA engineer.</td>
+</tr>
+<tr class="even">
+<td>7 – 9 Oct</td>
+<td>Camp at KAPSARC. Day 3 pitch.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Cut list — do not build:</strong> load control of any kind; EMT/RMS dynamics or ride-through simulation; new 3D assets; deep-learning forecasters; live SCADA or a real TSO API (a mock endpoint that renders the notice is enough); more than two design cases; any “AI” sentence beyond the one in F5.</p>
+<h2 id="deck-fixes-carried-over-from-the-7-september-brief">5.14 Deck fixes carried over from the 7 September brief</h2>
+<p>Slide 3 title collision; slide 8 duplicated “Automatic Checking” header; slide 9 pasted fault-injection sentence under “Browser-Based Control”; slide 4 unsourced McKinsey/Deloitte benchmarks — cite or delete; pine-forest 3D backdrop — desert horizon or satellite basemap; slide 13 PR 0.796 — state the design value and whether it is a hot-day or fault-day figure; add an architecture slide (stations → engine → forecast → scheduler → notice → TSP) and Arabic titles throughout.</p>
+<h1 id="updated-idea-file-for-registration-appendix-a">6. Updated idea file for registration (Appendix A)</h1>
+<div class="callout">
+<p>Two pages. Replace bracketed items. Submit Arabic first if one document is allowed; the portal is Arabic-first.</p>
+</div>
+<h2 id="a.1-english">A.1 English</h2>
+<p><strong>Title.</strong> NAJM-3000 Grid Twin — a grid-facing digital twin for utility-scale solar with co-located storage, in Saudi conditions.</p>
+<p><strong>Track / challenge.</strong> Track 1 Operational Efficiency · Challenge 2 “Grid stability with variable renewable production”.</p>
+<p><strong>Problem.</strong> The Kingdom adds ≈ 20 GW of PV a year toward 50 % renewables by 2030. A 3 GW park is ≈ 4 % of the 72.9 GW record peak and, under SERA’s Transmission Planning Criteria, an N-2 contingency: when a cloud band or dust front crosses it, the system loses up to 1,800 MW in ten minutes. The Grid Code pays for that uncertainty with Contingency Reserve held “against weather forecast uncertainties” (SAGC 4.41.15), and it already lets renewable generators update their Declarations on better infeed forecasts down to one hour before real time (5.3.8.1(iii)). Today that channel carries little, because plants cannot see their own ramps coming.</p>
+<p><strong>Solution.</strong> A digital twin built before the plant and kept with it. A pvlib physics engine (existing, 365 MV stations, 150+ tests) computes the park’s Available Active Power. A three-horizon forecast stack — NCM’s 72-h dust outlook, Meteosat cloud motion, and a sentinel nowcast that reads a front’s speed and depth from the park’s own 19 weather stations and 365 block meters 5–15 minutes before it reaches the far edge — produces P50/P90 trajectories. A battery scheduler (MILP, day-ahead plus 15-minute rolling) pre-positions the state of charge of a 500 MW / 2,000 MWh battery and shapes the ramp inside the Code’s own control modes: 130 MW/min alone, 60 MW/min on a TSP Gradient instruction, with the battery ending the event fuller than it began. A compliance-and-notice engine turns every forecast into Availability Notices, updated Declarations and 4.46 advance notifications carrying the residual by reserve band, and verifies operational compliance continuously (set-point accuracy, gradient adherence, P–Q envelope, SoC reserve, SoC-limit ramps).</p>
+<p><strong>What it does not do.</strong> It does not control loads (that is the DSP’s and the TSP’s under OC.6 and SAGC 2.14), does not instruct the TSO, and does not simulate ride-through — those capabilities are certified in hardware and held as data.</p>
+<p><strong>Emerging technologies.</strong> Digital twin; physics-informed machine-learning forecasting; mathematical optimisation of storage dispatch; IoT/SCADA integration; geospatial visualisation.</p>
+<p><strong>Data.</strong> K.A.CARE Renewable Resource Atlas (1-minute irradiance); NCM dust forecasts; EUMETSAT Meteosat; Ministry of Energy open data (peak load 2023–2024, consumption by operational region, consumers and energy sold); GASTAT energy statistics 2024; SERA Grid Code May 2026, Distribution Code June 2026, Transmission Planning Criteria 2025.</p>
+<p><strong>Expected impact.</strong> A 1,800 MW cloud-band event delivered to the grid as a 600 MW, 60 MW/min scheduled ramp with ≥ 12 minutes’ notice; lower Contingency Reserve carried for weather uncertainty; faster, cheaper grid-readiness for new NREP projects; an auditable compliance record for SERA.</p>
+<p><strong>Team.</strong> [Leader — Saudi national]; [physics engine]; [infrastructure and data]; [visualisation]; [dashboard]. Eligibility: 2–5 members, all 18+, Saudi nationals or residents; leader and at least one member attend 7–9 October in person.</p>
+<section id="أ.٢-النسخة-العربية" class="ar" dir="rtl" lang="ar">
+<h2>أ.٢ النسخة العربية</h2>
+<p><strong>العنوان.</strong> توأم نجم-3000 للشبكة — توأم رقمي موجَّه نحو الشبكة لمحطات الطاقة الشمسية الكبرى مع تخزين مرافق، في ظروف المملكة.</p>
+<p><strong>المسار / التحدي.</strong> مسار الكفاءة التشغيلية — التحدي الثاني «استقرار الشبكة الكهربائية مع تغير إنتاج الطاقة المتجددة».</p>
+<p><strong>المشكلة.</strong> تضيف المملكة نحو 20 جيجاواط من الطاقة الشمسية سنوياً للوصول إلى 50٪ من الطاقة المتجددة بحلول 2030. تمثل محطة 3 جيجاواط نحو 4٪ من الحمل الذروي القياسي البالغ 72.9 جيجاواط، وهي بموجب معايير تخطيط النقل الصادرة عن هيئة تنظيم الكهرباء حالةُ طوارئ من نوع N-2: عند عبور سحابة كثيفة أو جبهة غبار فوقها تفقد المنظومة ما يصل إلى 1,800 ميجاواط خلال عشر دقائق. يدفع الكود السعودي للشبكة ثمن هذا اللايقين باحتياطي طوارئ يُحتفظ به «لتغطية عدم يقين توقعات الطقس» (4.41.15)، ويسمح أصلاً للمولدات المتجددة بتحديث إعلاناتها بناءً على توقعات تغذية أفضل حتى ساعة قبل الوقت الفعلي (5.3.8.1 (iii)). لكن هذه القناة شبه فارغة اليوم لأن المحطات لا ترى هبوطها قادماً.</p>
+<p><strong>الحل.</strong> توأم رقمي يُبنى قبل المحطة ويبقى معها. محرك فيزيائي (pvlib — موجود، 365 محطة جهد متوسط، أكثر من 150 اختباراً آلياً) يحسب «القدرة الفاعلة المتاحة» للمحطة بتعريف الكود. سلسلة تنبؤ بثلاثة آفاق — توقعات الغبار لـ72 ساعة من المركز الوطني للأرصاد، وحركة السحب من القمر الصناعي Meteosat، و«رصد الطلائع» الذي يقرأ سرعة الجبهة وعمقها من محطات الأرصاد الـ19 والكتل الـ365 المقاسة داخل المحطة قبل 5–15 دقيقة من بلوغها الطرف البعيد — تُنتج مسارات P50/P90. مجدولُ بطارية (برمجة خطية مختلطة، يوم مسبق + متدحرج كل 15 دقيقة) يهيئ مسبقاً حالة شحن بطارية 500 ميجاواط / 2,000 ميجاواط-ساعة ويلطّف المنحدر ضمن أنماط التحكم التي يعرّفها الكود: 130 ميجاواط/دقيقة بالبطارية وحدها، و60 ميجاواط/دقيقة بتعليمات تدرّج من مشغل النقل، مع انتهاء الحدث والبطارية أكثر امتلاءً مما بدأت. ومحرك التزام وإشعارات يحوّل كل توقع إلى إشعارات جاهزية وإعلانات محدّثة وإشعارات مسبقة وفق البند 4.46 تحمل العجز المتبقي حسب نطاق الاحتياطي، ويتحقق باستمرار من الالتزام التشغيلي (دقة نقطة الضبط، الالتزام بالتدرّج، منحنى P–Q، احتياطي حالة الشحن، منحدرات حدود الشحن).</p>
+<p><strong>ما لا يفعله.</strong> لا يتحكم بالأحمال (فهذا من اختصاص مقدم خدمة التوزيع ومشغل النقل بموجب OC.6 والبند 2.14)، ولا يُصدر تعليمات لمشغل النقل، ولا يحاكي تجاوز الأعطال — فتلك قدرات مُعتمدة في العتاد وتُحفظ كبيانات.</p>
+<p><strong>التقنيات الناشئة.</strong> التوأم الرقمي؛ التنبؤ بتعلم الآلة المستند إلى الفيزياء؛ التحسين الرياضي لتوزيع التخزين؛ تكامل إنترنت الأشياء مع سكادا؛ التصور الجغرافي.</p>
+<p><strong>البيانات.</strong> أطلس الموارد المتجددة (إشعاع بدقة دقيقة واحدة)؛ توقعات الغبار للمركز الوطني للأرصاد؛ صور Meteosat من EUMETSAT؛ البيانات المفتوحة لوزارة الطاقة (الحمل الذروي 2023–2024، الاستهلاك حسب المناطق التشغيلية، أعداد المشتركين والطاقة المبيعة)؛ إحصاءات الطاقة للهيئة العامة للإحصاء 2024؛ الكود السعودي للشبكة (مايو 2026)، كود التوزيع (يونيو 2026)، معايير تخطيط النقل (2025).</p>
+<p><strong>الأثر المتوقع.</strong> حدث سحابة بحجم 1,800 ميجاواط يصل إلى الشبكة منحدراً مجدولاً بـ600 ميجاواط وبمعدل 60 ميجاواط/دقيقة مع إشعار مسبق لا يقل عن 12 دقيقة؛ احتياطي طوارئ أقل مقابل لايقين الطقس؛ جاهزية شبكية أسرع وأرخص لمشاريع البرنامج الوطني للطاقة المتجددة؛ سجل التزام قابل للتدقيق لهيئة تنظيم الكهرباء.</p>
+<p><strong>الفريق.</strong> [قائد الفريق — سعودي الجنسية]؛ [المحرك الفيزيائي]؛ [البنية التحتية والبيانات]؛ [التصور]؛ [لوحة التحكم]. الأهلية: 2–5 أعضاء، جميعهم فوق 18 عاماً، سعوديون أو مقيمون؛ يحضر القائد وعضو واحد على الأقل حضورياً في 7–9 أكتوبر.</p>
+</section>
+<h1 id="sources-and-clause-index">7. Sources and clause index</h1>
+<p><strong>Official event pages (read 7 September 2026):</strong> hackathon.moenergy.gov.sa — home, tracks, FAQ, terms, workshops; Challenge 2 page and its supporting card (Google Drive PDF); saifair.sa and its terms.</p>
+<p><strong>Regulatory texts (uploaded, read in full for the clauses cited):</strong> <em>The Saudi Arabian Grid Code</em>, Updated Version May 2026, National Grid SA and Marafiq, approved by SERA — clauses 1.12.3, 2.10.2, 2.10.3, 2.11.12, 2.11.13.1–21, 2.11.15.4–10, 2.12.1–10, 2.13.2–5, 2.14.1, 4.5.5, 4.31.1–3, 4.40–4.42, 4.46.3–4, 4.48.6.12, 4.50.8, 5.3.2–5.3.13, 5.4.2.3, 5.4.4.4, Appendix A5.1 and Definitions (Available Active Power, Active Power Gradient Limitation, Active Power Delta Regulation, Absolute Active Power Limitation, Ramp Rate, Availability Notice). <em>The Saudi Arabian Distribution Code</em>, Version June 2026, Saudi Energy, Marafiq, SPARK, approved by SERA — OC.3, OC.6.1–OC.6.3. SERA <em>Transmission Planning Criteria for Transmission Licensees</em>, ERD-TA-001 V1/46 Version 2 — §2.2.1, 2.3.1–2.3.8, 2.4, 2.6, 3.2–3.6, Table 4-3. SERA <em>Generation Expansion Planning Criteria</em>, ERD-TA-016 V01/21 — §1-2-2, 1-2-3, 1.3.2–1.3.6, Tables 1–5, 9. <em>District Cooling Services Supply Code</em> — read; not applicable.</p>
+<p><strong>Literature:</strong> Liu, Gao, Chen, Li, Sun, Zhang, “Multi-Source Energy Storage Day-Ahead and Intra-Day Scheduling Based on Deep Reinforcement Learning with Attention Mechanism”, <em>Applied Sciences</em> 15(18):10031, 14 Sep 2025 (day-ahead hourly + 15-min/4-h rolling; wind only; PV named as future work; curtailment 12.40 % → 5.76 % in Scenario 1). IEA, <em>Managing Seasonal and Interannual Variability of Renewables</em>, April 2023 (batteries supply 41 % of short-duration flexibility in the Arid system; solar inter-annual variability 6 % there, up to 11 % monthly-mean globally; thermal 51–67 % and reservoir hydro 30–49 % of seasonal flexibility; no Saudi content). Al Garni, “The Impact of Soiling on PV Module Performance in Saudi Arabia”, <em>Energies</em> 15(21):8033, 2022 (2–50 % losses; 6 % in five weeks Dhahran; 11.5 % in 72 h Riyadh; 20 % after one sandstorm; 16 % April vs 2 % July at Rumah). NREL, <em>Solar PV Curtailment in Changing Grid and Technological Contexts</em> (curtailment as a grid service).</p>
+<p><strong>Market and statistics:</strong> GASTAT <em>Electrical Energy Statistics 2024</em> (402,628 GWh sent; ≈ 92.5 GW licensed; renewables 6.6 GW; losses 8.5 %); GASTAT <em>Renewable Energy Statistics 2024</em> (6,551 MW in 10 projects); Attaqa/SEC (72.9 GW peak, summer 2024; 84 GW projected 2030); pv magazine/GlobalData (12,465 MW PV end-2025; 7.8 GW added in 2025); Energy-Storage.News (SPPC 2 GW / 8 GWh awarded Aug 2026 as four 500 MW / 2,000 MWh blocks, SAR 4.35 bn); pv magazine (Bisha 500 MW / 2,000 MWh, Jan 2025); Enerdata (3 GW / 12 GWh second round).</p>
+<p><strong>Data portals:</strong> open.data.gov.sa datasets 5e4851e8…, 1047dddb…, 004003e8…; moenergy.gov.sa energy data; stats.gov.sa energy statistics; rratlas.energy.gov.sa; dust.ncm.gov.sa.</p>
+<div class="note">
+<p><strong>Design-case script.</strong> The minute-resolution simulation behind §5.7 (<code>scenario.py</code>, ~90 lines, standard Python) is delivered with this audit so the team can change the assumptions and regenerate the table and chart.</p>
+</div>
+</main>
+<footer class="docfoot">Prepared with the NAJM-3000 team's own documents and the full texts of the Saudi Arabian Grid Code (May 2026), Distribution Code (June 2026), SERA planning criteria, the challenge card, the MDPI paper and the IEA report. Clause numbers were read in those texts. Figures marked "design case" are simulation outputs with stated assumptions, not measurements.</footer>
+</body>
+</html>

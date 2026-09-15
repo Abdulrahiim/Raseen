@@ -1,4 +1,4 @@
-"""The v4 document's abstract plant: 30 × 100 MW blocks, 10 columns west→east × 3 rows.
+"""The abstract reference plant: 30 × 100 MW blocks, 10 columns west→east × 3 rows.
 
 Kept as a fixture so the controller port is checked against the published D1 table.
 Also usable as a demonstration plant without geometry.

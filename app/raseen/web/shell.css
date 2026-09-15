@@ -6,16 +6,17 @@
   --rs-sidebar-w: 210px;
   --rs-banner-h: 58px;
 
-  /* purple system */
+  /* White-and-purple system: the page is white, purple carries the meaning —
+     the banner, the active pill, the numbers that matter. */
   --pb-banner: linear-gradient(100deg, #6b3f97 0%, #8a55ae 55%, #a56ec4 100%);
   --pb-purple: #7a4aa5;
   --pb-purple-2: #9c66c1;
   --pb-deep: #582a86;            /* KPI numbers, chart fills */
-  --pb-lav: #e7dbf3;             /* sidebar */
-  --pb-canvas: #f2ecf9;          /* content */
+  --pb-lav: #ffffff;             /* sidebar — white, separated by its border */
+  --pb-canvas: #f8f5fc;          /* content: barely-tinted white, so white cards still read */
   --pb-card: #ffffff;
-  --pb-border: #e3d7f0;
-  --pb-border-2: #d3c3e8;
+  --pb-border: #ece4f5;
+  --pb-border-2: #dccfeb;
 
   --rs-text: #2a2440;
   --rs-text-2: #675e80;
@@ -24,8 +25,8 @@
   /* aliases the components read */
   --rs-bg: var(--pb-canvas);
   --rs-surface: var(--pb-card);
-  --rs-surface-2: #f6f1fc;
-  --rs-surface-3: #ede4f8;
+  --rs-surface-2: #faf7fd;
+  --rs-surface-3: #f3edfa;
   --rs-border: var(--pb-border);
   --rs-border-strong: var(--pb-border-2);
   --rs-accent: var(--pb-purple);
@@ -34,6 +35,7 @@
   --rs-ink: #ffffff;
   --rs-violet: #8a5cc4;
   --rs-violet-dim: #c4addf;
+  --rs-amber: #d99a2c;           /* sunshine: available power, blocks still in full sun */
   --rs-cyan: #4aa3c7;
   --rs-teal: #3aa6a0;
   --rs-sim: #7a4aa5;
@@ -96,7 +98,7 @@
 .rs-nav {
   display: flex; align-items: center; gap: 10px; justify-content: center;
   padding: 11px 12px; border-radius: 22px; text-decoration: none;
-  background: #fff; border: 1.5px solid var(--pb-purple);
+  background: var(--rs-surface-2); border: 1.5px solid var(--pb-purple);
   color: var(--pb-deep); font: 600 12.5px var(--rs-sans); text-align: center;
   box-shadow: 0 2px 5px rgba(90, 45, 130, 0.12); transition: transform .08s, box-shadow .12s;
 }

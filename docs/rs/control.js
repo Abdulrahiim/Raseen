@@ -13,6 +13,7 @@ const DEFAULTS = {
   event: "solid", heading_deg: 90, speed_kmh: 48, depth: 0.6, g_mw_min: 90,
   confidence: 0.7, flat: false, reserve_mw: null, stall_at_min: null,
   deepen_at_min: null, deepen_factor: 1.2,
+  cover_frac: 1.0, cover_offset: 0.0, softness: 0.0,
 };
 
 /* On GitHub Pages there is no server to compute scenarios, so the build pre-renders this
@@ -31,6 +32,10 @@ const PRESETS = [
   { key: "deepen", label: "Front 20 % deeper than forecast", params: { deepen_at_min: 2, deepen_factor: 1.2 } },
   { key: "high-conf", label: "High forecast confidence (small reserve)", params: { confidence: 0.9 } },
   { key: "low-conf", label: "Low forecast confidence (large reserve)", params: { confidence: 0.3 } },
+  { key: "partial-half", label: "Partial cover · half the plant", params: { cover_frac: 0.5 } },
+  { key: "partial-edge", label: "Partial cover · one edge only", params: { cover_frac: 0.35, cover_offset: -1 } },
+  { key: "partial-soft", label: "Partial cover · soft-edged band", params: { cover_frac: 0.6, softness: 0.8 } },
+  { key: "haze", label: "Thin haze over the whole plant", params: { softness: 1.0 } },
 ];
 const STATIC = () => window.RASEEN?.data;
 
@@ -105,6 +110,17 @@ function setPlaying(on) {
 
 function layout() {
   $("rs-root").innerHTML = `
+  <section class="rs-panel rs-kpi-row">
+    <div class="rs-panel-head"><h2>Plant power</h2><span class="rs-phase" id="rs-phase">—</span></div>
+    <div class="rs-tiles">
+      <div class="rs-tile amber"><span class="k">Available</span><span class="v big" id="rs-avail">—</span><span class="u">MW · simulated</span></div>
+      <div class="rs-tile accent"><span class="k">Export</span><span class="v big" id="rs-export">—</span><span class="u" id="rs-export-u">MW</span></div>
+      <div class="rs-tile"><span class="k">Declared line</span><span class="v" id="rs-declared">—</span><span class="u">MW</span></div>
+      <div class="rs-tile violet"><span class="k">Firm reserve R(5 min)</span><span class="v" id="rs-reserve">—</span><span class="u" id="rs-reserve-u">MW headroom</span></div>
+      <div class="rs-tile sun"><span class="k">Blocks in full sun</span><span class="v" id="rs-clear">—</span><span class="u" id="rs-clear-u">carrying the reserve</span></div>
+    </div>
+  </section>
+
   <section class="rs-control-grid">
     <div class="rs-panel">
       <div class="rs-panel-head">
@@ -119,27 +135,12 @@ function layout() {
     </div>
     <div class="rs-side">
       <div class="rs-panel">
-        <div class="rs-panel-head"><h2>Plant power</h2><span class="rs-phase" id="rs-phase">—</span></div>
-        <div class="rs-tiles">
-          <div class="rs-tile amber"><span class="k">Available</span><span class="v big" id="rs-avail">—</span><span class="u">MW · simulated</span></div>
-          <div class="rs-tile accent"><span class="k">Export</span><span class="v big" id="rs-export">—</span><span class="u" id="rs-export-u">MW</span></div>
-          <div class="rs-tile"><span class="k">Declared line</span><span class="v" id="rs-declared">—</span><span class="u">MW</span></div>
-          <div class="rs-tile violet"><span class="k">Firm reserve R(5 min)</span><span class="v" id="rs-reserve">—</span><span class="u">MW headroom</span></div>
-        </div>
-      </div>
-      <div class="rs-panel">
         <div class="rs-panel-head"><h2>Ramp at the connection point</h2></div>
         <div class="rs-ramp-big"><span class="from" id="rs-ramp-from">—</span><span class="arrow">→</span><span class="to" id="rs-ramp-to">—</span><span class="u">MW/min</span></div>
         <p class="rs-note" id="rs-ramp-note"></p>
       </div>
-      <div class="rs-panel">
-        <div class="rs-panel-head"><h2>Cloud intelligence <span class="rs-note" style="display:inline">nowcast: ground truth</span></h2></div>
-        <dl class="rs-dl" id="rs-intel"></dl>
-      </div>
-    </div>
-  </section>
 
-  <section class="rs-panel">
+  <div class="rs-panel">
     <div class="rs-panel-head"><h2>Scenario</h2><button id="rs-reset" class="rs-btn">Reset</button></div>
     <div class="rs-ctl" id="rs-preset-row"><label class="rs-ctl-label" for="p-preset">Preset scenario</label>
       <select id="p-preset">${PRESETS.map((p) => `<option value="${p.key}">${p.label}</option>`).join("")}</select></div>
@@ -158,6 +159,11 @@ function layout() {
       <div class="rs-ctl"><label class="rs-ctl-label" for="p-g">Declared gradient g <b id="v-g">90 MW/min</b></label><input id="p-g" type="range" min="30" max="180" step="15" value="90"></div>
       <div class="rs-ctl"><label class="rs-ctl-label" for="p-conf">Forecast confidence <b id="v-conf">0.7</b></label><input id="p-conf" type="range" min="0.3" max="0.9" step="0.1" value="0.7"></div>
     </div>
+    <div class="rs-row2">
+      <div class="rs-ctl"><label class="rs-ctl-label" for="p-cover">Cloud covers <b id="v-cover">all of the plant</b></label><input id="p-cover" type="range" min="0.1" max="1" step="0.05" value="1"></div>
+      <div class="rs-ctl"><label class="rs-ctl-label" for="p-offset">Band sits <b id="v-offset">centred</b></label><input id="p-offset" type="range" min="-1" max="1" step="0.25" value="0"></div>
+    </div>
+    <div class="rs-ctl"><label class="rs-ctl-label" for="p-soft">Edge softness <b id="v-soft">hard-edged</b></label><input id="p-soft" type="range" min="0" max="1" step="0.1" value="0"></div>
     <label class="rs-check"><input id="p-flat" type="checkbox"> Dynamic Solar Headroom — hold the plant flat through the event</label>
     <div class="rs-row2">
       <button id="rs-stall" class="rs-btn warn" title="What if the forecast is wrong?">Stall the front now</button>
@@ -165,6 +171,13 @@ function layout() {
     </div>
     </div>
     <p class="rs-note" id="rs-perturb"></p>
+  </div>
+
+      <div class="rs-panel">
+        <div class="rs-panel-head"><h2>Cloud intelligence <span class="rs-note" style="display:inline">nowcast: ground truth</span></h2></div>
+        <dl class="rs-dl" id="rs-intel"></dl>
+      </div>
+    </div>
   </section>
 
   <section class="rs-split">
@@ -212,6 +225,12 @@ function loadPreset(key) {
   runScenario();
 }
 
+/* Plain-language readouts for the partial-cloud controls. The slider value is a fraction of
+   the plant's across-heading width, which is not a phrase anyone wants on a dashboard. */
+const coverLabel = (v) => (v >= 0.999 ? "all of the plant" : `${Math.round(v * 100)} % of the width`);
+const offsetLabel = (v) => (Math.abs(v) < 0.01 ? "centred" : v < 0 ? `${Math.round(-v * 100)} % toward one edge` : `${Math.round(v * 100)} % toward the far edge`);
+const softLabel = (v) => (v < 0.05 ? "hard-edged" : v > 0.95 ? "thin haze" : `${Math.round(v * 100)} % soft`);
+
 function bindControls() {
   const on = (id, ev, fn) => $(id)?.addEventListener(ev, fn);
   on("p-preset", "change", (e) => loadPreset(e.target.value));
@@ -225,6 +244,12 @@ function bindControls() {
   on("p-g", "change", (e) => runScenario({ g_mw_min: Number(e.target.value) }));
   on("p-conf", "input", (e) => ($("v-conf").textContent = e.target.value));
   on("p-conf", "change", (e) => runScenario({ confidence: Number(e.target.value) }));
+  on("p-cover", "input", (e) => ($("v-cover").textContent = coverLabel(Number(e.target.value))));
+  on("p-cover", "change", (e) => runScenario({ cover_frac: Number(e.target.value) }));
+  on("p-offset", "input", (e) => ($("v-offset").textContent = offsetLabel(Number(e.target.value))));
+  on("p-offset", "change", (e) => runScenario({ cover_offset: Number(e.target.value) }));
+  on("p-soft", "input", (e) => ($("v-soft").textContent = softLabel(Number(e.target.value))));
+  on("p-soft", "change", (e) => runScenario({ softness: Number(e.target.value) }));
   on("p-flat", "change", (e) => runScenario({ flat: e.target.checked }));
   on("rs-stall", "click", () => runScenario({ stall_at_min: Math.round((frame()?.t ?? -3) * 6) / 6, deepen_at_min: null }));
   on("rs-deepen", "click", () => runScenario({ deepen_at_min: Math.round((frame()?.t ?? 2) * 6) / 6, deepen_factor: 1.2, stall_at_min: null }));
@@ -253,6 +278,9 @@ function syncInputs() {
   $("p-depth").value = p.depth; $("v-depth").textContent = `${Math.round(p.depth * 100)} %`;
   $("p-g").value = p.g_mw_min; $("v-g").textContent = `${p.g_mw_min} MW/min`;
   $("p-conf").value = p.confidence; $("v-conf").textContent = String(p.confidence);
+  $("p-cover").value = p.cover_frac; $("v-cover").textContent = coverLabel(p.cover_frac);
+  $("p-offset").value = p.cover_offset; $("v-offset").textContent = offsetLabel(p.cover_offset);
+  $("p-soft").value = p.softness; $("v-soft").textContent = softLabel(p.softness);
   $("p-flat").checked = p.flat;
 }
 
@@ -282,19 +310,50 @@ function paintMapLegend() {
 
 function tile(cls, k, v, u) { return `<div class="rs-tile ${cls}"><span class="k">${k}</span><span class="v">${v}</span><span class="u">${u}</span></div>`; }
 
+//: A block counts as "in full sun" below this coverage — a soft cloud never reaches 1.0, so
+//  testing for exactly zero would call a hazed block clear.
+const CLEAR_COV = 0.02;
+
+/* How much of the headroom is standing on blocks the cloud has not reached. With a partial
+   or soft cloud this is the whole point: the clear blocks are where the reserve actually
+   lives, and the count says how much of the plant is still free to carry it. */
+function renderClear(f, ctl) {
+  const el = $("rs-clear");
+  if (!el) return;
+  const cov = f.coverage || [];
+  const n = cov.length;
+  let clear = 0, head = 0;
+  for (let i = 0; i < n; i += 1) {
+    if (cov[i] > CLEAR_COV) continue;
+    clear += 1;
+    head += Math.max(0, (f.A?.[i] ?? 0) - (f[`P_${ctl}`]?.[i] ?? 0));
+  }
+  el.textContent = n ? `${clear} / ${n}` : "—";
+  // Only claim they carry reserve when curtailment is actually being held on them.
+  $("rs-clear-u").textContent = !clear
+    ? "the cloud is over every block"
+    : head > 0.5
+      ? `holding ${fmt(head, 0)} MW of headroom`
+      : "clear, but no headroom held right now";
+}
+
 function render(full) {
   const scn = state.scenario, f = frame();
   if (!scn || !f) return;
   const ctl = state.controller;
   $("rs-scrub").max = String(scn.frames.length - 1);
   $("rs-scrub").value = String(state.frameIndex);
-  $("rs-clock").textContent = `t ${clockLabel(f.t)}`;
+  // The host page owns the clock: the standalone page puts it in the topbar, the Plant page
+  // in its Gradient Control header. Either way it is optional.
+  const clock = $("rs-clock");
+  if (clock) clock.textContent = `t ${clockLabel(f.t)}`;
   $("rs-phase").textContent = f.phase; $("rs-phase").dataset.phase = f.phase;
   $("rs-avail").textContent = fmt(f.agg.A, 0);
   $("rs-export").textContent = fmt(f.agg[`P_${ctl}`], 0);
   $("rs-export-u").textContent = `MW · ${ctl === "bgc" ? "Raseen" : "plant-level"} · other ${fmt(f.agg[ctl === "bgc" ? "P_uni" : "P_bgc"], 0)}`;
   $("rs-declared").textContent = fmt(f.agg.P_star, 0);
   $("rs-reserve").textContent = fmt(ctl === "bgc" ? f.agg.R : 0, 0);
+  renderClear(f, ctl);
   state.view?.setFrame(f, ctl);
   renderGen();
   renderBlocks();
@@ -373,7 +432,14 @@ function renderMarks() {
   $("rs-marks").innerHTML = `<span>${fmt(x[0], 0)}′</span><span>T−L ${fmt(fr.t_desc_start_min, 1)}′ · T0 · τ ${fmt(fr.tau_min, 1)}′ · exit ${fmt(fr.t_rise_min, 1)}′</span><span>+${fmt(x[n], 0)}′</span>`;
 }
 
-async function boot() {
+/* Build the Gradient Control UI inside #rs-root. Safe to call more than once: the second
+   call just resizes, so the Plant page can mount it lazily the first time its Gradient
+   Control view is shown without paying for the map and the scenario on page load. */
+let mounted = false;
+export async function mountGradientControl() {
+  if (mounted) { state.view?.resize?.(); return; }
+  if (!$("rs-root")) return;
+  mounted = true;
   layout();
   bindControls();
   if (STATIC()) {
@@ -391,4 +457,14 @@ async function boot() {
   await runScenario();
 }
 
-boot();
+/* Exposed on window so a host page can mount us from a plain (non-module) script — the
+   static build only rewrites src=/href= paths, not bare imports inside inline scripts. */
+window.RaseenGC = {
+  mount: mountGradientControl,
+  resize: () => state.view?.resize?.(),
+  pause: () => setPlaying(false),
+};
+
+// The standalone /control page mounts immediately; a host page sets this flag and calls
+// window.RaseenGC.mount() when it is ready.
+if (!window.RASEEN_GC_MANUAL) mountGradientControl();

@@ -7,6 +7,14 @@
 # Full-text reference conversions (large; public sources; not needed at runtime)
 references/
 
+# Working documents and idea history — kept locally, not part of the software
+00_Idea/
+project-notes/
+v1_NAJM-3000_Digital_Twin_and_Research_Brief_7-Sep/
+v2_Team_Reference_Documents_9-11-Sep/
+v3_Grid_Twin_Logic_Audit_11-Sep/
+v4_Raseen_Block_Gradient_Control_13-14-Sep/
+
 # Reference screenshots used during design
 dashboard example.webp
 dashboard example2.png

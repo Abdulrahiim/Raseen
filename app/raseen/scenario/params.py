@@ -32,6 +32,28 @@ class ScenarioParams(BaseModel):
     deepen_factor: float = Field(1.2, ge=1.0, le=1.5)
     kappa: float = Field(0.25, ge=0.0, le=1.0)
     seed: int = Field(1, ge=0)
+    cover_frac: float = Field(
+        1.0, ge=0.1, le=1.0,
+        description=(
+            "width of the shaded band as a fraction of the plant's across-heading WIDTH "
+            "(1 = the whole plant). The share of blocks shaded is larger than this, because "
+            "blocks are not spread evenly across that width"
+        ),
+    )
+    cover_offset: float = Field(
+        0.0, ge=-1.0, le=1.0,
+        description=(
+            "where that band sits across the plant: -1 flush to one array edge, 0 centred, "
+            "+1 flush to the other"
+        ),
+    )
+    softness: float = Field(
+        0.0, ge=0.0, le=1.0,
+        description=(
+            "cloud edge blur and partial opacity; 0 = hard-edged and fully opaque, "
+            "1 = a wide-edged haze that removes 40 % of what an opaque deck would"
+        ),
+    )
 
     def canonical_json(self) -> str:
         return json.dumps(self.model_dump(), sort_keys=True, separators=(",", ":"))

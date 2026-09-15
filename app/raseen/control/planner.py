@@ -1,8 +1,8 @@
 """Trajectory planner: the declared POI line P*(t) and the reserve slice.
 
-Port of the aggregate-target logic in ``raseen_bgc_sim.py`` (v4 §7.2) for a plant of
-any size. The line descends at the declared gradient g so that it reaches the
-transit minimum exactly when the available power does, holds, and re-ascends at g_up.
+Aggregate-target logic for a plant of any size. The line descends at the declared
+gradient g so that it reaches the transit minimum exactly when the available power
+does, holds, and re-ascends at g_up.
 """
 
 from __future__ import annotations
@@ -67,8 +67,8 @@ def plan_trajectory(
     else:
         # Start the descent at the feasibility-binding point: the earliest time from which a
         # straight line at gradient g stays at or below the available power at every shaded
-        # step. For a uniform (linear) front this is t_min - D/g, so the abstract v4 case is
-        # unchanged; for the real plant's concave front it starts earlier, so the declared
+        # step. For a uniform (linear) front this is t_min - D/g, so the abstract reference
+        # case is unchanged; for the real plant's concave front it starts earlier, so the declared
         # line is tangent to the plunge rather than clamped by it, and the plant holds g.
         shaded_desc = [
             times[k] - (plant_mw - A_tot[k]) / g

@@ -7,8 +7,9 @@ from raseen.control.fixture import abstract_arrays, abstract_case
 from raseen.control.planner import apply_release, plan_trajectory
 from raseen.control.simulate import simulate_scheme
 
-# Reference numbers printed by raseen_bgc_sim.py (v4 document, design case D1).
-V4_D1 = {  # g: (spill_total, lead, firm_at_contact_bgc)
+# Pinned reference numbers for the abstract design case D1 (30 x 100 MW blocks, perfectly
+# forecast front). These are the targets the controller must keep reproducing.
+ABSTRACT_D1 = {  # g: (spill_total, lead, firm_at_contact_bgc)
     60.0: (605.0, 19.8, 287.5),
     90.0: (305.0, 9.8, 218.9),
     120.0: (155.0, 4.8, 188.1),
@@ -16,9 +17,9 @@ V4_D1 = {  # g: (spill_total, lead, firm_at_contact_bgc)
 }
 
 
-@pytest.mark.parametrize("g", sorted(V4_D1))
-def test_abstract_d1_reproduces_the_v4_table(g):
-    spill_ref, lead_ref, firm_ref = V4_D1[g]
+@pytest.mark.parametrize("g", sorted(ABSTRACT_D1))
+def test_abstract_d1_reproduces_the_reference_table(g):
+    spill_ref, lead_ref, firm_ref = ABSTRACT_D1[g]
     for scheme in ("uni", "bgc"):
         plan, result, m = abstract_case(scheme, g)
         assert abs(m["spill_mwh"] - spill_ref) / spill_ref < 0.05, (scheme, m["spill_mwh"])

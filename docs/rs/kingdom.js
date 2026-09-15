@@ -55,6 +55,13 @@ async function boot() {
   state.plants = plantsBody.plants;
   const f = plantsBody.facts, s = plantsBody.summary;
   $("rs-root").innerHTML = `
+  <section class="rs-kpi-strip">
+    ${kpi("Renewables operational", fmt(f.renewables_operational_gw_2024, 2), "GW", `${f.renewables_projects_2024} projects, end-${f.peak_load_year}`)}
+    ${kpi("PV installed", fmt(f.pv_installed_gw_2025, 1), "GW", "end-2025")}
+    ${kpi("In this registry", fmtGW(s.operational_mw), "operational", `${fmtGW(s.pipeline_mw)} pipeline`)}
+    ${kpi("Record peak load", fmt(f.peak_load_gw, 1), "GW", `${f.peak_load_year} · 3 GW ≈ ${f.plant_share_of_peak_pct} %`)}
+    ${kpi("Target", "50 %", "by 2030", "renewables share")}
+  </section>
   <div class="rs-kingdom">
     <aside class="rs-list-panel">
       <div class="rs-list-head"><h2>Plants <span class="rs-count" id="rs-count"></span></h2></div>
@@ -63,13 +70,6 @@ async function boot() {
     </aside>
     <div class="rs-map-panel">
       <div class="rs-map-box" id="rs-kmap"></div>
-      <div class="rs-kpi-strip">
-        ${kpi("Renewables operational", fmt(f.renewables_operational_gw_2024, 2), "GW", `${f.renewables_projects_2024} projects, end-${f.peak_load_year}`)}
-        ${kpi("PV installed", fmt(f.pv_installed_gw_2025, 1), "GW", "end-2025")}
-        ${kpi("In this registry", fmtGW(s.operational_mw), "operational", `${fmtGW(s.pipeline_mw)} pipeline`)}
-        ${kpi("Record peak load", fmt(f.peak_load_gw, 1), "GW", `${f.peak_load_year} · 3 GW ≈ ${f.plant_share_of_peak_pct} %`)}
-        ${kpi("Target", "50 %", "by 2030", "renewables share")}
-      </div>
       <div class="rs-layer-panel">
         <div class="lp-title">Layers</div>
         <label class="rs-check2"><input type="checkbox" data-layer="plants" checked> Plants</label>

@@ -1,6 +1,6 @@
-"""Block allocation (v4 §7.3): where the required curtailment goes, every 10 s.
+"""Block allocation: where the required curtailment goes, every 10 s.
 
-The six steps of the v4 heuristic are kept as the *desired* levels: reserve slice on the
+The six steps of the reference heuristic are kept as the *desired* levels: reserve slice on the
 far blocks, descend-first water-filling by exp(−ETA/σ) capped at each block's post-event
 floor, floor spill, slew clamp, aggregate rebalance (the reactive duty is a separate
 helper). The reference script let that final rebalance exceed the slew limit whenever
@@ -74,7 +74,7 @@ def _desired_levels(
     sigma: float,
     release: bool,
 ) -> list[float]:
-    """v4 §7.3 steps 1–3: reserve slice, descend-first water-filling, floor spill."""
+    """Steps 1–3: reserve slice, descend-first water-filling, floor spill."""
     n = len(A)
     C = max(0.0, sum(A) - target)
     cur = [0.0] * n
@@ -119,7 +119,7 @@ def allocate_bgc(
 
     1. desired levels: reserve slice Δ on blocks with ETA > horizon, then descend-first
        water-filling with weights exp(−ETA/σ) capped at each block's post-event floor,
-       then any remainder by remaining room (v4 §7.3 steps 1–3);
+       then any remainder by remaining room;
     2. look-ahead: along ``targets_ahead`` (the declared line) and ``A_ahead`` (the
        nowcast) any block whose slew band would leave the plant unable to reach the line
        is brought down now — the rolling reserve on the blocks the cloud reaches last;

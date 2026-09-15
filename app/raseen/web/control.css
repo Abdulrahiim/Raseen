@@ -36,6 +36,9 @@
 .rs-btn.warn { border-color: color-mix(in srgb, var(--rs-bad) 50%, var(--rs-border)); color: var(--rs-bad); background: color-mix(in srgb, var(--rs-bad) 8%, transparent); }
 .rs-btn.warn:hover { background: color-mix(in srgb, var(--rs-bad) 18%, transparent); }
 
+/* The headline numbers lead the page, across the full width above the map. */
+.rs-kpi-row .rs-tiles { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+
 /* KPI tiles: an instrument readout with an amber tick */
 .rs-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(124px, 1fr)); gap: 10px; }
 .rs-tile { background: var(--rs-surface-2); border: 1px solid var(--rs-border); border-left: 2px solid var(--rs-border-strong); border-radius: 8px; padding: 11px 13px; display: flex; flex-direction: column; gap: 3px; }
@@ -49,6 +52,9 @@
 .rs-tile.amber .v { color: var(--rs-amber); }
 .rs-tile.violet { border-left-color: var(--rs-violet); }
 .rs-tile.violet .v { color: var(--rs-violet); }
+/* Blocks still in full sun — where the firm reserve is actually standing. */
+.rs-tile.sun { border-left-color: var(--rs-amber); }
+.rs-tile.sun .v { color: var(--rs-amber); }
 
 .rs-phase { font: 600 10px var(--rs-mono); letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 9px; border-radius: 5px; border: 1px solid var(--rs-border-strong); color: var(--rs-text-2); background: var(--rs-surface-2); }
 .rs-phase[data-phase="before"] { border-color: var(--rs-cyan); color: var(--rs-cyan); }

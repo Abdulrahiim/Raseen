@@ -1,4 +1,4 @@
-"""Spilled sunshine priced against the battery alternative (Raseen v4 §5.3)."""
+"""Spilled sunshine priced against the battery alternative."""
 
 from __future__ import annotations
 
@@ -10,7 +10,9 @@ ANNUAL_ENERGY_MWH = 7.36e6            # 3,000 MW × 8,760 h × 0.28 capacity fac
 BATTERY_BLOCK_CAPEX_SAR = 1.09e9      # 500 MW / 2,000 MWh SPPC block
 BATTERY_BLOCK_ANNUAL_SAR = 120e6      # annualised, mid of the SAR 110–130 m/yr range
 #: Field anchors, annual energy not exported vs ramp limit (% of capacity per minute):
-#: Marcos et al. (UPNA) 4.37 % at 2 %/min, 1.38 % at 5 %/min; v4 headline ≈ 2 % at 3 %/min.
+#: Marcos et al. (UPNA) 4.37 % at 2 %/min and 1.38 % at 5 %/min are field measurements; the
+#: middle point, 2 % at 3 %/min, is an ASSUMPTION interpolated between them — not measured,
+#: and not a result this project computed.
 ANCHORS = [(2.0, 4.37), (3.0, 2.0), (5.0, 1.38)]
 
 

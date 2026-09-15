@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap">
 <link rel="stylesheet" href="/rs/shell.css">
 <link rel="stylesheet" href="/static/styles.css">
+<link rel="stylesheet" href="/rs/control.css">
 <link rel="stylesheet" href="/static/vendor/maplibre-gl.css">
 <script src="/static/vendor/maplibre-gl.js"></script>
 <script type="importmap">
@@ -52,6 +53,13 @@
 <div id="banner" class="banner" hidden></div>
 
 <main>
+
+  <div class="view-switch" role="tablist" aria-label="Plant views">
+    <button id="view-sup" class="view-tab is-on" type="button" role="tab" aria-selected="true">Supervisory</button>
+    <button id="view-gc" class="view-tab" type="button" role="tab" aria-selected="false">Gradient Control</button>
+  </div>
+
+<div id="sup-view" role="tabpanel" aria-labelledby="view-sup">
 
   <section class="panel timeline-panel">
     <div class="timeline-controls">
@@ -252,11 +260,61 @@
     <p id="provenance-note"></p>
   </footer>
 
+</div><!-- /#sup-view -->
+
+<div id="gc-view" role="tabpanel" aria-labelledby="view-gc" hidden>
+  <div class="gc-head">
+    <div>
+      <h2>Gradient Control</h2>
+      <p class="panel-note">A cloud crosses Humaij, block by block &middot; simulated</p>
+    </div>
+    <span class="rs-clock" id="rs-clock">t &mdash;</span>
+  </div>
+  <div id="rs-banner" class="rs-banner" hidden></div>
+  <div id="rs-root" class="rs-body"><p class="rs-loading">Preparing the plant…</p></div>
+</div>
+
 </main>
 
 <div id="tooltip" class="tooltip" role="tooltip"></div>
+<div id="rs-tooltip" class="rs-tooltip"></div>
 
 <script src="/rs/sidebar.js"></script>
+<script>
+/* Plant views. Gradient Control is mounted lazily the first time it is shown so the
+   supervisory view still paints immediately. RASEEN_GC_MANUAL tells control.js not to
+   mount itself on import. */
+window.RASEEN_GC_MANUAL = true;
+(function () {
+  var tabs = { sup: "sup-view", gc: "gc-view" };
+  function show(which) {
+    for (var k in tabs) {
+      var panel = document.getElementById(tabs[k]);
+      var tab = document.getElementById("view-" + k);
+      var on = k === which;
+      if (panel) panel.hidden = !on;
+      if (tab) { tab.classList.toggle("is-on", on); tab.setAttribute("aria-selected", on ? "true" : "false"); }
+    }
+    if (which === "gc") {
+      if (window.RaseenGC) window.RaseenGC.mount();
+    } else if (window.RaseenGC) {
+      window.RaseenGC.pause();   // don't animate a hidden view
+    }
+    try { history.replaceState(null, "", which === "gc" ? "#gradient" : "#supervisory"); } catch (e) { /* ignore */ }
+  }
+  window.rsShowView = show;
+  document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("view-sup").addEventListener("click", function () { show("sup"); });
+    document.getElementById("view-gc").addEventListener("click", function () { show("gc"); });
+    // Deep link: the sidebar's Gradient Control tab lands here with #gradient.
+    if (location.hash === "#gradient") show("gc");
+  });
+  window.addEventListener("hashchange", function () {
+    show(location.hash === "#gradient" ? "gc" : "sup");
+  });
+})();
+</script>
+<script type="module" src="/rs/control.js"></script>
 <script type="module" src="/static/app.js"></script>
 </body>
 </html>

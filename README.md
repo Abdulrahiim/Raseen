@@ -1,110 +1,166 @@
 # Raseen · رَصين
 
-**A no-storage digital-twin controller that turns the weather forecast a solar operator already has into a scheduled, declarable ramp — block by block, inside the plant, with every instruction already defined in the Saudi Arabian Grid Code.**
+**Block Gradient Control for gigawatt solar: a no-storage controller that turns a cloud
+crossing a 3,000 MW PV plant into a declared, grid-code-shaped ramp instead of a cliff —
+block by block, inside the plant, using instructions the Saudi Arabian Grid Code already
+defines.**
 
-*Raseen — رَصين — composed, steady, unshaken: the plant that keeps its composure when the cloud comes.*
-The project was called **NAJM-3000** from its first deck (7 September 2026) until 14 September 2026; NAJM-3000 remains the name of the 3,000 MWac reference plant inside the twin.
+*رَصين — composed, steady, unshaken: the plant that keeps its composure when the cloud comes.*
 
-> **We don't predict the weather. We predict its operational impact and control the plant, block by block, so the grid sees a schedule instead of a cliff.**
-> **لا نتنبأ بالطقس؛ نتنبأ بأثره التشغيلي ونتحكم بالمحطة كتلةً كتلةً، فترى الشبكة جدولاً بدل هاوية.**
+> We don't predict the weather. We predict its operational impact and control the plant,
+> block by block, so the grid sees a schedule instead of a cliff.
+>
+> لا نتنبأ بالطقس؛ نتنبأ بأثره التشغيلي ونتحكم بالمحطة كتلةً كتلةً، فترى الشبكة جدولاً بدل هاوية.
 
-Entry for the Ministry of Energy **Energy Hackathon 2026 — أوقِد أفكارك**, Track 1 Operational Efficiency · Challenge 2 "Grid stability with variable renewable production" (استقرار الشبكة الكهربائية مع تغير إنتاج الطاقة المتجددة).
+**Live demo:** <https://abdulrahiim.github.io/Raseen/> — the dashboard pre-rendered as a static
+site. Everything in it is simulated.
 
 ---
 
-## Dates that matter
+## The idea in one paragraph
 
-| When | What |
+A 3,000 MW PV plant is not one generator; it is thirty control blocks spread over kilometres,
+and a cloud crosses them one after another over several minutes. Raseen takes the operator's
+external forecast as an **input**, derives each block's arrival and departure time from it, and
+drives per-block active-power set-points through
+the existing Power Plant Controller so the plant's export follows a smooth, pre-declared
+gradient — descending ahead of the front, holding a rolling reserve on the blocks the cloud has
+not reached, re-ascending behind it. The energy that shapes the ramp is a thin slice of
+sunshine deliberately not exported for a few minutes: no battery, no new hardware, no new
+rights. The governing relation is `g = D / (τ + L)` — the declared gradient `g` fixes how much
+lead time `L` the controller needs for a deficit `D` over a transit `τ`, and the spill follows
+from the gradient, not from how the curtailment is spread across blocks.
+
+In the **abstract** design case carried by the repository's tests (`app/tests/test_control.py`
+— an idealised 30 × 100 MW plant and a perfectly forecast front), a scenario with an 1,800 MW
+deficit over a 10-minute transit, held to 90 MW/min (3 %/min of plant capacity), turns a
+1,800 MW ten-minute drop into a 900 MW one with roughly ten minutes of declared notice, at a
+cost of about 305 MWh of spilled sunshine. The same event on the **real** 363-station geometry
+the dashboard draws spills about 335 MWh with ~11 minutes of lead — the abstract case is the
+tests' fixed reference point, not the number the dashboard shows. Both are outputs of this
+simulation, not measurements.
+
+---
+
+## Claims discipline
+
+These are hard constraints on how the project is described, in code comments, in the UI and in
+any document. They exist because each one is a claim the physics does not support.
+
+**Never say:**
+
+| Do not claim | Why |
 |---|---|
-| **Mon 15 Sep 2026** | Submit the idea file (`00_Idea/Raseen_Idea_File_for_Registration.md`) at hackathon.moenergy.gov.sa — registration **closes Wed 16 Sep** |
-| 30 Sep | Qualifiers announced |
-| 7–9 Oct | Camp at KAPSARC — leader + at least one member in person; day 3 is the jury pitch |
-| 13 Oct | Winners announced on the WPC25 stage |
-| 28 Sep / 24–26 Nov | SAIF (saifair.sa, Ministry of Interior) — a separate event; registration closes 28 Sep if the team also wants the cyber-physical angle there |
+| "AI predicts clouds before they reach the plant" | The external forecast is an **input**. Raseen predicts the *operational impact* of a front it is told about. |
+| "Operators are blind to the weather" | They are not. Raseen adds block-level timing and control, not sight. |
+| "The grid will collapse" | Out of scope and unevidenced. Raseen shapes one plant's export. |
+| "We store energy as headroom" | There is no storage. Headroom is sunshine not exported. |
+| "No energy is lost" | Curtailed sunshine **is** spilled. That is the cost of the ramp, and it is reported. |
+| "We test LVRT" | Ride-through is not modelled or tested here. |
+| "We control loads" | Load control is a distribution-service-provider function, not this plant's. |
 
-Team rules: 2–5 members, all 18+, Saudi nationals or residents, **Saudi team leader**, one idea in one track, emerging technologies / digital solutions, integrated presentation.
+And: never invent a performance number. If a figure cannot be computed by the code in this
+repository, it does not get stated.
 
 ---
 
-## Folder map
+## What is simulated
+
+Everything. Specifically:
+
+- **Plant geometry** is **as-designed**, not as-built — 363 MV power stations in the layout
+  against a 365-station design basis, grouped into 30 contiguous control blocks of unequal
+  size.
+- **The controller is real code.** The trajectory planner, the block allocator and the metrics
+  are the actual algorithms, not a playback of a recording.
+- **Telemetry, irradiance, forecast, PPC and TSP interfaces are simulated.** The cloud shadow
+  fields (solid front, thin band, scattered) are generated, not observed.
+- **The model is not calibrated and not validated** against a real plant, and the economics use
+  stated assumptions (energy value, clear-day yield, battery-block cost) that are documented in
+  `app/raseen/scenario/economics.py` and returned with every API response.
+
+Every API response carries a classification string and a disclaimer so no page can render a
+number without its provenance.
+
+---
+
+## What is in this repository
 
 ```
 Raseen/
-├── README.md                         ← this file: what Raseen is, version history, open items
-├── 00_Idea/
-│   ├── Raseen_Idea_File_for_Registration.md   ← EN + AR text to paste into the portal (fill in team roles)
-│   └── Idea_Evolution.md                      ← every idea considered since 7 Sep and why v4 is the one
-├── v1_NAJM-3000_Digital_Twin_and_Research_Brief_7-Sep/
-│   ├── NAJM3000_Digital_Twin_deck.pdf         ← the original team deck (pre-commissioning twin of a 3,000 MWac plant)
-│   ├── Energy_Hackathon_2026_Research_Brief_NAJM-3000.docx / .pdf / .md   ← events, rules, data sources, eight ranked ideas, first idea file
-├── v2_Team_Reference_Documents_9-11-Sep/
-│   ├── NAJM-3000_Reference_Guide_EN.md        ← the team's six-module English guide (incl. Smart Load Control)
-│   ├── NAJM-3000_Final_Team_Reference_AR.md   ← the team's three-module Arabic "final" reference
-│   ├── OPUS_Grilling_Report_EN.html           ← the stress-test / grilling report dated 9 Sep
-│   └── Challenge_Card_Track1_Operational_Efficiency_AR.md   ← the ministry's supporting card for the challenge
-├── v3_Grid_Twin_Logic_Audit_11-Sep/
-│   ├── NAJM-3000_Grid_Twin_Logic_Audit_v3.md / .html / .pdf   ← claim-by-claim audit of v2 and the "100 % logical" v3 idea (plant + 500 MW battery)
-│   ├── najm3000_design_case_scenario.py       ← the D1 scenario script behind the v3 numbers
-│   └── design_case_D1.svg                     ← the v3 design-case chart
-├── v4_Raseen_Block_Gradient_Control_13-14-Sep/
-│   ├── Raseen_v4_Block_Gradient_Control_Team_Document.md   ← THE working document for the team (16 sections)
-│   ├── Raseen_v4_Block_Gradient_Control_Explainer.html     ← interactive explainer with the live block-gradient model (open in any browser)
-│   └── raseen_bgc_sim.py                                   ← the block simulation behind every number (python3, no dependencies)
-├── references/                       ← full texts used for the Grid Code mapping and the challenge research
-│   ├── SAGC_Saudi_Arabian_Grid_Code_May_2026.md
-│   ├── SADC_Saudi_Arabian_Distribution_Code_June_2026.md
-│   ├── SERA_Transmission_Planning_Criteria_2025.md
-│   ├── SERA_Generation_Expansion_Planning_Criteria_2021.md
-│   ├── SERA_District_Cooling_Services_Supply_Code.md
-│   ├── MDPI_ApplSci_2025_15-10031_DRL_storage_scheduling.md
-│   └── IEA_Managing_Seasonal_and_Interannual_Variability_of_Renewables.md
-└── project-notes/
-    ├── hackathon-key-facts.md         ← verified facts: events, rules, Grid Code values, numbers for the pitch, current idea state
-    ├── raseen-v4-dissent.md           ← the 14 Sep constructive-dissent pass on v4 (F1–F11, A1–A3) — the open to-do list
-    └── cortex-setup.md                ← tooling notes for the prototype code (Cortex agents/skills)
+├── app/                the application: controller, simulation, API and dashboard
+│   ├── raseen/         geometry · shadow fields · control · scenario · registry · web assets
+│   ├── najm3000/       vendored pre-commissioning twin (physics engine + dashboard)
+│   ├── config/         plant configuration (project, equipment, blocks, data sources)
+│   ├── tools/          static-site builder for the GitHub Pages demo
+│   └── tests/          geometry, shadow, controller, scenario and web-app tests
+├── docs/               the pre-rendered static site GitHub Pages serves
+└── render.yaml         optional blueprint for deploying the live backend
 ```
 
-The `.md` files open in any text editor (VS Code, Obsidian, Typora render them nicely). The explainer is a single self-contained HTML file — double-click it; it needs no server, only an internet connection for the fonts.
+`app/README.md` is the engineering reference: module layout, configuration variables, the
+static build and the container deploy. Start there for anything beyond running it.
+
+### The dashboard
+
+| Page | What it shows |
+|---|---|
+| **Kingdom** | Saudi utility-scale renewable projects (indicative registry) and the 380 kV transmission backbone (schematic) on a map, with layer, technology and status filters. |
+| **Plant** | The reference plant — named *Humaij* in the dashboard, 3,000 MWac — in two views: a **supervisory** view (the 363-station site on satellite imagery, real block layout, 3D drill-down, expected-vs-measured trends, fault injection) and a **Gradient Control** view where a cloud front crosses the plant block by block while Raseen holds export to the declared ramp. The sidebar links to each view directly. |
 
 ---
 
-## Version history — how the idea got here
+## Run it locally
 
-| Version | Date | Name | What it was | What changed and why |
-|---|---|---|---|---|
-| **v1** | 7 Sep | NAJM-3000 Digital Twin | The team's deck: a pre-commissioning digital twin of a 3,000 MWac plant — pvlib physics engine, simulated SCADA, 3D model, browser control room, 365 MV stations, 19 weather stations. The research brief mapped the two events, corrected the SAIF/Energy-Hackathon mix-up, verified the rules and data sources, and ranked eight ideas; "NAJM-3000 Grid Twin" scored highest. | Established: Track 1 · Challenge 2 is the target; the twin is the asset; the deck needed grid-stability substance. |
-| **v2** | 9–11 Sep | NAJM-3000 Grid Twin (team references) | The team's English six-module guide (forecasting, battery coordination, compliance, Smart Load Control, …) and the Arabic three-module "final" reference (LightGBM forecast, MILP battery coordinator, grid-code compliance package), plus the OPUS grilling report. | Strong on ambition, weak on jurisdiction and physics: load control is a Distribution Service Provider function, "grid collapse" framing, ride-through "testing" in a twin. |
-| **v3** | 11 Sep | NAJM-3000 Grid Twin — logic audit | Claim-by-claim audit against the full texts of SAGC May 2026, SADC June 2026, SERA TPC and GEPC; a "100 % logical" idea: three-horizon forecast stack (NCM dust → Meteosat → sentinel nowcast from the plant's own stations), MILP battery scheduler, Grid-Code compliance & notice engine (Ramp Event Notice). | Dropped Smart Load Control, "collapse" framing, LVRT testing, the dual-track claim. Kept the twin, the sentinel idea, the compliance engine. Still needed a 500 MW / 2,000 MWh battery. |
-| **v4.0** | 13 Sep | NAJM-3000 v4 — Block Gradient Control | Direction change: the operator's external forecast is an **input**, not the product; **no battery**. New core: **Block Gradient Control** — the plant as 30 × 100 MW blocks, curtailment placed by cloud-arrival time, a **Rolling Solar Reserve** on the blocks the cloud reaches last, **Dynamic Solar Headroom** (the Code's Delta Regulation made dynamic and spatial). Physics: g = D/(τ + L); spill is fixed by the gradient, not the allocation. Interactive explainer with the live block model. | Removes the most expensive component and the weakest claim ("we forecast clouds"); everything the controller issues already exists in the Grid Code. |
-| **v4.1** | 14 Sep | **Raseen (رَصين)** | Renamed. Same concept, plus the cheap fixes from the dissent pass: a business-model paragraph in the idea file (customer, licence, why now, market), the Arabic idea file reframed so "the forecast is an input" comes first, ETA handling between nowcast updates specified, the reactive-power gain no longer asserted as a percentage, a thirteenth jury answer ("why inside one plant?"). | Answers the Entrepreneurship criterion the FAQ names; fixes the bilingual reading risk. |
+From the repository root:
 
----
-
-## The idea in one paragraph (current)
-
-A 3,000 MW PV plant is not one generator; it is thirty 100 MW blocks spread over eight kilometres, and a cloud crosses them one after another in ten minutes. Raseen takes the external forecast as an input, measures the front on the first blocks it touches, computes each block's arrival and departure time, and drives per-block active-power set-points through the existing Power Plant Controller so that the plant's export follows a smooth, pre-declared gradient — descending before the front, holding a rolling reserve on the blocks the cloud has not reached, re-ascending behind it. The energy that shapes the ramp is a thin slice of sunshine deliberately not exported for a few minutes: no battery, no new hardware, no new rights. Headline: an 1,800 MW cliff becomes a 900 MW ramp at 3 %/min with ten minutes' notice, for ≈ 305 MWh (≈ 1.2 % of a day, ≈ SAR 15,000) — versus a SAR 1.09 bn battery block that covers a third of the same event.
-
-**Never say:** "AI predicts clouds before they reach the plant" · "operators are blind to the weather" · "the grid will collapse" · "we store energy as headroom" · "no energy is lost" · "we test LVRT" · "we control loads".
-
----
-
-## Open items before the camp (from `project-notes/raseen-v4-dissent.md`)
-
-1. **Test the concession (F3)** — add a scattered-cumulus shadow field to `raseen_bgc_sim.py`, run both controllers with a PPC loop delay, report tracking error and spill. Either proof or a recovered headline.
-2. **Price the benefit (F4)** — a SAR figure for the Rolling Solar Reserve (what the TSP pays per MW of reserve, or the avoided thermal capacity). Unlocks F5 (the declared gradient as an optimisation result) and the A1 reframe ("a new declarable reserve product for gigawatt solar").
-3. **Sensitivity sweep (F6)** on σ, κ, Hʳ — show the KPIs are flat.
-4. **Prior-art search (F7)** on "zonal / cluster curtailment", "spatially resolved plant control", "cloud-aware dispatch".
-5. **A letter of interest (F8)** from one IPP or NREP developer — the highest-value non-technical action.
-6. **Critical path (F9)** — build the controller (WP3) against ground-truth ETAs from the shadow generator (WP1) from day one; swap in the nowcast (WP2) when it arrives.
-7. **Cost the token battery (A2)** — a 50 MW / 50 MWh store as false-alarm insurance, so "no battery" is a result, not a stance.
-
----
-
-## Running the simulation
-
-```
-cd v4_Raseen_Block_Gradient_Control_13-14-Sep
-python3 raseen_bgc_sim.py
+```powershell
+cd app
+python -m venv .venv
+.venv\Scripts\python.exe -m pip install -e ".[dev]"
+.venv\Scripts\python.exe -m raseen            # http://127.0.0.1:8000
 ```
 
-Prints the metrics for the design cases (uniform vs Block Gradient Control at 60/90/120/150 MW/min, the thin-band cases, the analytic spill check) and writes `raseen_sim.json`. Pure Python, no packages needed. The JavaScript model inside the explainer implements the same equations and reproduces the same numbers.
+The first request builds the simulated adapter (~20 s); after that it is quick. The app lands
+on the Kingdom page; the sidebar switches pages. The maps use Esri's keyless tile services and
+need internet — both fall back to a drawn plan if tiles or WebGL are unavailable.
+
+Tests and lint (from `app/`):
+
+```powershell
+.venv\Scripts\python.exe -m pytest
+.venv\Scripts\python.exe -m ruff check raseen tests
+```
+
+### Rebuilding the static demo
+
+GitHub Pages serves static files only, so `tools/build_static.py` pre-renders the dashboard
+into `docs/` — the pages, their assets, the registry and geometry as JSON, a curated set of
+scenarios, and a day bundle for the Plant page. The static build is read-only: manual fault
+injection is not included, and the Gradient Control sliders become pre-rendered presets.
+
+```powershell
+.venv\Scripts\python.exe tools\build_static.py          # regenerate ../docs
+.venv\Scripts\python.exe -m http.server -d ..\docs      # preview at http://localhost:8000
+```
+
+`docs/` on `main` is what the live demo serves, so committing a rebuilt `docs/` publishes it.
+
+---
+
+## Status
+
+A prototype. The controller reproduces its analytic design case, and holds its declared
+gradient **when the forecast it is given is right**. It does not hold under a mis-forecast:
+the shipped "front stalls", "front 20 % deeper than forecast" and "scattered cumulus"
+scenarios all break the declared gradient, by a wide margin in the deepening case. Those
+controls exist to show that limit, not to hide it — the honest claim is a scheduled ramp
+against a front you already know about, not a guarantee against one you do not.
+
+Block arrival times in the simulation are **ground truth taken from the shadow generator**,
+not an estimate inferred from telemetry (the `provenance` block served with every scenario
+says so). A real deployment would need a nowcast in that place, and its error is exactly what
+the stall and deepen controls stand in for.
+
+It has not been run against measured plant data, connected to a real Power Plant Controller,
+or reviewed by a transmission system operator.

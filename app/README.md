@@ -6,13 +6,12 @@ Everything served is **simulated and labelled so**: the plant geometry is as-des
 as-built), the controller is real code, and telemetry, forecast and grid interfaces are
 simulated. The model is **not calibrated and not validated**.
 
-## The three pages
+## The pages
 
 | Tab | What it shows |
 |---|---|
 | **Kingdom** | Every Saudi utility-scale renewable project (indicative registry) and the 380 kV transmission backbone (schematic) on a dark map, with layer, technology and status filters. |
-| **Plant** | The NAJM-3000 dashboard, reused whole: the 365-station plant on satellite imagery, the real block layout, 3D station drill-down, expected-vs-measured trends, fault injection. |
-| **Gradient Control** | A cloud front crosses the plant, block by block. Raseen holds the plant's export to a declared ramp; the map, the generation chart and the 30-block gradient bars update as you play or scrub through the event. |
+| **Plant** | The reference plant in two views. **Supervisory** is the vendored dashboard reused whole: the 363-station plant on satellite imagery, the real block layout, 3D station drill-down, expected-vs-measured trends, fault injection. **Gradient Control** runs a cloud front across the plant block by block while Raseen holds export to a declared ramp; the map, the generation chart and the 30-block gradient bars update as you play or scrub through the event. The sidebar has an entry for each view, so Gradient Control is reachable directly. |
 
 ## Architecture
 
@@ -36,10 +35,15 @@ app/
     └── web/             the sidebar, the Kingdom and Gradient Control pages, charts, maps
 ```
 
-The physics behind the Gradient Control page is the same model as the v4 team document:
-`raseen/control` reproduces the abstract design-case D1 numbers exactly (checked in
-`tests/test_control.py`), and the trajectory planner starts its descent at the
-feasibility-binding point so Raseen holds its declared gradient on the real, concave front.
+The physics behind the Gradient Control page lives in `raseen/control`. The trajectory planner
+declares a point-of-interconnection line that descends at the declared gradient `g`, reaching
+the transit minimum exactly when available power does — so the required lead time is
+`L = D/g − τ` for a deficit `D` over a transit `τ`, and the descent starts at the
+feasibility-binding point, which is what lets Raseen hold its gradient on a real, concave
+front. The block allocator then places the required curtailment by cloud-arrival time, within
+each block's slew band. `tests/test_control.py` pins this against the analytic reference case:
+the closed-form descent spill `E_down = (r − g)·τ·(D/g)/2`, the tracking error, the gradient
+and ten-minute-drop limits, and the rule that no block is ever asked for more than it has.
 
 ## Run it
 
@@ -74,7 +78,7 @@ internet; both fall back to a drawn plan if tiles or WebGL are unavailable.
 ## Static build for GitHub Pages
 
 GitHub Pages serves static files only, so `tools/build_static.py` pre-renders the whole
-dashboard into `../docs/` — the three pages, their assets (with paths rewritten for a project
+dashboard into `../docs/` — the pages, their assets (with paths rewritten for a project
 sub-path), the registry and geometry as JSON, a curated set of scenarios, and a "day bundle"
 for the Plant page. A small fetch shim (`tools/rs-static-api.js`) answers the reused
 NAJM-3000 dashboard's `/api/*` calls from that bundle, so the Plant page runs with no backend

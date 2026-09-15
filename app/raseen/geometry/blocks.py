@@ -1,6 +1,6 @@
 """Group the 363 MVPS into 30 control blocks.
 
-The v4 document reasons about 30 × 100 MW blocks. On the real layout the blocks are
+The abstract reference plant reasons about 30 × 100 MW blocks. On the real layout the blocks are
 30 contiguous clusters of unequal size (7–17 stations, 58–141 MW). Clustering is
 deterministic: farthest-point seeding from the western-most station, then Lloyd
 iterations, so every run, machine and test sees the same blocks.

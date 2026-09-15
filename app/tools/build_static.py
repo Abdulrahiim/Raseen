@@ -42,6 +42,11 @@ SCENARIO_PRESETS: dict[str, dict] = {
     "deepen": {"deepen_at_min": 2, "deepen_factor": 1.2},
     "high-conf": {"confidence": 0.9},
     "low-conf": {"confidence": 0.3},
+    # Partial cover: only part of the plant darkens, so the clear blocks visibly hold the reserve.
+    "partial-half": {"cover_frac": 0.5},
+    "partial-edge": {"cover_frac": 0.35, "cover_offset": -1.0},
+    "partial-soft": {"cover_frac": 0.6, "softness": 0.8},
+    "haze": {"softness": 1.0},
 }
 
 

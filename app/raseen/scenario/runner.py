@@ -23,7 +23,7 @@ PLANT_MW = 3000.0
 T_START = -40.0
 T_END = 100.0
 DT_MIN = 1.0 / 6.0
-#: The nowcast declares a stall this long after the field stops moving (v4 §7.4).
+#: The nowcast declares a stall this long after the field stops moving.
 DETECT_DELAY_MIN = 2.0
 #: Inverter apparent-power rating relative to block active rating.
 S_RATING_FACTOR = 1.10
@@ -63,6 +63,8 @@ def run_scenario(params: ScenarioParams) -> dict[str, Any]:
     common = dict(
         event=params.event, heading_deg=params.heading_deg, speed_kmh=params.speed_kmh,
         depth=params.depth, plateau_min=params.plateau_min, seed=params.seed,
+        cover_frac=params.cover_frac, cover_offset=params.cover_offset,
+        softness=params.softness,
     )
     actual = build_field(
         site, stall_at=params.stall_at_min, deepen_at=params.deepen_at_min,

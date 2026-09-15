@@ -5,7 +5,7 @@
 .rs-kingdom { display: grid; grid-template-columns: 284px minmax(0, 1fr); gap: 16px; }
 @media (max-width: 960px) { .rs-kingdom { grid-template-columns: 1fr; } }
 
-.rs-list-panel { background: var(--rs-surface); border: 1px solid var(--rs-border); border-radius: var(--rs-radius); padding: 14px; display: flex; flex-direction: column; min-height: 0; max-height: calc(100vh - 100px); box-shadow: var(--rs-shadow); }
+.rs-list-panel { background: var(--rs-surface); border: 1px solid var(--rs-border); border-radius: var(--rs-radius); padding: 14px; display: flex; flex-direction: column; min-height: 0; max-height: calc(100vh - 250px); box-shadow: var(--rs-shadow); }
 .rs-list-head { display: flex; align-items: center; justify-content: space-between; }
 .rs-list-head h2 { margin: 0 0 10px; font: 700 13px var(--rs-sans); letter-spacing: 0.01em; color: var(--rs-accent-2); }
 .rs-count { font: 11px var(--rs-mono); color: var(--rs-muted); }
@@ -20,14 +20,17 @@
 .rs-ring { width: 10px; height: 10px; border-radius: 50%; border: 2px solid; display: inline-block; }
 
 .rs-map-panel { position: relative; background: var(--rs-surface); border: 1px solid var(--rs-border); border-radius: var(--rs-radius); padding: 7px; box-shadow: var(--rs-shadow); }
-.rs-map-box { height: calc(100vh - 112px); min-height: 480px; border-radius: 7px; overflow: hidden; background: #0a0d12; }
+.rs-map-box { height: calc(100vh - 262px); min-height: 460px; border-radius: 7px; overflow: hidden; background: #0a0d12; }
 .rs-map-box .map-fallback svg { width: 100%; height: auto; display: block; }
 .maplibregl-map { font: inherit; }
 .maplibregl-ctrl-attrib { font-size: 9px; }
 
-.rs-kpi-strip { position: absolute; top: 14px; left: 14px; z-index: 5; display: grid; grid-template-columns: repeat(5, minmax(114px, 1fr)); gap: 8px; max-width: calc(100% - 292px); }
+/* The Kingdom headline numbers lead the page in a band above the map, rather than floating
+   over it — over the map they crowded the north-west corner and covered the coast. */
+.rs-kpi-strip { display: grid; grid-template-columns: repeat(5, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
 @media (max-width: 1250px) { .rs-kpi-strip { grid-template-columns: repeat(3, 1fr); } }
-.rs-ktile { background: color-mix(in srgb, var(--rs-surface) 85%, transparent); border: 1px solid var(--rs-border); border-radius: 8px; padding: 9px 11px; display: flex; flex-direction: column; gap: 1px; backdrop-filter: blur(8px); }
+@media (max-width: 720px) { .rs-kpi-strip { grid-template-columns: repeat(2, 1fr); } }
+.rs-ktile { background: var(--rs-surface); border: 1px solid var(--rs-border); border-radius: var(--rs-radius); padding: 12px 14px; display: flex; flex-direction: column; gap: 1px; box-shadow: var(--rs-shadow); }
 .rs-ktile .k { font: 500 10px var(--rs-mono); color: var(--rs-text-2); }
 .rs-ktile .v { font: 500 20px var(--rs-mono); font-variant-numeric: tabular-nums; color: var(--rs-accent-2); }
 .rs-ktile .u { font-size: 10px; color: var(--rs-muted); }
@@ -43,9 +46,28 @@
 
 .rs-map-note { position: absolute; bottom: 14px; left: 14px; z-index: 5; font: 10px var(--rs-sans); color: var(--rs-text-2); max-width: 58%; background: color-mix(in srgb, var(--rs-surface) 88%, transparent); border: 1px solid var(--rs-border); padding: 5px 9px; border-radius: 6px; backdrop-filter: blur(6px); }
 
+/* ── map markers ──────────────────────────────────────────────────────────
+   The basemap is dark, so marker strokes are light rather than the page's deep purple.
+   A plant is a small solid pin dot (technology colour) inside a thin capacity ring
+   (status colour); the modelled plant, Humaij, carries an extra purple ring. Geometry
+   lives in kingdom-map.js — only the palette is here. */
+:root {
+  --rs-map-ink: #0b0e13;         /* basemap ink: separates a marker from the tiles */
+  --rs-map-pin-stroke: #f2f6fb;  /* light stroke around every pin dot */
+  --rs-map-ref: #b98ce8;         /* the site purple, lifted to read on the dark basemap */
+  --rs-map-node: #dfe7f2;        /* grid substation dots */
+}
+
+/* SVG fallback: lift the whole marker on hover so a dense cluster stays pickable. */
+.map-fallback .kp-plant { transition: filter 120ms linear; }
+.map-fallback .kp-plant:hover { filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.6)); }
+.map-fallback .kp-plant:hover .kp-ring { stroke-opacity: 1; }
+.map-fallback .kp-label { font-family: var(--rs-sans); }
+.map-fallback .kp-label.is-ref { font-weight: 700; }
+
 .node-label { color: #b7c3d3; font: 10px var(--rs-mono); text-shadow: 0 1px 2px #000; pointer-events: none; white-space: nowrap; }
 .plant-label { color: #eef2f8; font: 500 10px var(--rs-sans); text-shadow: 0 1px 3px #000; pointer-events: none; white-space: nowrap; }
-.plant-label.is-ref { color: var(--rs-accent-2); font-weight: 700; }
+.plant-label.is-ref { color: var(--rs-map-ref); font-weight: 700; text-shadow: 0 1px 3px #000, 0 0 6px rgba(0, 0, 0, 0.9); }
 .hide-labels .node-label, .hide-labels .plant-label, .hide-plants .plant-label, .hide-grid .node-label { display: none; }
 
 .rs-tooltip { position: fixed; pointer-events: none; opacity: 0; transform: translate(-50%, -115%); background: var(--rs-surface-3); border: 1px solid var(--rs-border-strong); border-radius: 7px; padding: 8px 10px; font-size: 12px; box-shadow: var(--rs-shadow-lg); z-index: 4000; min-width: 150px; transition: opacity 90ms linear; }

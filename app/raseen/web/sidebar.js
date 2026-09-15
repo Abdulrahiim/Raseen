@@ -9,17 +9,25 @@
 (function () {
   const STATIC = window.RASEEN && window.RASEEN.static;
   const href = (name) => (STATIC ? name + ".html" : "/" + name);
+  /* Gradient Control lives inside the Plant page, so its tab deep-links to plant#gradient
+     and the two tabs share a pathname — the hash decides which one reads as active. */
   const TABS = [
     { name: "kingdom", icon: "◎", label: "Kingdom" },
     { name: "plant", icon: "▦", label: "Plant" },
-    { name: "control", icon: "◐", label: "Gradient Control" },
+    { name: "control", icon: "◐", label: "Gradient Control", page: "plant", hash: "#gradient" },
   ];
   const file = location.pathname.split("/").pop() || "";
   const path = location.pathname.replace(/\/+$/, "") || "/";
-  const isActive = (name) =>
+  const onPage = (page) =>
     STATIC
-      ? file === name + ".html" || (name === "kingdom" && (file === "" || file === "index.html"))
-      : path === "/" + name || (name === "kingdom" && path === "/");
+      ? file === page + ".html" || (page === "kingdom" && (file === "" || file === "index.html"))
+      : path === "/" + page || (page === "kingdom" && path === "/");
+  const isActive = (t) => {
+    const page = t.page || t.name;
+    if (!onPage(page)) return false;
+    if (page !== "plant") return true;
+    return t.hash ? location.hash === "#gradient" : location.hash !== "#gradient";
+  };
 
   // ── banner ──────────────────────────────────────────────────────────────
   const banner = document.createElement("header");
@@ -38,9 +46,10 @@
   nav.setAttribute("aria-label", "Pages");
   nav.innerHTML =
     TABS.map((t) => {
-      const active = isActive(t.name) ? " is-active" : "";
+      const active = isActive(t) ? " is-active" : "";
       return (
-        '<a class="rs-nav' + active + '" href="' + href(t.name) + '">' +
+        '<a class="rs-nav' + active + '" data-rs-tab="' + t.name + '" href="' +
+        href(t.page || t.name) + (t.hash || "") + '">' +
         '<span class="rs-nav-icon">' + t.icon + "</span>" +
         '<span class="rs-nav-label">' + t.label + "</span></a>"
       );
@@ -54,4 +63,12 @@
     '<span class="rs-ver">no measured data</span></div>';
   document.body.prepend(nav);
   document.documentElement.classList.add("rs-has-sidebar");
+
+  // Plant and Gradient Control share a URL, so re-resolve the active pill when the hash moves.
+  window.addEventListener("hashchange", function () {
+    for (const a of nav.querySelectorAll(".rs-nav")) {
+      const t = TABS.find((x) => x.name === a.dataset.rsTab);
+      if (t) a.classList.toggle("is-active", isActive(t));
+    }
+  });
 })();

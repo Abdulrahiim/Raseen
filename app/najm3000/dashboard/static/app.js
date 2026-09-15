@@ -7,6 +7,11 @@ const $ = (id) => document.getElementById(id);
 
 const stationLabel = (id) => (id ? String(id).replace("BLK_", "MVPS ") : "—");
 
+// Every injected fault carries the "INJECTED — DEMONSTRATION:" prefix so that no screen can
+// pass it off as a real alarm. Where the page has already said so in the panel title, the
+// bare catalogue label reads better.
+const plainLabel = (label) => String(label ?? "").replace(/^INJECTED[^:]*:\s*/, "");
+
 const state = {
   status: null,
   plant: null,
@@ -15,6 +20,10 @@ const state = {
   index: 0,
   selectedBlock: null,
   modelParts: [],
+  modelFile: "",
+  // The one 3D load in flight (or finished) per model file, so a second caller waits for it
+  // instead of starting another download of the same 22 MB file.
+  modelLoad: null,
   gridMode: "output",
   overviewStyle: "grid",
   playing: false,
@@ -31,13 +40,37 @@ const fmt = (value, digits = 1) =>
         maximumFractionDigits: digits,
       });
 
-async function getJSON(url) {
-  const response = await fetch(url);
+// fetch() resolves on a 400 as happily as on a 200, which is how a failed fault injection
+// went unreported: every call goes through here so a refused request becomes an Error that
+// carries the API's own reason. FastAPI's validation errors put a list under `detail`;
+// everything else a string.
+async function readJSON(response) {
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
-    throw new Error(body.detail || `${response.status} ${response.statusText}`);
+    const detail = Array.isArray(body.detail)
+      ? body.detail.map((item) => item.msg ?? JSON.stringify(item)).join("; ")
+      : body.detail;
+    throw new Error(detail || `${response.status} ${response.statusText}`);
   }
   return response.json();
+}
+
+async function getJSON(url) {
+  return readJSON(await fetch(url));
+}
+
+async function postJSON(url, body) {
+  return readJSON(
+    await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }),
+  );
+}
+
+async function deleteJSON(url) {
+  return readJSON(await fetch(url, { method: "DELETE" }));
 }
 
 async function loadStatus() {
@@ -197,51 +230,85 @@ function setModelStatus(kind, message) {
   el.className = message ? `model-status is-${kind}` : "model-status";
 }
 
-async function refreshModel() {
-  if (!state.selectedBlock || !isReady()) return;
+// The fault panel (the two selects and the list) and the 3D view used to be filled by one
+// function that waited for the WebGL renderer and then for the 22 MB model file. Until both
+// were there the selects stayed empty and Inject fault posted empty strings. The panel now
+// needs only the station's small model JSON; the 3D load is a separate, background concern.
+async function refreshFaultPanel() {
+  if (!state.selectedBlock) return;
   const model = await getJSON(`/api/block/${state.selectedBlock}/model`);
   state.modelParts = model.parts;
+  state.modelFile = model.file;
   $("model-block-name").textContent = stationLabel(model.block_id);
   $("model-note").textContent = model.note;
-  await loadModel(model.file, model.parts);
-  renderFaultList(model.faults);
   populateAssetSelect(model.parts);
+  renderFaultList(model.faults);
+}
+
+// Paint the station in 3D with the parts refreshFaultPanel() last fetched. loadModel() caches
+// by file once a load has finished, but not while one is still in flight, and the first
+// selectBlock() and the first refreshAtCurrentTime() arrive within the same second; so one
+// load is kept per file and later callers wait for it, then apply the current faults.
+async function refreshModel3D() {
+  if (!isReady() || !state.modelFile) return;
+  if (state.modelLoad && state.modelLoad.file === state.modelFile) {
+    await state.modelLoad.promise;
+    applyFaults(state.modelParts);
+    return;
+  }
+  state.modelLoad = {
+    file: state.modelFile,
+    promise: loadModel(state.modelFile, state.modelParts),
+  };
+  await state.modelLoad.promise;
 }
 
 function populateAssetSelect(parts) {
   const select = $("fault-asset");
-  if (select.dataset.filled === String(parts.length)) return;
-  select.dataset.filled = String(parts.length);
-  select.replaceChildren(
-    ...parts.map((part) => {
-      const option = document.createElement("option");
-      option.value = part.asset;
-      option.textContent = part.label;
-      return option;
-    }),
-  );
   const catalogue = state.status?.fault_catalogue ?? [];
-  const firstFaultable = parts.find((part) =>
+  // Only assets the catalogue can fault are offered. The pooling substation has no
+  // demonstrable failure mode, and choosing it would leave the Fault select empty.
+  const faultable = parts.filter((part) =>
     catalogue.some((f) => f.asset_kinds.includes(part.asset)),
   );
-  if (firstFaultable) select.value = firstFaultable.asset;
+  const signature = faultable.map((part) => part.asset).join();
+  if (select.dataset.filled !== signature) {
+    const previous = select.value;
+    select.replaceChildren(
+      ...faultable.map((part) => {
+        const option = document.createElement("option");
+        option.value = part.asset;
+        option.textContent = part.label;
+        return option;
+      }),
+    );
+    select.dataset.filled = signature;
+    // The panel is refreshed on every clock tick; a choice the presenter made must survive it.
+    if (faultable.some((part) => part.asset === previous)) select.value = previous;
+  }
   syncFaultTypes();
 }
 
 function syncFaultTypes() {
   const asset = $("fault-asset").value;
-  const allowed = (state.status?.fault_catalogue ?? []).filter((f) =>
-    f.asset_kinds.includes(asset),
-  );
-  $("fault-type").replaceChildren(
-    ...allowed.map((f) => {
-      const option = document.createElement("option");
-      option.value = f.key;
-      option.textContent = f.label;
-      return option;
-    }),
-  );
-  $("inject-fault").disabled = allowed.length === 0;
+  const select = $("fault-type");
+  if (select.dataset.asset !== asset) {
+    const allowed = (state.status?.fault_catalogue ?? []).filter((f) =>
+      f.asset_kinds.includes(asset),
+    );
+    select.replaceChildren(
+      ...allowed.map((f) => {
+        const option = document.createElement("option");
+        option.value = f.key;
+        option.textContent = f.label;
+        return option;
+      }),
+    );
+    select.dataset.asset = asset;
+  }
+  // Injecting needs a chosen fault and nothing else. A browser without WebGL can still
+  // inject; it only cannot watch the part light up.
+  $("inject-fault").disabled = !select.value;
 }
 
 function renderFaultList(faults) {
@@ -283,9 +350,11 @@ async function selectBlock(blockId) {
   buildTimeline(state.trends);
   renderTrends();
   await refreshBlockDetail();
+  await refreshFaultPanel();
   // Load the 3D station model in the background: it can be a large download and must not
   // block the grid, trends and KPIs from rendering (Raseen static build / slow networks).
-  refreshModel().catch(() => {});
+  // A failure there belongs on the model's own status line, not in the page banner.
+  refreshModel3D().catch((error) => setModelStatus("error", `3D unavailable: ${error.message}`));
   await refreshPerformance();
   await refreshAlarms();
   await refreshDiagnostics();
@@ -320,7 +389,7 @@ async function refreshAlarms() {
         block.textContent = stationLabel(a.block_id);
         const what = document.createElement("span");
         what.className = "alarm-what";
-        what.textContent = `${a.label.replace(/^INJECTED[^:]*:\s*/, "")} — ${a.asset}`;
+        what.textContent = `${plainLabel(a.label)} — ${a.asset}`;
         const when = document.createElement("span");
         when.className = "alarm-when";
         when.textContent = (a.injected_at || "").slice(11, 19);
@@ -356,10 +425,16 @@ async function refreshDiagnostics() {
   }
 
   const f = body.finding;
-  $("diag-confidence").textContent = `${f.confidence} confidence`;
+  // The static build has no engine to infer anything: its finding restates the injected
+  // fault and says so, and it carries no confidence grade to speak of.
+  $("diag-confidence").textContent =
+    f.confidence === "demonstration" ? "Demonstration" : `${f.confidence} confidence`;
   const title = document.createElement("p");
   title.className = "diag-title";
-  title.textContent = `${f.title}, ${f.deviation_percent.toFixed(1)} %`;
+  title.textContent =
+    f.deviation_percent === null || f.deviation_percent === undefined
+      ? f.title
+      : `${f.title}, ${fmt(f.deviation_percent, 1)} %`;
   const text = document.createElement("p");
   text.className = "diag-text";
   text.textContent = f.explanation;
@@ -638,7 +713,11 @@ async function refreshAtCurrentTime() {
   await refreshBlockDetail();
   await refreshAlarms();
   await refreshDiagnostics();
-  await refreshModel();
+  // The scripted scenario raises faults as the clock passes them, so the panel is refreshed
+  // on every tick. It is one small JSON fetch; the 3D load is cached by file and only
+  // repaints the parts.
+  await refreshFaultPanel();
+  refreshModel3D().catch((error) => setModelStatus("error", `3D unavailable: ${error.message}`));
 }
 
 function setPlaying(playing) {
@@ -662,17 +741,22 @@ async function main() {
   $("fault-asset").addEventListener("change", syncFaultTypes);
 
   $("inject-fault").addEventListener("click", async () => {
+    const asset = $("fault-asset");
+    const type = $("fault-type");
+    if (!state.selectedBlock || !type.value) return;
     try {
-      await fetch("/api/fault", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          block_id: state.selectedBlock,
-          asset: $("fault-asset").value,
-          fault_type: $("fault-type").value,
-        }),
+      const body = await postJSON("/api/fault", {
+        block_id: state.selectedBlock,
+        asset: asset.value,
+        fault_type: type.value,
       });
-      await refreshModel();
+      const assetLabel = asset.selectedOptions[0]?.textContent || asset.value;
+      setModelStatus(
+        "ok",
+        `Injected: ${plainLabel(body.fault?.label) || type.value} on ${assetLabel}. See the alarm log.`,
+      );
+      // The panel first, so the new fault is listed even if the page-wide refresh fails.
+      await refreshFaultPanel();
       await refreshAtCurrentTime();
     } catch (error) {
       reportError(error);
@@ -725,19 +809,18 @@ async function main() {
   }
 
   $("clear-faults").addEventListener("click", async () => {
-    await fetch("/api/fault", { method: "DELETE" });
-    await refreshModel();
-    await refreshAtCurrentTime();
-  });
-
-  $("theme-toggle").addEventListener("click", () => {
-    const root = document.documentElement;
-    const dark =
-      root.dataset.theme === "dark" ||
-      (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches);
-    root.dataset.theme = dark ? "light" : "dark";
-    renderTrends();
-    refreshTheme();
+    try {
+      const body = await deleteJSON("/api/fault");
+      const n = body.cleared ?? 0;
+      setModelStatus(
+        "ok",
+        n === 0 ? "No injected faults to clear." : `Cleared ${n} injected ${n === 1 ? "fault" : "faults"}.`,
+      );
+      await refreshFaultPanel();
+      await refreshAtCurrentTime();
+    } catch (error) {
+      reportError(error);
+    }
   });
 
   $("play").addEventListener("click", () => setPlaying(!state.playing));
@@ -759,9 +842,14 @@ async function main() {
     refreshAtCurrentTime().catch(reportError);
   });
   addEventListener("resize", () => renderTrends());
+  // The theme switch lives in the shell's top bar. The trend charts read their colours when
+  // drawn and the 3D ground reads the canvas token, so both are redrawn on the event.
+  addEventListener("rs-theme", () => { renderTrends(); refreshTheme(); });
 
+  // The 3D viewer is a way of seeing the station, not the way of faulting it. When WebGL is
+  // missing the message goes on the model's status line and the fault panel carries on.
   try {
-    const started = initModelViewer(
+    initModelViewer(
       $("model-viewer"),
       (partKey) => {
         const part = state.modelParts.find((p) => p.key === partKey);
@@ -773,12 +861,8 @@ async function main() {
       },
       setModelStatus,
     );
-    if (!started) {
-      $("inject-fault").disabled = true;
-    }
   } catch (error) {
     setModelStatus("error", `3D unavailable: ${error.message}`);
-    $("inject-fault").disabled = true;
   }
 
   await loadStatus();

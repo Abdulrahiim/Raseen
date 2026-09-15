@@ -122,15 +122,16 @@
 }
 
 /* ── map markers ──────────────────────────────────────────────────────────
-   The basemap is dark, so the map's own ink is the inverse of the page's: light strokes,
-   light labels, a light backbone. shell.css has no dark palette, so each of these is an
-   alias onto the nearest token it does have rather than a colour invented here. Geometry
-   lives in kingdom-map.js; this is the whole palette it reads. */
+   The basemap is dark in both themes — it is a dark-canvas tile set — so the map's own ink
+   is fixed: light strokes, light labels, a light backbone, whatever the desk around it is
+   doing. These are the only colours on the page that do not follow the theme, and they are
+   pinned here on purpose: aliased onto the page's ink they would invert with it and vanish
+   into the tiles. Geometry lives in kingdom-map.js; this is the whole palette it reads. */
 :root {
-  --rs-map-ink: var(--rs-text);         /* the ground under the tiles, and the fallback plan */
-  --rs-map-text: var(--rs-ink);         /* plant labels, and the stroke that keeps a pin crisp */
+  --rs-map-ink: var(--map-ground);      /* the ground under the tiles, and the fallback plan */
+  --rs-map-text: #ffffff;               /* plant labels, and the stroke that keeps a pin crisp */
   --rs-map-ref: var(--pb-green-2);      /* the sage marking Humaij — the modelled plant */
-  --rs-map-node: var(--rs-surface-3);   /* substations, their labels, the 380 kV backbone */
+  --rs-map-node: #eaf0ec;               /* substations, their labels, the 380 kV backbone */
 }
 
 /* SVG fallback: thicken the capacity ring on hover so a dense cluster stays pickable. */

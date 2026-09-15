@@ -47,6 +47,9 @@ SCENARIO_SITUATIONS: dict[str, dict] = {
     "deepen": {"deepen_at_min": 2, "deepen_factor": 1.2},
     "high-conf": {"confidence": 0.9},
     "low-conf": {"confidence": 0.3},
+    # The guided replay's own case: a band over the middle of the plant, where the pre-hold
+    # strategy has blocks on both sides still in sun to give back what they held.
+    "band-middle": {"cover_frac": 0.4},
 }
 
 #: axis key -> (scenario parameter, the values rendered along it). The default value of each
@@ -91,7 +94,9 @@ def slim(scenario: dict) -> dict:
 
     ``firm`` is just ``eta > horizon``; ``P_base`` is a copy of ``A``, because with no control
     the export *is* the available power. Carrying either one costs about a quarter of the
-    file for nothing.
+    file for nothing. ``P_hold`` (the pre-hold strategy's set-points) and the ``agg`` fields
+    ``P_hold`` / ``P_star_hold`` / ``R_hold`` are kept: the page switches strategy without a
+    reload, so both strategies have to be in every file.
     """
     scenario["times_min"] = scenario["times_min"][::FRAME_STRIDE]
     frames = scenario["frames"][::FRAME_STRIDE]

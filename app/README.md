@@ -11,7 +11,7 @@ simulated. The model is **not calibrated and not validated**.
 | Tab | What it shows |
 |---|---|
 | **Kingdom** | Every Saudi utility-scale renewable project (indicative registry) and the 380 kV transmission backbone (schematic) on a dark map, with layer, technology and status filters. |
-| **Plant** | The reference plant in two views. **Supervisory** is the vendored dashboard reused whole: the 363-station plant on satellite imagery, the real block layout, 3D station drill-down, expected-vs-measured trends, fault injection. **Gradient Control** runs a cloud front across the plant block by block while Raseen holds export to a declared ramp; the map, the generation chart and the 30-block gradient bars update as you play or scrub through the event. The sidebar has an entry for each view, so Gradient Control is reachable directly. |
+| **Plant** | The reference plant in two views. **Supervisory** is the vendored dashboard reused whole: the 363-station plant on satellite imagery, the real block layout, 3D station drill-down, expected-vs-measured trends, fault injection. **Gradient Control** runs a cloud front across the plant block by block while Raseen holds export on one of two strategies — a declared ramp, or a flat pre-hold that the blocks still in sun back-fill; the map, the generation chart and the station/block set-point bars update as you play (at a chosen replay speed, with a forecast briefing and notices) or scrub through the event. The sidebar has an entry for each view, so Gradient Control is reachable directly. Every page has a guided tour (*Explain this page*) and a light/dark theme switch in the top bar. |
 
 ## Architecture
 
@@ -82,8 +82,8 @@ dashboard into `../docs/` — the pages, their assets (with paths rewritten for 
 sub-path), the registry and geometry as JSON, a curated set of scenarios, and a "day bundle"
 for the Plant page. A small fetch shim (`tools/rs-static-api.js`) answers the reused
 NAJM-3000 dashboard's `/api/*` calls from that bundle, so the Plant page runs with no backend
-(read-only: the manual fault injection is not part of the static demo, and the Gradient
-Control sliders become a set of pre-rendered preset scenarios).
+(fault injection is answered from an in-memory registry that lives for the browser session,
+and the Gradient Control sliders become a set of pre-rendered preset scenarios).
 
 ```powershell
 .venv\Scripts\python.exe tools\build_static.py          # regenerate ../docs

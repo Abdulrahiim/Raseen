@@ -28,12 +28,18 @@ const state = {
   onStatus: () => {},
 };
 
+// The viewer's ground is the desk's own canvas token, so the model sits on the same surface
+// as the panels around it in either theme; the constants are only for a stylesheet that has
+// not arrived.
 function surface() {
+  const raw = getComputedStyle(document.documentElement).getPropertyValue('--pb-canvas').trim();
+  const m = /^#([0-9a-f]{6})$/i.exec(raw);
+  if (m) return parseInt(m[1], 16);
   const dark =
     document.documentElement.dataset.theme === 'dark' ||
     (!document.documentElement.dataset.theme &&
       matchMedia('(prefers-color-scheme: dark)').matches);
-  return dark ? 0x14171c : 0xeef0f3;
+  return dark ? 0x121917 : 0xeef2ef;
 }
 
 export function isReady() {

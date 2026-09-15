@@ -28,6 +28,10 @@
   --pb-card: #ffffff;
   --pb-border: #dde6e0;
   --pb-border-2: #c6d5cc;
+  /* Sage set in type (the clock, a slider's value, the chart cursor). On the light desk it is
+     --pb-deep itself; on the dark desk --pb-deep stays the active-state fill and this goes
+     light, because #3f6354 as text on a dark card reads at 2:1. */
+  --pb-deep-text: #3f6354;
 
   --rs-text: #1b2621;
   --rs-text-2: #4c5c54;
@@ -74,6 +78,7 @@
   --rs-violet-text: #47637a;
   --rs-rust-text: #a8452f;
   --rs-good-text: #217a4d;
+  --rs-bad-text: #8c2b3b;
 
   /* Two levels of elevation, not one shadow on everything: instruments sit flat on the
      desk (0), only things that float above it (tooltips, the splash) cast a shadow. */
@@ -108,6 +113,128 @@
   --ramp-3: #86a795;
   --ramp-4: #5f8573;
   --ramp-5: #3f6354;
+}
+
+/* ── the dark desk ──────────────────────────────────────────────────────── */
+/* The same instrument in a dark room. Every token above gets a second value: the surfaces
+   go to a deep green-grey, the ink inverts, and the data plane is lifted a little because
+   a 2px amber line that reads on white sinks into a dark card. The reading pairs turn the
+   other way — lighter than their marks, not darker — for the same reason. The sage of the
+   structure is unchanged; only the text set in it (--pb-deep-text) moves.
+
+   The block is written twice, once for a stored choice and once for the system preference
+   with nothing stored. CSS has no way to say it once, so the two must be kept identical. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --pb-green: #729082;
+  --pb-green-2: #8faa9b;
+  --pb-deep: #3f6354;
+  --pb-deep-text: #9fbfae;
+  --pb-header: #1d2c27;
+  --pb-header-2: #172420;
+  --pb-rail: #161e1b;
+  --pb-canvas: #121917;
+  --pb-card: #1a2320;
+  --pb-border: #2a3833;
+  --pb-border-2: #3a4b45;
+
+  --rs-text: #e6ede9;
+  --rs-text-2: #b4c3ba;
+  --rs-muted: #93a79c;
+  --rs-surface-2: #1f2926;
+  --rs-surface-3: #26322d;
+
+  --rs-amber: #d9a53a;
+  --rs-teal: #35b0a8;
+  --rs-violet: #7f9fbd;
+  --rs-violet-dim: #46596b;
+  --rs-cyan: #62b8d9;
+  --rs-rust: #d9735c;
+  --rs-sim: #7f9fbd;
+  --rs-good: #4fb583;
+  --rs-warn: #d9952b;
+  --rs-bad: #d9596b;
+  --rs-amber-text: #e6b95a;
+  --rs-teal-text: #57c9c1;
+  --rs-violet-text: #a6bfd6;
+  --rs-rust-text: #e79a86;
+  --rs-good-text: #74cc9c;
+  --rs-bad-text: #f0929f;
+  --rs-shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.55);
+
+  --surface-3: #26322d;
+  --accent: #35b0a8;
+  --amber: #d9a53a;
+  --violet: #7f9fbd;
+  --violet-dim: #46596b;
+  --cyan: #62b8d9;
+  --rust: #d9735c;
+  --muted: #93a79c;
+  --cloud: #9aa6b2;
+  --map-ground: #0f1216;
+  --ramp-0: #1f2b26;
+  --ramp-1: #2c3f36;
+  --ramp-2: #3f5a4d;
+  --ramp-3: #5a7a69;
+  --ramp-4: #7c9d8b;
+  --ramp-5: #9fbfae;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --pb-green: #729082;
+    --pb-green-2: #8faa9b;
+    --pb-deep: #3f6354;
+    --pb-deep-text: #9fbfae;
+    --pb-header: #1d2c27;
+    --pb-header-2: #172420;
+    --pb-rail: #161e1b;
+    --pb-canvas: #121917;
+    --pb-card: #1a2320;
+    --pb-border: #2a3833;
+    --pb-border-2: #3a4b45;
+
+    --rs-text: #e6ede9;
+    --rs-text-2: #b4c3ba;
+    --rs-muted: #93a79c;
+    --rs-surface-2: #1f2926;
+    --rs-surface-3: #26322d;
+
+    --rs-amber: #d9a53a;
+    --rs-teal: #35b0a8;
+    --rs-violet: #7f9fbd;
+    --rs-violet-dim: #46596b;
+    --rs-cyan: #62b8d9;
+    --rs-rust: #d9735c;
+    --rs-sim: #7f9fbd;
+    --rs-good: #4fb583;
+    --rs-warn: #d9952b;
+    --rs-bad: #d9596b;
+    --rs-amber-text: #e6b95a;
+    --rs-teal-text: #57c9c1;
+    --rs-violet-text: #a6bfd6;
+    --rs-rust-text: #e79a86;
+    --rs-good-text: #74cc9c;
+    --rs-bad-text: #f0929f;
+    --rs-shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.55);
+
+    --surface-3: #26322d;
+    --accent: #35b0a8;
+    --amber: #d9a53a;
+    --violet: #7f9fbd;
+    --violet-dim: #46596b;
+    --cyan: #62b8d9;
+    --rust: #d9735c;
+    --muted: #93a79c;
+    --cloud: #9aa6b2;
+    --map-ground: #0f1216;
+    --ramp-0: #1f2b26;
+    --ramp-1: #2c3f36;
+    --ramp-2: #3f5a4d;
+    --ramp-3: #5a7a69;
+    --ramp-4: #7c9d8b;
+    --ramp-5: #9fbfae;
+  }
 }
 
 /* Anything given a display value in this stylesheet beats the browser's own
@@ -159,6 +286,13 @@
 /* Steady, not pulsing: the page is a simulation replay, not a live feed, and a blinking dot
    claims a liveness it does not have. The one thing that moves on its own is the title card. */
 .rs-banner-bar .bb-chip i { width: 7px; height: 7px; border-radius: 50%; background: #9cc4dd; }
+.rs-banner-bar .bb-btn {
+  font: 500 11.5px var(--rs-sans); color: #fff; cursor: pointer;
+  padding: 5px 11px; border-radius: 4px;
+  background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.28);
+}
+.rs-banner-bar .bb-btn:hover { background: rgba(255,255,255,0.18); }
+.rs-banner-bar .bb-icon { font-size: 14px; line-height: 1; padding: 4px 9px; min-width: 32px; }
 @media (max-width: 760px) { .rs-banner-bar .bb-logo span, .rs-banner-bar .bb-plant { display: none; } }
 
 /* ── left rail ──────────────────────────────────────────────────────────── */
@@ -225,7 +359,7 @@
 }
 .rs-body { padding: 0 24px 26px; }
 .rs-loading { color: var(--rs-muted); font: 13px var(--rs-sans); padding: 60px 0; }
-.rs-banner { margin: 0 24px 12px; padding: 11px 15px; background: #fdf1f3; border: 1px solid #edc3cb; border-left: 3px solid var(--rs-bad); border-radius: var(--rs-radius-sm); color: #8c2b3b; font-size: 12.5px; }
+.rs-banner { margin: 0 24px 12px; padding: 11px 15px; background: color-mix(in srgb, var(--rs-bad) 9%, var(--pb-card)); border: 1px solid color-mix(in srgb, var(--rs-bad) 35%, var(--pb-border)); border-left: 3px solid var(--rs-bad); border-radius: var(--rs-radius-sm); color: var(--rs-bad-text); font-size: 12.5px; }
 .rs-banner.is-note { background: var(--rs-surface-2); border-color: var(--pb-border-2); border-left-color: var(--rs-sim); color: var(--rs-text-2); }
 
 /* An instrument face: flat on the desk, hairline edge, no shadow. */
@@ -288,10 +422,10 @@
 .rs-range::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--pb-green); }
 .rs-range::-webkit-slider-thumb {
   -webkit-appearance: none; appearance: none; width: 15px; height: 15px; margin-top: -5.5px;
-  border-radius: 50%; background: #fff; border: 2px solid var(--pb-deep);
+  border-radius: 50%; background: var(--pb-card); border: 2px solid var(--pb-deep-text);
   box-shadow: 0 1px 3px rgba(30, 55, 44, 0.3);
 }
-.rs-range::-moz-range-thumb { width: 15px; height: 15px; border-radius: 50%; background: #fff; border: 2px solid var(--pb-deep); box-shadow: 0 1px 3px rgba(30, 55, 44, 0.3); }
+.rs-range::-moz-range-thumb { width: 15px; height: 15px; border-radius: 50%; background: var(--pb-card); border: 2px solid var(--pb-deep-text); box-shadow: 0 1px 3px rgba(30, 55, 44, 0.3); }
 .rs-range:focus-visible { outline: none; }
 .rs-range:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px rgba(114, 144, 130, 0.45); }
 .rs-range:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px rgba(114, 144, 130, 0.45); }

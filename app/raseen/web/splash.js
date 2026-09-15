@@ -2,8 +2,19 @@
    mark is on screen from the first paint rather than appearing over a half-drawn page.
 
    It runs once per browsing session: a title card, not a loading spinner. Navigating
-   between Kingdom and Plant should not replay it. Styles live in shell.css. */
+   between Kingdom and Plant should not replay it. Styles live in shell.css.
+
+   Being the first script on every page, it is also where the theme is applied: a stored
+   choice goes onto the root element before the stylesheet is read, so a dark page never
+   flashes light first. With nothing stored the root is left alone and the system preference
+   decides, through the media query in shell.css. */
 (function () {
+  try {
+    var theme = localStorage.getItem("rs-theme");
+    if (theme === "dark" || theme === "light") document.documentElement.dataset.theme = theme;
+  } catch (e) {
+    /* private mode: the system preference decides */
+  }
   try {
     if (sessionStorage.getItem("rs-splash") === "seen") return;
     sessionStorage.setItem("rs-splash", "seen");

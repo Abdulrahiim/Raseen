@@ -66,7 +66,10 @@ def abstract_case(
     flat: bool = False,
     band_cols: int | None = None,
     ppc_delay_steps: int = 0,
+    hold_margin: float = 0.0,
 ) -> tuple[Plan, SchemeResult, dict]:
+    """One scheme on the abstract plant. ``hold_margin`` only matters to a flat plan (the
+    hold scheme's line); the reserve slice is the bgc scheme's alone, as in the D1 table."""
     arrays = abstract_arrays(band_cols)
     if scheme == "base":
         plan = plan_trajectory(
@@ -76,13 +79,13 @@ def abstract_case(
     else:
         plan = plan_trajectory(
             arrays["times"], arrays["A_tot"], PLANT, g=g, flat=flat,
-            reserve_override=(reserve if scheme == "bgc" else 0.0),
+            reserve_override=(reserve if scheme == "bgc" else 0.0), hold_margin=hold_margin,
         )
     result = simulate_scheme(
         scheme, times=arrays["times"], A=arrays["A"], A_tot=arrays["A_tot"],
         floors=arrays["floors"], etas=arrays["etas"], caps=arrays["caps"], P_star=plan.P_star,
         sigma=3.0, delta=plan.delta, horizon=5.0, slew_pct_min=10.0,
-        ppc_delay_steps=ppc_delay_steps,
+        ppc_delay_steps=ppc_delay_steps, coverage=arrays["coverage"],
     )
     m = metrics(
         times=arrays["times"], A_tot=arrays["A_tot"], POI=result.POI, P=result.P, A=arrays["A"],

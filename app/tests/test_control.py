@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from raseen.control.allocate import allocate_bgc, allocate_uniform, reactive_shares
+from raseen.control.allocate import allocate_bgc, allocate_hold, allocate_uniform, reactive_shares
 from raseen.control.fixture import abstract_arrays, abstract_case
 from raseen.control.planner import apply_release, plan_trajectory
 from raseen.control.simulate import simulate_scheme
@@ -185,3 +185,100 @@ def test_bgc_look_ahead_reads_the_nowcast_and_has_no_foresight_of_the_true_field
     assert alt.P[: k_cut + 1] == ref.P[: k_cut + 1]
     for k in range(k_cut + 1, len(times)):
         assert all(p <= a + 1e-6 for p, a in zip(alt.P[k], A_alt[k], strict=True))
+
+
+# --- the second strategy: pre-hold and backfill ------------------------------------------
+
+
+def test_hold_allocator_takes_evenly_from_the_blocks_in_sun_ahead_of_the_front():
+    """The pre-hold descent: nothing is shaded yet, and every block gives the same share."""
+    A = [100.0, 100.0, 100.0]
+    cap = [100.0, 100.0, 100.0]
+    slew = [100.0, 100.0, 100.0]
+    p = allocate_hold(A, cap, 270.0, slew_lim=slew, prev=A, shaded=[False, False, False])
+    assert abs(sum(p) - 270.0) < 1e-6
+    assert all(abs(x - 90.0) < 1e-6 for x in p)
+
+
+def test_hold_allocator_backfills_from_the_blocks_in_sun_and_never_curtails_a_shaded_block():
+    """The mechanism the user asked for: hold everyone down evenly, then let the blocks still
+    in sun give back what they were holding when the cloud lands on the middle one."""
+    cap = [100.0, 100.0, 100.0]
+    slew = [100.0, 100.0, 100.0]
+    held = [90.0, 90.0, 90.0]
+    # The cloud lands on block 1 and takes 20 % of it: its sun falls to 80 MW.
+    during = allocate_hold([100.0, 80.0, 100.0], cap, 270.0, slew_lim=slew, prev=held,
+                           shaded=[False, True, False])
+    assert abs(sum(during) - 270.0) < 1e-6
+    assert abs(during[1] - 80.0) < 1e-6              # follows its own sun, nothing more taken
+    assert during[0] > 90.0 + 1e-6 and during[2] > 90.0 + 1e-6   # the sides give back
+    assert abs(during[0] - during[2]) < 1e-6         # evenly, having equal room
+    # Slew binds on the way up: the sides can only rise by their band, so export leaves the
+    # line and the shortfall is reported rather than taken from the shaded block.
+    tight = allocate_hold([100.0, 80.0, 100.0], cap, 270.0, slew_lim=[2.0, 2.0, 2.0],
+                          prev=held, shaded=[False, True, False])
+    assert abs(tight[1] - 80.0) < 1e-6
+    assert abs(tight[0] - 92.0) < 1e-6 and abs(tight[2] - 92.0) < 1e-6
+    assert sum(tight) < 270.0 - 1e-6
+
+
+def test_hold_scheme_keeps_export_on_the_flat_line_through_a_partial_cover():
+    """A three-block plant, a cloud that only ever reaches the middle block. The hold line is
+    planned against the same field and the scheme must sit on it through the crossing while
+    the shaded block is left to its sun."""
+    times = [round(-10.0 + k / 6.0, 6) for k in range(181)]   # −10 … +20 min, 10 s steps
+    cap = [100.0, 100.0, 100.0]
+    A, cov, etas = [], [], []
+    for t in times:
+        f = 0.0 if t < 0 else min(1.0, t / 1.0)     # block 1 goes under cover over one minute
+        A.append([100.0, 100.0 * (1.0 - 0.5 * f), 100.0])
+        cov.append([0.0, f, 0.0])
+        etas.append([float("inf"), -t, float("inf")])
+    A_tot = [sum(r) for r in A]
+    plan = plan_trajectory(times, A_tot, 300.0, g=30.0, flat=True, hold_margin=10.0,
+                           reserve_override=0.0)
+    assert abs(plan.hold_mw - 240.0) < 1e-6           # A_min 250 less the 10 MW margin
+    result = simulate_scheme(
+        "hold", times=times, A=A, A_tot=A_tot, floors=[[50.0] * 3 for _ in times], etas=etas,
+        caps=cap, P_star=plan.P_star, sigma=3.0, delta=0.0, horizon=5.0, slew_pct_min=10.0,
+        ppc_delay_steps=0, coverage=cov,
+    )
+    for k, t in enumerate(times):
+        p = result.P[k]
+        assert all(pi <= A[k][i] + 1e-6 for i, pi in enumerate(p))
+        if t >= 2.0:                                   # on the hold, cloud fully on block 1
+            assert abs(sum(p) - 240.0) < 1e-6
+            assert abs(p[1] - 50.0) < 1e-6             # the shaded block at its own sun
+            assert abs(p[0] - 95.0) < 1e-6 and abs(p[2] - 95.0) < 1e-6   # the sides back-filled
+        if cov[k][1] > 0.02 and k > 0:
+            # Once shaded a block only falls with its own sun, or within slew while the
+            # pre-hold descent is still finishing and the blocks in sun have no room left.
+            lim = 100.0 * 10.0 / 100.0 / 6.0
+            assert p[1] >= min(A[k][1], result.P[k - 1][1] - lim) - 1e-4
+
+
+def test_hold_margin_lowers_the_flat_line_and_starts_the_descent_earlier():
+    arrays = abstract_arrays()
+    base = plan_trajectory(arrays["times"], arrays["A_tot"], 3000.0, g=90.0, flat=True)
+    same = plan_trajectory(arrays["times"], arrays["A_tot"], 3000.0, g=90.0, flat=True,
+                           hold_margin=0.0)
+    assert same.P_star == base.P_star and same.hold_mw == base.A_min
+    lower = plan_trajectory(arrays["times"], arrays["A_tot"], 3000.0, g=90.0, flat=True,
+                            hold_margin=135.0)
+    assert abs(lower.hold_mw - (base.A_min - 135.0)) < 1e-6
+    assert lower.t_desc_start < base.t_desc_start - 1.0
+    assert min(lower.P_star) < min(base.P_star) - 100.0
+    # The ramp is untouched by the margin: it is a property of the flat line only.
+    ramp = plan_trajectory(arrays["times"], arrays["A_tot"], 3000.0, g=90.0, hold_margin=135.0)
+    assert ramp.P_star == plan_trajectory(arrays["times"], arrays["A_tot"], 3000.0, g=90.0).P_star
+
+
+def test_hold_scheme_on_the_abstract_plant_holds_the_declared_gradient():
+    """On a full-width front there is nothing left in sun to back-fill from, so the strategy
+    degenerates to the flat line — still within the declared gradient, no block stepped."""
+    plan, result, m = abstract_case("hold", 90.0, flat=True, hold_margin=135.0)
+    assert m["max_grad_mw_min"] <= 90.0 + 1.0
+    assert m["blocks_stepped"] == 0
+    assert m["tracking_error_pct"] < 0.5
+    k_hold = min(range(len(plan.P_star)), key=lambda k: plan.P_star[k])
+    assert abs(result.POI[k_hold] - plan.hold_mw) < 5.0

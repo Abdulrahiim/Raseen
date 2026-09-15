@@ -11,7 +11,7 @@
 
 .rs-topbar .rs-clock {
   font: 500 16px var(--rs-mono); font-variant-numeric: tabular-nums; white-space: nowrap;
-  color: var(--pb-deep); background: var(--rs-surface-3);
+  color: var(--pb-deep-text); background: var(--rs-surface-3);
   border-radius: var(--rs-radius-sm); padding: 5px 11px;
 }
 
@@ -24,13 +24,55 @@
 .rs-marker-line { stroke: var(--rs-border-strong); stroke-width: 1; stroke-dasharray: 2 4; }
 .rs-marker-text { fill: var(--rs-text-2); font: 500 10px var(--rs-mono); }
 .rs-series-line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
-.rs-cursor-line { stroke: var(--pb-deep); stroke-width: 1; opacity: 0.55; }
-.rs-cursor-knob { fill: var(--pb-deep); }
+.rs-cursor-line { stroke: var(--pb-deep-text); stroke-width: 1; opacity: 0.55; }
+.rs-cursor-knob { fill: var(--pb-deep-text); }
 
 /* The scrubber sits under the plot it drives, in the same panel, at the top of the page —
    it used to be the last thing on a long scroll. */
 .rs-transport { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; padding-top: 11px; border-top: 1px solid var(--rs-border); }
 .rs-transport .rs-range { flex: 1; min-width: 200px; }
+/* Replay speed: simulated seconds per real second. A select, not a slider — five named
+   steps, and "Real time" is a name a slider could not show. */
+.rs-speed { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--rs-muted); white-space: nowrap; }
+.rs-speed select { font: 12px var(--rs-sans); padding: 5px 8px; border-radius: var(--rs-radius-sm); border: 1px solid var(--rs-border-strong); background: var(--pb-card); color: var(--rs-text); }
+
+/* The event log: what the run will say, in order, under the transport that drives it. The
+   current event is the bright row; the past dims one step, the future one more. */
+.rs-events { list-style: none; margin: 11px 0 0; padding: 0; border-top: 1px solid var(--rs-border); }
+.rs-events li { display: grid; grid-template-columns: 58px minmax(0, 1fr); gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--rs-border); font-size: 12px; line-height: 1.45; }
+.rs-events li:last-child { border-bottom: 0; }
+.rs-events .t { font: 500 11.5px var(--rs-mono); font-variant-numeric: tabular-nums; }
+.rs-events b { font-weight: 500; }
+.rs-events .is-past { color: var(--rs-text-2); }
+.rs-events .is-past .t { color: var(--rs-muted); }
+.rs-events .is-now { color: var(--rs-text); }
+.rs-events .is-now b { font-weight: 600; }
+.rs-events .is-now .t { color: var(--pb-deep-text); font-weight: 600; }
+.rs-events .is-future { color: var(--rs-muted); }
+
+/* The briefing: the forecast notice laid on the desk, with the suggested response and the
+   one button that lets it run. The blue rule is the site's mark for a simulated input. */
+.rs-brief { border-left: 3px solid var(--rs-sim); }
+.rs-brief-when { font: 500 12px var(--rs-mono); font-variant-numeric: tabular-nums; color: var(--rs-text-2); }
+.rs-brief-say { margin: 0 0 8px; font: 400 14px/1.55 var(--rs-sans); color: var(--rs-text); max-width: 92ch; }
+.rs-brief-k { font-weight: 600; }
+.rs-brief-actions { max-width: 360px; margin-top: 12px; }
+
+/* A notice: one card, top right, under the top bar — the one floating element this page adds
+   besides the tooltip. It says what just happened in the run and goes away on its own. */
+.rs-notice { position: fixed; top: calc(var(--rs-banner-h) + 14px); right: 18px; z-index: 3000; width: min(380px, calc(100vw - 36px)); box-sizing: border-box; background: var(--pb-card); border: 1px solid var(--rs-border-strong); border-left: 3px solid var(--rs-sim); border-radius: var(--rs-radius-sm); padding: 10px 12px 11px; box-shadow: var(--rs-shadow-lg); opacity: 0; transform: translateY(-6px); }
+.rs-notice.is-in { opacity: 1; transform: none; transition: opacity 160ms ease-out, transform 200ms ease-out; }
+.rs-notice-head { display: flex; align-items: baseline; gap: 8px; }
+.rs-notice-when { font: 500 11.5px var(--rs-mono); font-variant-numeric: tabular-nums; color: var(--rs-muted); }
+.rs-notice-head b { font: 600 12.5px var(--rs-sans); color: var(--rs-text); flex: 1; }
+.rs-notice-x { border: 0; background: transparent; color: var(--rs-muted); font-size: 16px; line-height: 1; cursor: pointer; padding: 0 2px; }
+.rs-notice-x:hover { color: var(--rs-text); }
+.rs-notice p { margin: 5px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--rs-text-2); }
+@media (prefers-reduced-motion: reduce) { .rs-notice.is-in { transition: none; } }
+
+/* Two segments in one panel head (order and resolution of the block chart). */
+.rs-seg-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.rs-strategy-note { margin-top: 9px; max-width: 60ch; }
 .rs-marks { display: flex; gap: 14px; flex-wrap: wrap; }
 .rs-marks span { color: var(--rs-muted); font: 11px var(--rs-sans); }
 .rs-marks b { font: 500 11px var(--rs-mono); font-variant-numeric: tabular-nums; color: var(--rs-text-2); }
@@ -79,7 +121,7 @@
 .rs-ctl { display: grid; gap: 3px; margin-bottom: 13px; }
 .rs-ctl:last-child { margin-bottom: 0; }
 .rs-ctl-label { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 12px; color: var(--rs-text-2); }
-.rs-ctl-label b { font: 500 12.5px var(--rs-mono); font-variant-numeric: tabular-nums; color: var(--pb-deep); }
+.rs-ctl-label b { font: 500 12.5px var(--rs-mono); font-variant-numeric: tabular-nums; color: var(--pb-deep-text); }
 .rs-ctl select { font: 12.5px var(--rs-sans); padding: 7px 9px; border-radius: var(--rs-radius-sm); border: 1px solid var(--rs-border-strong); background: var(--pb-card); color: var(--rs-text); width: 100%; }
 .rs-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; }
 .rs-check { display: flex; align-items: flex-start; gap: 9px; font-size: 12.5px; color: var(--rs-text-2); line-height: 1.45; margin: 4px 0 12px; }

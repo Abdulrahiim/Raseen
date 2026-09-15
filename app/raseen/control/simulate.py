@@ -5,13 +5,18 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
-from raseen.control.allocate import allocate_bgc, allocate_uniform
+from raseen.control.allocate import allocate_bgc, allocate_hold, allocate_uniform
 
 #: A set-point drop larger than this share of block capacity in one step, not caused by the
 #: block's own sun falling, counts as a "step".
 STEP_THRESHOLD = 0.05
 #: A block is "already shaded" when this share of its stations is under cover.
 SHADED_COVERAGE = 0.95
+#: For the hold strategy a block is shaded from the moment the cloud's edge is on its first
+#: stations — this share of its cover — so the controller stops taking from it the instant
+#: its own sun starts to fall. ``SHADED_COVERAGE`` above is the scoring threshold, where the
+#: whole block is under cover; the two answer different questions.
+HOLD_SHADED_COVERAGE = 0.02
 
 
 @dataclass
@@ -42,9 +47,12 @@ def simulate_scheme(
     ppc_delay_steps: int = 1,
     release_from: int | None = None,
     A_nowcast: list[list[float]] | None = None,
+    coverage: list[list[float]] | None = None,
 ) -> SchemeResult:
     """Run one scheme over the event: ``base`` (no control), ``uni`` (one plant-level
-    set-point spread in proportion), ``bgc`` (block allocation along the declared line).
+    set-point spread in proportion), ``bgc`` (block allocation along the declared line),
+    ``hold`` (every block held down evenly ahead of the front, and the blocks still in sun
+    giving back what they were holding when the cloud lands).
 
     ``A`` is the true per-block available power: it caps every set-point and is what the
     plant measures at the current step. The BGC look-ahead over the next ``horizon``
@@ -52,6 +60,13 @@ def simulate_scheme(
     so the controller never sees a stall or a deepening before its nowcast does. It
     defaults to ``A`` (a perfect nowcast, the abstract fixture's case); a scenario runner
     that keeps a separate planned field should pass that field here.
+
+    The hold scheme needs to know which blocks are shaded. A block is shaded when its
+    measured ``coverage`` is above ``HOLD_SHADED_COVERAGE`` or its planned arrival time has
+    passed (``etas[k][i] <= 0``); with ``coverage=None`` only the arrival test is used. The
+    firm reserve ``R`` is scored the same way for every scheme: headroom on the blocks with
+    an arrival beyond the horizon, which for the hold scheme is the backfill the plant can
+    still call on.
     """
     dt = times[1] - times[0]
     slew_lim = [c * slew_pct_min / 100.0 * dt for c in caps]
@@ -74,6 +89,15 @@ def simulate_scheme(
                 release=release,
                 targets_ahead=P_star[k + 1 : k + 1 + ahead],
                 A_ahead=believed[k + 1 : k + 1 + ahead],
+            )
+        elif scheme == "hold":
+            shaded = [
+                etas[k][i] <= 0.0
+                or (coverage is not None and coverage[k][i] > HOLD_SHADED_COVERAGE)
+                for i in range(len(caps))
+            ]
+            p = allocate_hold(
+                A[k], caps, P_star[k], slew_lim=slew_lim, prev=prev, shaded=shaded
             )
         else:
             raise ValueError(f"unknown scheme {scheme!r}")

@@ -7,13 +7,10 @@
    and the severity ladder are the names this page's markup and app.js ask for, mapped onto
    the shell's. Nothing downstream should introduce a colour of its own.
 
-   The shell has one theme, so this page has one palette. The dark blocks that used to sit
-   here were unreachable (the document is forced to data-theme="light", and the theme toggle
-   is hidden) and are gone; the 3D viewer carries its own colours in model.js and does not
-   read any of these. */
+   The shell owns both themes, so this page owns none: every value here is an alias, and the
+   dark desk arrives through the same tokens. The 3D viewer reads the canvas token for its
+   own background in model.js. */
 :root {
-  color-scheme: light;
-
   --surface-0: var(--pb-canvas);
   --surface-1: var(--pb-card);
   --surface-2: var(--rs-surface-2);
@@ -216,10 +213,6 @@ main {
 .danger-btn:hover { filter: brightness(1.08); }
 .danger-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
-/* The toggle offers a theme the shell does not have. Kept in the DOM because app.js binds
-   to it; hidden because a control that leads nowhere should not be on the desk. */
-#theme-toggle { display: none; }
-
 .scrubber { flex: 1; min-width: 200px; accent-color: var(--rs-accent-2); }
 
 .clock { text-align: right; min-width: 108px; margin-left: auto; }
@@ -295,8 +288,8 @@ main {
   text-shadow: 0 1px 3px rgb(0 0 0 / 0.9); white-space: nowrap;
 }
 /* The ground behind satellite tiles while they load — a void, not a surface, so it takes
-   the darkest token the shell has. */
-.maplibregl-map { background: var(--rs-text); font: inherit; border-radius: var(--radius); }
+   the map's own ground token, which stays dark in both themes. */
+.maplibregl-map { background: var(--map-ground); font: inherit; border-radius: var(--radius); }
 .maplibregl-ctrl-attrib { font-size: 9px; }
 
 /* ── legends and keys ─────────────────────────────────────────────────────

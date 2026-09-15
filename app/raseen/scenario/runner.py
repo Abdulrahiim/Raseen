@@ -1,9 +1,10 @@
 """Run a scenario on the real plant geometry.
 
 A cloud crosses the 363-MVPS plant. Each 10-second frame carries, per control block, the
-available power, the set-point under three controllers (uncontrolled, plant-level, Raseen),
-the cloud arrival time, the cover fraction and the cloud outline. The Gradient Control page
-replays these frames on the satellite map and the power chart.
+available power, the set-point under four rules (uncontrolled, plant-level, and Raseen's two
+strategies: the declared ramp and the pre-hold and backfill), the cloud arrival time, the
+cover fraction and the cloud outline. The Gradient Control page replays these frames on the
+satellite map and the power chart.
 """
 
 from __future__ import annotations
@@ -21,9 +22,12 @@ from raseen.shadow.fields import build_field, cloud_polygons
 
 #: Bumped whenever the controller or the shadow model changes what a scenario computes.
 #: It is part of the cache key, so an engine change invalidates every stored scenario rather
-#: than silently serving numbers the current code would never produce. "r2" is the move to
-#: placing curtailment farthest-arrival first (see raseen.control.allocate).
-ENGINE_REVISION = "r2"
+#: than silently serving numbers the current code would never produce. "r2" was the move to
+#: placing curtailment farthest-arrival first (see raseen.control.allocate). "r3" adds the
+#: pre-hold and backfill strategy: every frame now carries ``P_hold`` and the front carries
+#: the hold numbers, and an r2 file has neither, so the page would have nothing to draw for
+#: that strategy.
+ENGINE_REVISION = "r3"
 
 PLANT_MW = 3000.0
 T_START = -40.0
@@ -33,6 +37,10 @@ DT_MIN = 1.0 / 6.0
 DETECT_DELAY_MIN = 2.0
 #: Inverter apparent-power rating relative to block active rating.
 S_RATING_FACTOR = 1.10
+#: A block or station counts as *reached* by the front when the planned cover on it ever
+#: exceeds this share. An edge that only brushes a corner is not a block the cloud reaches,
+#: and the briefing's "reaches N of 30 blocks" must not count it.
+REACHED_COVERAGE = 0.5
 
 CLASSIFICATION = "SIMULATION (RASEEN PROTOTYPE)"
 DISCLAIMER = (
@@ -86,6 +94,10 @@ def run_scenario(params: ScenarioParams) -> dict[str, Any]:
     etas: list[list[float]] = []
     A_tot_planned: list[float] = []
     clouds: list[list[list[list[float]]]] = []
+    # The deepest planned cover each block and each station ever sees, for the honest count
+    # of what the front reaches. Running maxima, so the per-station field is never kept.
+    reach_block = [0.0] * n
+    reach_station = [0.0] * len(site.mvps)
     for t in times:
         cov_m = actual.coverage(t)
         d_t = actual.depth_at(t)
@@ -100,6 +112,13 @@ def run_scenario(params: ScenarioParams) -> dict[str, Any]:
         floors.append([c * (1.0 - d_t) for c in caps])
         etas.append([min(eta_m[m] for m in idx) for idx in members])
         clouds.append(cloud_polygons(actual, site, t))
+        for m, c in enumerate(cov_p):
+            if c > reach_station[m]:
+                reach_station[m] = c
+        for i, idx in enumerate(members):
+            c = sum(cov_p[m] for m in idx) / len(idx)
+            if c > reach_block[i]:
+                reach_block[i] = c
     A_tot = [sum(row) for row in A]
 
     plan = plan_trajectory(
@@ -107,7 +126,16 @@ def run_scenario(params: ScenarioParams) -> dict[str, Any]:
         confidence=params.confidence, kappa=params.kappa,
         reserve_override=params.reserve_mw, horizon=horizon,
     )
+    # The second strategy plans against the same planned field, always flat: the plant is
+    # held the reserve slice below the transit minimum, so the margin the ramp keeps as
+    # headroom on the far blocks is here taken off every block evenly, ahead of the front.
+    plan_h = plan_trajectory(
+        times, A_tot_planned, PLANT_MW, g=params.g_mw_min, flat=True, hold_margin=plan.delta,
+        confidence=params.confidence, kappa=params.kappa,
+        reserve_override=params.reserve_mw, horizon=horizon,
+    )
     P_star = list(plan.P_star)
+    P_star_hold = list(plan_h.P_star)
     release_from: int | None = None
     detect_at: float | None = None
     etas_now = etas
@@ -117,8 +145,10 @@ def run_scenario(params: ScenarioParams) -> dict[str, Any]:
             (k for k, t in enumerate(times) if t >= detect_at - 1e-9), len(times) - 1
         )
         P_star = apply_release(P_star, A_tot, times, release_from, plan.g_up)
+        P_star_hold = apply_release(P_star_hold, A_tot, times, release_from, plan_h.g_up)
         etas_now = [row if k < release_from else [float("inf")] * n for k, row in enumerate(etas)]
     P_star = [min(P_star[k], A_tot[k]) for k in range(len(times))]
+    P_star_hold = [min(P_star_hold[k], A_tot[k]) for k in range(len(times))]
 
     kw = dict(
         times=times, A=A, A_tot=A_tot, floors=floors, etas=etas_now, caps=caps, P_star=P_star,
@@ -127,11 +157,15 @@ def run_scenario(params: ScenarioParams) -> dict[str, Any]:
         release_from=release_from, A_nowcast=A_nowcast,
     )
     results = {s: simulate_scheme(s, **kw) for s in ("base", "uni", "bgc")}
+    # The hold scheme follows its own line, and reads the measured cover so a block counts
+    # as shaded from the moment the cloud's edge is on it, not only from its planned arrival.
+    results["hold"] = simulate_scheme("hold", **{**kw, "P_star": P_star_hold, "coverage": cov})
+    declared = {s: (P_star_hold if s == "hold" else P_star) for s in results}
     kpis = {
         s: metrics(
             times=times, A_tot=A_tot, POI=r.POI, P=r.P, A=A, etas=etas_now, caps=caps,
             coverage=cov, plant_mw=PLANT_MW, horizon=horizon, g_declared=params.g_mw_min,
-            P_star=P_star,
+            P_star=declared[s],
         )
         for s, r in results.items()
     }
@@ -157,6 +191,7 @@ def run_scenario(params: ScenarioParams) -> dict[str, Any]:
             "phase": phase,
             "A": [_r1(x) for x in A[k]],
             "P_bgc": [_r1(x) for x in results["bgc"].P[k]],
+            "P_hold": [_r1(x) for x in results["hold"].P[k]],
             "P_uni": [_r1(x) for x in results["uni"].P[k]],
             "P_base": [_r1(x) for x in results["base"].P[k]],
             "eta": [None if not math.isfinite(e) else round(e, 2) for e in eta_row],
@@ -168,8 +203,11 @@ def run_scenario(params: ScenarioParams) -> dict[str, Any]:
                 "P_base": _r1(results["base"].POI[k]),
                 "P_uni": _r1(results["uni"].POI[k]),
                 "P_bgc": _r1(results["bgc"].POI[k]),
+                "P_hold": _r1(results["hold"].POI[k]),
                 "P_star": _r1(P_star[k]),
+                "P_star_hold": _r1(P_star_hold[k]),
                 "R": _r1(results["bgc"].R[k]),
+                "R_hold": _r1(results["hold"].R[k]),
                 "residual": _r1(max(0.0, PLANT_MW - A_tot[k])),
             },
         })
@@ -185,6 +223,23 @@ def run_scenario(params: ScenarioParams) -> dict[str, Any]:
         "deepen_at_min": params.deepen_at_min, "detect_at_min": detect_at,
         "A_min_mw": _r1(plan.A_min),
     }
+    # The hold strategy's numbers, and what the front reaches, all from the planned field —
+    # the briefing quotes a forecast, so it must quote what the forecast said, not the truth.
+    shaded_planned = [k for k in range(len(times)) if A_tot_planned[k] < PLANT_MW - 1e-6]
+    k_first, k_last = (
+        (shaded_planned[0], shaded_planned[-1]) if shaded_planned else (plan_h.k_min, plan_h.k_min)
+    )
+    reached = [i for i in range(n) if reach_block[i] > REACHED_COVERAGE]
+    by_arrival = sorted(reached, key=lambda i: (etas[0][i], i))
+    front.update({
+        "hold_mw": _r1(plan_h.hold_mw), "hold_margin_mw": _r1(plan.delta),
+        "t_hold_start_min": round(plan_h.t_desc_start, 2),
+        "t_first_min": round(times[k_first], 2), "t_last_min": round(times[k_last], 2),
+        "blocks_reached": len(reached),
+        "stations_reached": sum(1 for c in reach_station if c > REACHED_COVERAGE),
+        "first_block": blocks[by_arrival[0]].id if by_arrival else None,
+        "last_block": blocks[by_arrival[-1]].id if by_arrival else None,
+    })
     return {
         "scenario_id": params.scenario_id(),
         "params": params.model_dump(),

@@ -6,6 +6,9 @@
    choices — two controls for one decision. Now the rail nests the plant's views under a
    heading that is a label rather than a fourth button, and the page listens for the hash.
 
+   The bar also carries the two page-wide actions: Explain this page (tour.js) and the theme
+   switch, which is wired at the foot of this file.
+
    Links must work both on the live server (routes /kingdom, /plant, /control) and on the
    static GitHub Pages build, where the pages are files (kingdom.html, …) served under a
    project sub-path. In static mode we use relative *.html links so they resolve against
@@ -47,7 +50,11 @@
     "<span>Block gradient control</span></a>" +
     '<span class="bb-spacer"></span>' +
     '<span class="bb-plant">Reference plant <b>Humaij</b>, 3 000 MW</span>' +
-    '<span class="bb-chip" title="Nothing on this page is measured data"><i></i>Simulation</span>';
+    '<span class="bb-chip" title="Nothing on this page is measured data"><i></i>Simulation</span>' +
+    // The two page-wide actions: walk me through this page, and switch the theme. tour.js and
+    // the theme code attach to these ids; the bar only draws them.
+    '<button id="rs-explain" class="bb-btn" type="button" title="A guided walk through this page">Explain this page</button>' +
+    '<button id="rs-theme" class="bb-btn bb-icon" type="button" aria-pressed="false" aria-label="Switch to dark theme" title="Switch theme">☾</button>';
   document.body.prepend(banner);
 
   // ── left rail ───────────────────────────────────────────────────────────
@@ -73,6 +80,35 @@
     '<span class="rs-ver">No SCADA connected</span></div>';
   document.body.prepend(nav);
   document.documentElement.classList.add("rs-has-sidebar");
+
+  // ── theme ───────────────────────────────────────────────────────────────
+  /* One switch for the whole site. The choice is stored and applied by splash.js before the
+     next page paints; here it is flipped, stored, and announced with an event so a page
+     whose charts and maps read their colours at draw time can redraw. With nothing stored
+     the button shows whichever theme the system preference produced. */
+  var themeBtn = document.getElementById("rs-theme");
+  function effectiveTheme() {
+    var t = document.documentElement.dataset.theme;
+    if (t === "dark" || t === "light") return t;
+    try { return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; } catch (e) { return "light"; }
+  }
+  function paintThemeButton() {
+    if (!themeBtn) return;
+    var dark = effectiveTheme() === "dark";
+    themeBtn.textContent = dark ? "\u2600" : "\u263e";
+    themeBtn.setAttribute("aria-pressed", String(dark));
+    themeBtn.setAttribute("aria-label", dark ? "Switch to light theme" : "Switch to dark theme");
+  }
+  if (themeBtn) {
+    themeBtn.addEventListener("click", function () {
+      var next = effectiveTheme() === "dark" ? "light" : "dark";
+      document.documentElement.dataset.theme = next;
+      try { localStorage.setItem("rs-theme", next); } catch (e) { /* private mode: for this page only */ }
+      paintThemeButton();
+      window.dispatchEvent(new CustomEvent("rs-theme", { detail: { theme: next } }));
+    });
+    paintThemeButton();
+  }
 
   // The two plant views share a URL, so re-resolve the active item when the hash moves.
   window.addEventListener("hashchange", function () {

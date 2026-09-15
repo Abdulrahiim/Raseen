@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,6 +12,7 @@
      played later, mid-session, on the next page instead of at the opening. -->
 <script src="/rs/splash.js"></script>
 <link rel="stylesheet" href="/rs/shell.css">
+<link rel="stylesheet" href="/rs/tour.css">
 <link rel="stylesheet" href="/static/styles.css">
 <link rel="stylesheet" href="/rs/control.css">
 <link rel="stylesheet" href="/static/vendor/maplibre-gl.css">
@@ -80,10 +81,6 @@
     <div class="stat">
       <span class="stat-k">Model</span>
       <span class="status-pill" id="status-calibration" title="Model calibration state">uncalibrated</span>
-      <!-- The shell forces this page to light and has no dark theme, so the toggle would
-           only offer a state nothing else on the site can be in. Hidden, not deleted:
-           app.js still binds a listener to it. -->
-      <button id="theme-toggle" class="ghost-btn" type="button" aria-label="Toggle colour theme">Theme</button>
     </div>
   </section>
 
@@ -204,7 +201,9 @@
           <select id="fault-asset" class="ctl"></select>
           <label class="ctl-label" for="fault-type">Fault</label>
           <select id="fault-type" class="ctl"></select>
-          <button id="inject-fault" class="danger-btn" type="button">Inject fault</button>
+          <!-- Enabled by app.js once the Fault select holds a value; until the catalogue has
+               loaded there is nothing to inject. -->
+          <button id="inject-fault" class="danger-btn" type="button" disabled>Inject fault</button>
           <button id="clear-faults" class="ghost-btn" type="button">Clear all</button>
           <button id="fit-all" class="ghost-btn" type="button">Fit all</button>
         </div>
@@ -296,6 +295,7 @@
 <div id="rs-tooltip" class="rs-tooltip"></div>
 
 <script src="/rs/sidebar.js"></script>
+<script src="/rs/tour.js"></script>
 <script>
 /* Plant views. The rail is the only place these two views are chosen, so the page carries no
    tab strip of its own: it reads the hash the rail navigates to. Gradient control is mounted

@@ -106,7 +106,7 @@ static build and the container deploy. Start there for anything beyond running i
 | Page | What it shows |
 |---|---|
 | **Kingdom** | Saudi utility-scale renewable projects (indicative registry) and the 380 kV transmission backbone (schematic) on a map, with layer, technology and status filters. |
-| **Plant** | The reference plant — named *Humaij* in the dashboard, 3,000 MWac — in two views. **Overview** is the supervisory desk: the 363-station site on satellite imagery, real block layout, 3D drill-down, expected-vs-measured trends and fault injection. **Gradient control** is the cloud crossing: power at the connection point with the held headroom shaded under it, a readout of what the cloud took and what the blocks still in sun gave back to cover it, the 30 block set-points, and sliders for the cloud's speed, size, position and direction. The left rail is the only place either view is reached from. |
+| **Plant** | The reference plant — named *Humaij* in the dashboard, 3,000 MWac — in two views. **Overview** is the supervisory desk: the 363-station site on satellite imagery, real block layout, 3D drill-down, expected-vs-measured trends and fault injection. **Gradient control** is the cloud crossing: power at the connection point with the held headroom shaded under it, a readout of what the cloud took and what the blocks still in sun gave back to cover it, the set-point of every station (363, grouped into the 30 control blocks the controller dispatches), and sliders for the cloud's speed, size, position and direction. Two response strategies are computed for every cloud — the **declared ramp** (export descends at the declared gradient, headroom held on the blocks the cloud reaches last) and **pre-hold and backfill** (every block held down evenly ahead of the front; the blocks still in sun raise their output when it lands, so export stays flat). *Replay the event* walks through it at a chosen speed with a forecast briefing and notices as the response runs. The left rail is the only place either view is reached from; *Explain this page* in the top bar gives a guided tour of each view, and the theme switch beside it selects light or dark. |
 
 ---
 
@@ -136,10 +136,11 @@ Tests and lint (from `app/`):
 
 GitHub Pages serves static files only, so `tools/build_static.py` pre-renders the dashboard
 into `docs/` — the pages, their assets, the registry and geometry as JSON, a curated set of
-scenarios, and a day bundle for the Plant page. The static build is read-only: manual fault
-injection is not included, and the gradient-control sliders step between pre-rendered clouds
-one axis at a time (the four cloud sliders each have their own spine of scenarios; moving one
-returns the other three to their defaults). Run the app locally for free movement.
+scenarios, and a day bundle for the Plant page. On the static build fault injection is kept
+in the browser's memory for the session (nothing is sent anywhere), and the gradient-control
+sliders step between pre-rendered clouds one axis at a time (the four cloud sliders each have
+their own spine of scenarios; moving one returns the other three to their defaults). Run the
+app locally for free movement.
 
 ```powershell
 .venv\Scripts\python.exe tools\build_static.py          # regenerate ../docs

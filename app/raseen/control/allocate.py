@@ -26,6 +26,14 @@ blocks the cloud reaches last so the aggregate stays reachable, and the residual
 placed within slew. The proportional spread of the reference remains only as a last resort
 so the plant always tracks its declared line. Every D1 metric still matches the reference
 table.
+
+The second strategy, ``allocate_hold``, is the user's own idea and does without arrival
+order altogether: ahead of the front every block is held down evenly, by the forecast loss
+plus a margin, so the plant reaches its flat line before the first block is shaded; when the
+cloud lands, the blocks still in sun give back what they were holding and the export stays
+flat through the crossing; when the cloud clears, everyone returns at the up-gradient. A
+shaded block only ever follows its own sun down. Nothing is put by; the sunshine deliberately
+not exported ahead of the front is what the blocks in sun raise their output with later.
 """
 
 from __future__ import annotations
@@ -244,6 +252,74 @@ def allocate_bgc(
             tot = sum(room_l)
             if tot > 0:
                 p = [p[i] + need * room_l[i] / tot for i in range(n)]
+    return [min(A[i], max(0.0, p[i])) for i in range(n)]
+
+
+def allocate_hold(
+    A: list[float],
+    cap: list[float],
+    target: float,
+    *,
+    slew_lim: list[float],
+    prev: list[float],
+    shaded: list[bool],
+) -> list[float]:
+    """Set-points P_i so that Σ P_i = target, held evenly ahead of the front and backfilled.
+
+    There is no arrival order here, only *shaded* or *in sun*:
+
+    1. band: ``lo_i = max(0, prev_i − slew_i)``, ``hi_i = min(A_i, prev_i + slew_i)``; a block
+       whose sun fell below ``lo_i`` is forced to ``A_i`` (the same rule as ``allocate_bgc``);
+    2. every block starts from ``prev_i`` clamped into its band, so a shaded block follows its
+       own sun down and is never curtailed further by the controller;
+    3. the residual ``Σp − target``. When the plant must come down (the pre-hold descent) it
+       is taken from the blocks in sun in proportion to ``p_i`` — the same fraction off every
+       block, the user's "10 % everywhere" — within ``lo_i``; then from the shaded blocks the
+       same way; and only if slew cannot deliver it is the rest spread beyond slew, so the
+       plant still tracks its declared line. When the plant must come up (the backfill) it is
+       given to the blocks in sun in proportion to their room ``hi_i − p_i``, then to the
+       shaded blocks toward their own ``A_i``; if the blocks in sun cannot cover it, export
+       leaves the line — the shortfall is reported in the frames, not hidden by a step beyond
+       slew, because a block cannot be asked for more than its slew on the way up;
+    4. ``min(A_i, max(0, p_i))``.
+
+    ``cap`` is the block rating; it is carried so the two allocators share a calling shape,
+    and the band already keeps every set-point under the sun, which is under the rating.
+    """
+    n = len(A)
+    lo = [max(0.0, prev[i] - slew_lim[i]) for i in range(n)]
+    hi = [min(A[i], prev[i] + slew_lim[i]) for i in range(n)]
+    for i in range(n):
+        if A[i] < lo[i]:          # the sun took the block below its slew band: a forced drop
+            lo[i] = A[i]
+        if hi[i] < lo[i]:
+            hi[i] = lo[i]
+    p = [min(max(prev[i], lo[i]), hi[i]) for i in range(n)]
+    in_sun = [i for i in range(n) if not shaded[i]]
+    in_shade = [i for i in range(n) if shaded[i]]
+
+    r = sum(p) - target
+    if r > _EPS:
+        for group in (in_sun, in_shade):
+            room = {i: p[i] - lo[i] for i in group if p[i] - lo[i] > _EPS}
+            take, r = _water_fill(r, room, {i: p[i] for i in room})
+            for i, t in take.items():
+                p[i] -= t
+            if r <= 1e-6:
+                break
+        if r > 1e-6:                        # last resort, beyond slew
+            tot = sum(p)
+            if tot > 0:
+                p = [pi - r * pi / tot for pi in p]
+    elif r < -_EPS:
+        need = -r
+        for group in (in_sun, in_shade):
+            room = {i: hi[i] - p[i] for i in group if hi[i] - p[i] > _EPS}
+            take, need = _water_fill(need, room, dict(room))
+            for i, t in take.items():
+                p[i] += t
+            if need <= 1e-6:
+                break
     return [min(A[i], max(0.0, p[i])) for i in range(n)]
 
 

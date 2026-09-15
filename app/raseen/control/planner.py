@@ -3,6 +3,12 @@
 Aggregate-target logic for a plant of any size. The line descends at the declared
 gradient g so that it reaches the transit minimum exactly when the available power
 does, holds, and re-ascends at g_up.
+
+The flat line can be planned with a *hold margin*: the plant is then held that much below
+the transit minimum, and the descent starts earlier by margin / g so it still ends when the
+first block is reached. This is the line the pre-hold and backfill strategy follows — the
+margin is the loss it keeps in hand for a front deeper than forecast. With no margin the
+flat line is exactly what it always was.
 """
 
 from __future__ import annotations
@@ -26,6 +32,9 @@ class Plan:
     horizon: float
     lead_shortfall: float
     flat: bool
+    #: The level the flat line holds through the crossing (the transit minimum less the hold
+    #: margin); for the ramp it is simply the transit minimum.
+    hold_mw: float
 
 
 def plan_trajectory(
@@ -40,6 +49,7 @@ def plan_trajectory(
     kappa: float = 0.25,
     reserve_override: float | None = None,
     horizon: float = 5.0,
+    hold_margin: float = 0.0,
 ) -> Plan:
     g_up = g if g_up is None else g_up
     n = len(times)
@@ -51,7 +61,11 @@ def plan_trajectory(
         shaded = [k for k in range(n) if A_tot[k] < plant_mw - 1e-6]
         k_first, k_last = (shaded[0], shaded[-1]) if shaded else (k_min, k_min)
         t_first, t_last = times[k_first], times[k_last]
-        L_pre = D / g
+        # The hold level sits the margin below the transit minimum, and the descent starts
+        # earlier by exactly the extra distance, so the plant is at the hold when the first
+        # block is reached and not before. A zero margin leaves the old flat line untouched.
+        hold = max(0.0, A_min - hold_margin)
+        L_pre = (plant_mw - hold) / g
         t_desc_start = t_first - L_pre
         t_rise = t_last
         for k, tt in enumerate(times):
@@ -60,11 +74,12 @@ def plan_trajectory(
             elif tt < t_first:
                 p = plant_mw - g * (tt - t_desc_start)
             elif tt <= t_last:
-                p = A_min
+                p = hold
             else:
-                p = min(plant_mw, A_min + g_up * (tt - t_last))
+                p = min(plant_mw, hold + g_up * (tt - t_last))
             P_star.append(min(p, A_tot[k]))
     else:
+        hold = A_min
         # Start the descent at the feasibility-binding point: the earliest time from which a
         # straight line at gradient g stays at or below the available power at every shaded
         # step. For a uniform (linear) front this is t_min - D/g, so the abstract reference
@@ -96,7 +111,7 @@ def plan_trajectory(
     return Plan(
         P_star=P_star, t_desc_start=t_desc_start, t_min=t_min, k_min=k_min, t_rise=t_rise,
         A_min=A_min, D=D, L=L, g=g, g_up=g_up, delta=delta, horizon=horizon,
-        lead_shortfall=lead_shortfall, flat=flat,
+        lead_shortfall=lead_shortfall, flat=flat, hold_mw=hold,
     )
 
 

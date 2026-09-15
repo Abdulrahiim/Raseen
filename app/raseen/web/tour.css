@@ -1,0 +1,75 @@
+/* Guided tour — the walk-through behind "Explain this page" in the top bar.
+
+   Two things on screen: a spotlight and a card. The spotlight is one fixed box whose
+   box-shadow is large enough to dim the whole viewport, so the hole and the dimming are the
+   same element and move together; its top, left, width and height are transitioned, which
+   is what makes it slide from one target to the next. That slide is the only motion this
+   feature adds, and it happens only in answer to a click, as the house rules require.
+
+   The card is the second thing on the site allowed to float above the desk (the tooltip is
+   the first), so it alone carries --rs-shadow-lg. Everything else is the flat instrument
+   face: hairline border, --rs-radius, no shadow. Every colour is a shell.css token, so the
+   dark theme needs nothing here. The one literal is the dim itself: a veil laid over a page
+   is not a colour the page has, and it must read the same on either theme.
+
+   The buttons copy .rs-btn from control.css rather than importing it — the Kingdom page does
+   not load that stylesheet, and a tour that looked different per page would be wrong. */
+
+.rs-tour { position: fixed; inset: 0; z-index: 5000; font-family: var(--rs-sans); }
+
+/* ── the spotlight ──────────────────────────────────────────────────────── */
+/* Starts as a point in the middle of the viewport: the first targeted step slides out from
+   there, and a step with no target (the opening and closing cards) returns to it. The ring
+   is the first shadow so it paints over the dim; with no target there is no ring. */
+.rs-tour-spot {
+  position: fixed; top: 50%; left: 50%; width: 0; height: 0;
+  border-radius: var(--rs-radius);
+  box-shadow: 0 0 0 2px var(--pb-green), 0 0 0 200vmax rgba(10, 18, 15, 0.62);
+  pointer-events: none;
+  transition:
+    top 320ms cubic-bezier(.2, .7, .3, 1),
+    left 320ms cubic-bezier(.2, .7, .3, 1),
+    width 320ms cubic-bezier(.2, .7, .3, 1),
+    height 320ms cubic-bezier(.2, .7, .3, 1);
+}
+.rs-tour-spot.is-void { box-shadow: 0 0 0 0 transparent, 0 0 0 200vmax rgba(10, 18, 15, 0.62); }
+
+/* ── the card ───────────────────────────────────────────────────────────── */
+/* Positioned from script beside the target, flipping sides to stay on screen, and centred
+   when there is no target. It slides with the spotlight so the two arrive together. */
+.rs-tour-card {
+  position: fixed; top: 0; left: 0; z-index: 1;
+  box-sizing: border-box; width: min(340px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px); overflow: auto;
+  background: var(--pb-card); border: 1px solid var(--pb-border); border-radius: var(--rs-radius);
+  box-shadow: var(--rs-shadow-lg);
+  padding: 14px 16px 13px; color: var(--rs-text);
+  transition: top 320ms cubic-bezier(.2, .7, .3, 1), left 320ms cubic-bezier(.2, .7, .3, 1);
+}
+.rs-tour-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.rs-tour-title { margin: 0; font: 600 13.5px/1.3 var(--rs-sans); color: var(--rs-text); letter-spacing: -0.005em; }
+.rs-tour-step { flex: none; font: 500 11.5px var(--rs-mono); font-variant-numeric: tabular-nums; color: var(--rs-muted); }
+.rs-tour-body { margin: 7px 0 0; font: 400 13px/1.55 var(--rs-sans); color: var(--rs-text-2); }
+/* The few numbers in the copy are set in mono like every other number on the site. */
+.rs-tour-body b { font: 500 12.5px var(--rs-mono); font-variant-numeric: tabular-nums; color: var(--rs-text); }
+
+.rs-tour-foot { display: flex; align-items: center; gap: 8px; margin-top: 13px; padding-top: 11px; border-top: 1px solid var(--rs-border); }
+.rs-tour-spacer { flex: 1; }
+
+/* .rs-btn, copied from control.css; see the note at the top. */
+.rs-tour-btn { font: 500 12.5px var(--rs-sans); padding: 8px 13px; border-radius: var(--rs-radius-sm); cursor: pointer; border: 1px solid var(--rs-border-strong); background: var(--pb-card); color: var(--rs-text); }
+.rs-tour-btn:hover { background: var(--rs-surface-3); }
+.rs-tour-btn:disabled { opacity: 0.45; cursor: default; }
+.rs-tour-btn:disabled:hover { background: var(--pb-card); }
+.rs-tour-btn.primary { background: var(--pb-deep); border-color: var(--pb-deep); color: var(--rs-ink); min-width: 74px; }
+.rs-tour-btn.primary:hover { background: var(--pb-header-2); border-color: var(--pb-header-2); }
+/* Skip is the quiet one: it is always there, and it must never look like the way forward. */
+.rs-tour-btn.quiet { border-color: transparent; background: transparent; color: var(--rs-text-2); padding-left: 6px; padding-right: 6px; }
+.rs-tour-btn.quiet:hover { background: var(--rs-surface-3); color: var(--rs-text); }
+
+/* Re-measuring on scroll or resize must not slide: the target has moved with the page and
+   the ring has to stay on it. Script adds the class, places, forces a reflow, removes it. */
+.rs-tour.is-snap .rs-tour-spot, .rs-tour.is-snap .rs-tour-card { transition: none; }
+@media (prefers-reduced-motion: reduce) {
+  .rs-tour-spot, .rs-tour-card { transition: none; }
+}

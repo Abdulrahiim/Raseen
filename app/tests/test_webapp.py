@@ -84,11 +84,34 @@ def test_scenario_endpoint(client):
     # Raseen holds the declared gradient against a much steeper uncontrolled drop.
     assert body["kpis"]["bgc"]["max_grad_mw_min"] <= 120 * 1.1
     assert body["kpis"]["base"]["max_grad_mw_min"] > body["kpis"]["bgc"]["max_grad_mw_min"]
+    # The second strategy travels in the same payload, with its own line and reserve.
+    frame = body["frames"][400]
+    assert len(frame["P_hold"]) == 30
+    assert {"P_hold", "P_star_hold", "R_hold"} <= set(frame["agg"])
+    assert body["kpis"]["hold"]["max_grad_mw_min"] <= 120 * 1.1
+    front = body["front"]
+    for key in ("hold_mw", "hold_margin_mw", "t_hold_start_min", "t_first_min", "t_last_min",
+                "blocks_reached", "stations_reached", "first_block", "last_block"):
+        assert key in front, key
+    assert front["blocks_reached"] == 30 and front["stations_reached"] == 363
+    assert front["t_hold_start_min"] < front["t_desc_start_min"]
     again = client.get(f"/api/rs/scenario/{body['scenario_id']}")
     assert again.status_code == 200
     assert client.get("/api/rs/scenario/nope").status_code == 404
     bad = client.post("/api/rs/scenario", json={"depth": 5})
     assert bad.status_code == 400 and bad.json()["classification"] == CLASSIFICATION
+
+
+def test_partial_cover_reports_what_the_front_reaches(client):
+    body = client.post("/api/rs/scenario", json={"cover_frac": 0.4}).json()
+    front = body["front"]
+    assert 0 < front["blocks_reached"] < 30
+    assert 0 < front["stations_reached"] < 363
+    assert front["first_block"] and front["last_block"]
+    # Through the cover the hold strategy sits on its flat line while the ramp follows its own.
+    cover = [f for f in body["frames"] if f["phase"] == "cover"]
+    assert cover
+    assert all(abs(f["agg"]["P_hold"] - f["agg"]["P_star_hold"]) < 5.0 for f in cover)
 
 
 def test_plants_and_grid(client):

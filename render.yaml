@@ -1,0 +1,26 @@
+# Optional: deploy the FULL live Raseen app (with a real Python backend) to Render.
+#
+# GitHub Pages (docs/) is static and has no backend by design. If you want the live
+# app instead — free scenario sliders, live fault injection, the real physics engine —
+# deploy this blueprint:
+#
+#   1. Push this repo to GitHub (already done).
+#   2. Go to https://render.com → New → Blueprint → connect the Abdulrahiim/Raseen repo.
+#   3. Render reads this file, builds app/Dockerfile and starts the service.
+#   4. You get a public URL like https://raseen.onrender.com with the whole app running.
+#
+# The free plan sleeps after inactivity, so the first request after idle takes ~30–60 s
+# to wake and build the simulated plant; after that it is quick.
+services:
+  - type: web
+    name: raseen
+    runtime: docker
+    dockerfilePath: ./app/Dockerfile
+    dockerContext: ./app
+    plan: free
+    healthCheckPath: /api/rs/status
+    envVars:
+      - key: RASEEN_SITE_MODE
+        value: real
+      - key: RASEEN_CACHE_DIR
+        value: /app/.cache

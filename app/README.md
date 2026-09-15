@@ -71,8 +71,27 @@ Open `http://127.0.0.1:8000` — it lands on the Kingdom page; the sidebar switc
 The Kingdom basemap and the Plant satellite view use Esri's keyless tile services and need
 internet; both fall back to a drawn plan if tiles or WebGL are unavailable.
 
-## Deploy (later)
+## Static build for GitHub Pages
 
-The app is a single container (`Dockerfile`) that runs `uvicorn raseen.webapp:app`. It is
-ready to push to any container host — Azure Web App for Containers, or a Vercel/Render-style
-service — when you choose to. Nothing here needs a build step or a database.
+GitHub Pages serves static files only, so `tools/build_static.py` pre-renders the whole
+dashboard into `../docs/` — the three pages, their assets (with paths rewritten for a project
+sub-path), the registry and geometry as JSON, a curated set of scenarios, and a "day bundle"
+for the Plant page. A small fetch shim (`tools/rs-static-api.js`) answers the reused
+NAJM-3000 dashboard's `/api/*` calls from that bundle, so the Plant page runs with no backend
+(read-only: the manual fault injection is not part of the static demo, and the Gradient
+Control sliders become a set of pre-rendered preset scenarios).
+
+```powershell
+.venv\Scripts\python.exe tools\build_static.py          # regenerate ../docs
+.venv\Scripts\python.exe -m http.server -d ..\docs      # preview at http://localhost:8000
+```
+
+The repository serves `docs/` on the `main` branch as GitHub Pages, so committing a rebuilt
+`docs/` and pushing publishes the site. The maps need internet (Esri keyless tiles) and fall
+back to a drawn plan otherwise.
+
+## Full live app (optional, later)
+
+For unlimited interactivity (free sliders, live fault injection, the real physics engine) the
+app is also a single container (`Dockerfile`) that runs `uvicorn raseen.webapp:app`, ready for
+any Python host — Azure Web App for Containers, Render, Railway. Nothing needs a database.

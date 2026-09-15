@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Raseen · Kingdom</title>
+<link rel="stylesheet" href="rs/shell.css">
+<link rel="stylesheet" href="rs/vendor/maplibre-gl.css">
+<link rel="stylesheet" href="rs/kingdom.css">
+<script src="rs/vendor/maplibre-gl.js"></script>
+<script>window.RASEEN = { data: "data", static: true };</script>
+</head>
+<body class="rs-page">
+<header class="rs-topbar">
+  <h1>Kingdom</h1>
+  <span class="rs-sub">Saudi renewable fleet and transmission backbone · indicative</span>
+</header>
+<div id="rs-banner" class="rs-banner" hidden></div>
+<main id="rs-root" class="rs-body"><p class="rs-loading">Loading the fleet…</p></main>
+<div id="rs-tooltip" class="rs-tooltip"></div>
+<script src="rs/sidebar.js"></script>
+<script type="module" src="rs/kingdom.js"></script>
+</body>
+</html>

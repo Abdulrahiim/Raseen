@@ -43,11 +43,13 @@ function renderList() {
 }
 
 async function boot() {
+  // Live: read from the API. Static (GitHub Pages): read pre-rendered JSON files.
+  const D = window.RASEEN?.data;
   let plantsBody, gridBody;
   try {
     [plantsBody, gridBody] = await Promise.all([
-      fetch("/api/rs/plants").then((r) => r.json()),
-      fetch("/api/rs/grid").then((r) => r.json()),
+      fetch(D ? `${D}/plants.json` : "/api/rs/plants").then((r) => r.json()),
+      fetch(D ? `${D}/grid.json` : "/api/rs/grid").then((r) => r.json()),
     ]);
   } catch (e) { banner(`Registry failed: ${e.message}`); return; }
   state.plants = plantsBody.plants;

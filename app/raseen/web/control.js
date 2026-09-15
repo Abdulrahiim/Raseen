@@ -15,9 +15,29 @@ const DEFAULTS = {
   deepen_at_min: null, deepen_factor: 1.2,
 };
 
+/* On GitHub Pages there is no server to compute scenarios, so the build pre-renders this
+   curated set. The keys name the files under data/scenarios/. The same list drives the
+   preset dropdown in both live and static modes. */
+const PRESETS = [
+  { key: "d1-default", label: "Solid front · 90 MW/min (headline)", params: {} },
+  { key: "d1-g60", label: "Solid front · 60 MW/min (gentler, more lead)", params: { g_mw_min: 60 } },
+  { key: "d1-g120", label: "Solid front · 120 MW/min (steeper, less lead)", params: { g_mw_min: 120 } },
+  { key: "d1-ns", label: "Solid front · south→north (longer crossing)", params: { heading_deg: 0 } },
+  { key: "d1-fast", label: "Solid front · fast cloud (72 km/h)", params: { speed_kmh: 72 } },
+  { key: "d1-slow", label: "Solid front · slow cloud (24 km/h)", params: { speed_kmh: 24 } },
+  { key: "thin-dsh", label: "Thin band · Dynamic Solar Headroom (held flat)", params: { event: "thin", flat: true, g_mw_min: 60 } },
+  { key: "scattered", label: "Scattered cumulus", params: { event: "scattered" } },
+  { key: "stall", label: "Front stalls (false alarm)", params: { stall_at_min: -3 } },
+  { key: "deepen", label: "Front 20 % deeper than forecast", params: { deepen_at_min: 2, deepen_factor: 1.2 } },
+  { key: "high-conf", label: "High forecast confidence (small reserve)", params: { confidence: 0.9 } },
+  { key: "low-conf", label: "Low forecast confidence (large reserve)", params: { confidence: 0.3 } },
+];
+const STATIC = () => window.RASEEN?.data;
+
 const state = {
   site: null, scenario: null, frameIndex: 0, controller: "bgc", mode: "output",
-  order: "eta", playing: false, selected: null, params: { ...DEFAULTS }, view: null, timer: null,
+  order: "eta", playing: false, selected: null, params: { ...DEFAULTS },
+  preset: "d1-default", view: null, timer: null,
 };
 
 const frame = () => (state.scenario ? state.scenario.frames[Math.min(state.frameIndex, state.scenario.frames.length - 1)] : null);
@@ -47,10 +67,16 @@ async function runScenario(patch = {}) {
   const root = $("rs-root");
   root.classList.add("rs-busy");
   try {
-    const body = {};
-    for (const [k, v] of Object.entries(state.params)) if (v !== null && v !== undefined) body[k] = v;
     const keepT = frame()?.t;
-    const scn = await fetchJSON("/api/rs/scenario", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    let scn;
+    if (STATIC()) {
+      // Static build: load the pre-rendered scenario for the chosen preset.
+      scn = await fetchJSON(`${STATIC()}/scenarios/${state.preset}.json`);
+    } else {
+      const body = {};
+      for (const [k, v] of Object.entries(state.params)) if (v !== null && v !== undefined) body[k] = v;
+      scn = await fetchJSON("/api/rs/scenario", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    }
     state.scenario = scn;
     state.frameIndex = keepT === undefined ? scn.times_min.findIndex((t) => t >= 0) : Math.max(0, scn.times_min.findIndex((t) => t >= keepT));
     if (state.frameIndex < 0) state.frameIndex = 0;
@@ -115,6 +141,9 @@ function layout() {
 
   <section class="rs-panel">
     <div class="rs-panel-head"><h2>Scenario</h2><button id="rs-reset" class="rs-btn">Reset</button></div>
+    <div class="rs-ctl" id="rs-preset-row"><label class="rs-ctl-label" for="p-preset">Preset scenario</label>
+      <select id="p-preset">${PRESETS.map((p) => `<option value="${p.key}">${p.label}</option>`).join("")}</select></div>
+    <div id="rs-advanced">
     <div class="rs-row2">
       <div class="rs-ctl"><label class="rs-ctl-label" for="p-event">Cloud event</label>
         <select id="p-event"><option value="solid">Solid front (design case D1)</option><option value="thin">Thin band (D2)</option><option value="scattered">Scattered cumulus (D3)</option></select></div>
@@ -133,6 +162,7 @@ function layout() {
     <div class="rs-row2">
       <button id="rs-stall" class="rs-btn warn" title="What if the forecast is wrong?">Stall the front now</button>
       <button id="rs-deepen" class="rs-btn warn" title="What if it is deeper than forecast?">Deepen the front 20 % now</button>
+    </div>
     </div>
     <p class="rs-note" id="rs-perturb"></p>
   </section>
@@ -174,8 +204,17 @@ function layout() {
   </section>`;
 }
 
+function loadPreset(key) {
+  const preset = PRESETS.find((p) => p.key === key) || PRESETS[0];
+  state.preset = preset.key;
+  state.params = { ...DEFAULTS, ...preset.params };
+  syncInputs();
+  runScenario();
+}
+
 function bindControls() {
   const on = (id, ev, fn) => $(id)?.addEventListener(ev, fn);
+  on("p-preset", "change", (e) => loadPreset(e.target.value));
   on("p-event", "change", (e) => runScenario({ event: e.target.value }));
   on("p-speed", "change", (e) => runScenario({ speed_kmh: Number(e.target.value) }));
   on("p-heading", "input", (e) => ($("v-heading").textContent = `${e.target.value}°`));
@@ -208,6 +247,7 @@ function bindControls() {
 
 function syncInputs() {
   const p = state.params;
+  if ($("p-preset")) $("p-preset").value = state.preset;
   $("p-event").value = p.event; $("p-speed").value = String(p.speed_kmh);
   $("p-heading").value = p.heading_deg; $("v-heading").textContent = `${p.heading_deg}°`;
   $("p-depth").value = p.depth; $("v-depth").textContent = `${Math.round(p.depth * 100)} %`;
@@ -336,9 +376,13 @@ function renderMarks() {
 async function boot() {
   layout();
   bindControls();
+  if (STATIC()) {
+    // Static build: only the pre-rendered presets are available, so hide the free sliders.
+    for (const id of ["rs-advanced", "rs-reset"]) $(id)?.setAttribute("hidden", "");
+  }
   paintMapLegend();
   try {
-    state.site = await fetchJSON("/api/rs/site");
+    state.site = await fetchJSON(STATIC() ? `${STATIC()}/site.json` : "/api/rs/site");
   } catch (e) {
     banner(`Could not load the plant: ${e.message}`);
     return;

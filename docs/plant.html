@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Raseen · Plant (NAJM-3000)</title>
+<link rel="stylesheet" href="rs/shell.css">
+<link rel="stylesheet" href="static/styles.css">
+<link rel="stylesheet" href="static/vendor/maplibre-gl.css">
+<script src="static/vendor/maplibre-gl.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "./static/vendor/three.module.js",
+    "three/addons/": "./static/vendor/",
+    "three/examples/jsm/": "./static/vendor/"
+  }
+}
+</script>
+<script>window.RASEEN = { data: "data", static: true };</script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <div>
+      <h1>NAJM-3000 Digital Twin</h1>
+      <p class="brand-sub" id="brand-sub">Plant supervisory overview</p>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <span class="stat"><span class="stat-k">PLANT</span><span class="stat-v" id="sb-plant">NAJM-3000</span></span>
+    <span class="stat"><span class="stat-k">MVPS</span><span class="stat-v" id="sb-blocks">—</span></span>
+    <span class="stat"><span class="stat-k">OUTPUT</span><span class="stat-v" id="sb-power">—</span></span>
+    <span class="stat"><span class="stat-k">ALARMS</span><span class="stat-v" id="sb-alarms">0</span></span>
+    <span id="data-source-chip" class="chip chip-sim" role="status" title="Data source">
+      <span class="chip-dot" aria-hidden="true"></span>
+      <span class="chip-label" id="data-source-label">SIM</span>
+    </span>
+  </div>
+
+  <div class="status-block">
+    <span class="status-pill" id="status-calibration" title="Model calibration state">uncalibrated</span>
+    <button id="theme-toggle" class="ghost-btn" type="button" aria-label="Toggle colour theme">Theme</button>
+  </div>
+</header>
+
+<div id="banner" class="banner" hidden></div>
+
+<main>
+
+  <section class="panel timeline-panel">
+    <div class="timeline-controls">
+      <button id="play" class="primary-btn" type="button">Go live</button>
+      <button id="step-back" class="ghost-btn" type="button" aria-label="Step back">&#8592;</button>
+      <button id="step-fwd" class="ghost-btn" type="button" aria-label="Step forward">&#8594;</button>
+      <input id="scrubber" class="scrubber" type="range" min="0" max="0" value="0"
+             aria-label="Time of simulated day">
+      <div class="clock">
+        <span id="clock-time" class="clock-time">&mdash;&mdash;:&mdash;&mdash;</span>
+        <span id="clock-date" class="clock-date">simulated day</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="tile-row" aria-label="Plant summary">
+    <div class="tile">
+      <span class="tile-label">Plant AC power</span>
+      <span class="tile-value" id="kpi-plant-power">&mdash;</span>
+      <span class="tile-unit">MW &middot; simulated</span>
+    </div>
+    <div class="tile">
+      <span class="tile-label">Plane-of-array irradiance</span>
+      <span class="tile-value" id="kpi-poa">&mdash;</span>
+      <span class="tile-unit">W&#8239;m&#8315;&sup2; &middot; simulated</span>
+    </div>
+    <div class="tile">
+      <span class="tile-label">Module temperature</span>
+      <span class="tile-value" id="kpi-tmod">&mdash;</span>
+      <span class="tile-unit">&deg;C &middot; modelled</span>
+    </div>
+    <div class="tile">
+      <span class="tile-label">Measured vs expected</span>
+      <span class="tile-value" id="kpi-deviation">&mdash;</span>
+      <span class="tile-unit" id="kpi-deviation-note">% &middot; simulated measurement</span>
+    </div>
+    <div class="tile">
+      <span class="tile-label">Performance ratio</span>
+      <span class="tile-value" id="kpi-pr">&mdash;</span>
+      <span class="tile-unit" id="kpi-pr-note">measured / expected</span>
+    </div>
+    <div class="tile">
+      <span class="tile-label">MV blocks</span>
+      <span class="tile-value" id="kpi-blocks">&mdash;</span>
+      <span class="tile-unit" id="kpi-blocks-note">configured</span>
+    </div>
+  </section>
+
+  <section class="split split-ops">
+    <div class="panel">
+      <div class="panel-head">
+        <div class="head-row">
+          <h2>Alarms &amp; events</h2>
+          <span class="count-badge" id="alarm-count">0</span>
+        </div>
+        <p class="panel-note">Active plant events, newest first.</p>
+      </div>
+      <ul id="alarm-log" class="alarm-log"></ul>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div class="head-row">
+          <h2>Deviation analysis <span class="panel-sub" id="diag-block"></span></h2>
+          <span class="badge-ai" id="diag-confidence">&mdash;</span>
+        </div>
+        <p class="panel-note" id="diag-basis"></p>
+      </div>
+      <div id="diag-body" class="diag-body"></div>
+    </div>
+  </section>
+
+  <section class="split">
+    <div class="panel">
+      <div class="panel-head">
+        <div class="head-row">
+          <h2>Plant overview</h2>
+          <div class="seg" role="group" aria-label="Grid colouring">
+            <button type="button" class="seg-btn is-on" data-mode="output">Output</button>
+            <button type="button" class="seg-btn" data-mode="deviation">Deviation</button>
+          </div>
+          <div class="seg" role="group" aria-label="Overview style">
+            <button type="button" class="seg-btn is-on" data-view="grid">Grid</button>
+            <button type="button" class="seg-btn" data-view="map">Satellite</button>
+          </div>
+        </div>
+        <p class="panel-note" id="grid-note">Each cell is one MV block. Shade shows AC output.</p>
+      </div>
+      <div id="plant-grid" class="plant-grid" role="list"></div>
+      <div id="site-map" class="site-map" hidden></div>
+      <div class="legend legend-ramp">
+        <span class="legend-cap">low</span>
+        <span class="ramp" aria-hidden="true"></span>
+        <span class="legend-cap">high</span>
+        <span class="legend-note" id="spread-note"></span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Block detail</h2>
+        <p class="panel-note" id="block-note">Select a block from the plant overview.</p>
+      </div>
+      <dl class="detail-list" id="block-detail"></dl>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Station 3D <span class="panel-sub" id="model-block-name"></span></h2>
+      <p class="panel-note" id="model-note"></p>
+      <p class="model-status" id="model-status" role="status"></p>
+    </div>
+    <div class="model-layout">
+      <div id="model-viewer" class="model-viewer"></div>
+      <div class="model-side">
+        <div class="model-controls">
+          <label class="ctl-label" for="fault-asset">Asset</label>
+          <select id="fault-asset" class="ctl"></select>
+          <label class="ctl-label" for="fault-type">Fault</label>
+          <select id="fault-type" class="ctl"></select>
+          <button id="inject-fault" class="danger-btn" type="button">Inject fault</button>
+          <button id="clear-faults" class="ghost-btn" type="button">Clear all</button>
+          <button id="fit-all" class="ghost-btn" type="button">Fit all</button>
+        </div>
+        <ul id="fault-list" class="fault-list"></ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Trends <span class="panel-sub" id="trend-block-name"></span></h2>
+      <p class="panel-note">
+        Irradiance, temperature and power carry different units, so each has its
+        own scale. Simulated day.
+      </p>
+    </div>
+
+    <figure class="chart-figure">
+      <figcaption class="chart-title">
+        Irradiance
+        <span class="chart-unit">W&#8239;m&#8315;&sup2;</span>
+      </figcaption>
+      <div class="legend" id="legend-irradiance"></div>
+      <div id="chart-irradiance" class="chart"></div>
+    </figure>
+
+    <figure class="chart-figure">
+      <figcaption class="chart-title">
+        Temperature
+        <span class="chart-unit">&deg;C</span>
+      </figcaption>
+      <div class="legend" id="legend-temperature"></div>
+      <div id="chart-temperature" class="chart"></div>
+    </figure>
+
+    <figure class="chart-figure">
+      <figcaption class="chart-title">
+        Inverter power &mdash; expected vs measured
+        <span class="chart-unit">MW</span>
+      </figcaption>
+      <div class="legend" id="legend-power"></div>
+      <div id="chart-power" class="chart"></div>
+    </figure>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Weather input</h2>
+      <p class="panel-note" id="weather-source">&mdash;</p>
+    </div>
+    <div class="tile-row tile-row-tight">
+      <div class="tile tile-small">
+        <span class="tile-label">GHI</span>
+        <span class="tile-value" id="wx-ghi">&mdash;</span>
+        <span class="tile-unit">W&#8239;m&#8315;&sup2;</span>
+      </div>
+      <div class="tile tile-small">
+        <span class="tile-label">POA</span>
+        <span class="tile-value" id="wx-poa">&mdash;</span>
+        <span class="tile-unit">W&#8239;m&#8315;&sup2;</span>
+      </div>
+      <div class="tile tile-small">
+        <span class="tile-label">Ambient temperature</span>
+        <span class="tile-value" id="wx-tamb">&mdash;</span>
+        <span class="tile-unit">&deg;C</span>
+      </div>
+      <div class="tile tile-small">
+        <span class="tile-label">Wind speed</span>
+        <span class="tile-value" id="wx-wind">&mdash;</span>
+        <span class="tile-unit">m&#8239;s&#8315;&sup1;</span>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footnote">
+    <p id="provenance-note"></p>
+  </footer>
+
+</main>
+
+<div id="tooltip" class="tooltip" role="tooltip"></div>
+
+<script src="rs/sidebar.js"></script>
+<script src="rs/rs-static-api.js"></script>
+<script type="module" src="static/app.js"></script>
+</body>
+</html>

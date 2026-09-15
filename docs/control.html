@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Raseen · Gradient Control</title>
+<link rel="stylesheet" href="rs/shell.css">
+<link rel="stylesheet" href="rs/vendor/maplibre-gl.css">
+<link rel="stylesheet" href="rs/control.css">
+<script src="rs/vendor/maplibre-gl.js"></script>
+<script>window.RASEEN = { data: "data", static: true };</script>
+</head>
+<body class="rs-page">
+<header class="rs-topbar">
+  <h1>Gradient Control</h1>
+  <span class="rs-sub">A cloud crosses NAJM-3000, block by block · simulated</span>
+  <div class="rs-right"><span class="rs-clock" id="rs-clock">t —</span></div>
+</header>
+<div id="rs-banner" class="rs-banner" hidden></div>
+<main id="rs-root" class="rs-body"><p class="rs-loading">Preparing the plant…</p></main>
+<div id="rs-tooltip" class="rs-tooltip"></div>
+<script src="rs/sidebar.js"></script>
+<script type="module" src="rs/control.js"></script>
+</body>
+</html>

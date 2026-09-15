@@ -16,7 +16,7 @@ from pathlib import Path
 
 from raseen import PLANT_MW
 
-SITE_PATH = Path(__file__).resolve().parents[1] / "static" / "data" / "site.json"
+SITE_PATH = Path(__file__).resolve().parents[1] / "web" / "data" / "site.json"
 
 #: (dlat, dlon) in degrees applied in representative mode.
 REPRESENTATIVE_OFFSET = (0.85, -1.60)

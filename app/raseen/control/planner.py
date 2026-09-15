@@ -1,0 +1,108 @@
+"""Trajectory planner: the declared POI line P*(t) and the reserve slice.
+
+Port of the aggregate-target logic in ``raseen_bgc_sim.py`` (v4 §7.2) for a plant of
+any size. The line descends at the declared gradient g so that it reaches the
+transit minimum exactly when the available power does, holds, and re-ascends at g_up.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+
+@dataclass
+class Plan:
+    P_star: list[float]
+    t_desc_start: float
+    t_min: float
+    k_min: int
+    t_rise: float
+    A_min: float
+    D: float
+    L: float
+    g: float
+    g_up: float
+    delta: float
+    horizon: float
+    lead_shortfall: float
+    flat: bool
+
+
+def plan_trajectory(
+    times: list[float],
+    A_tot: list[float],
+    plant_mw: float,
+    *,
+    g: float,
+    g_up: float | None = None,
+    flat: bool = False,
+    confidence: float = 0.7,
+    kappa: float = 0.25,
+    reserve_override: float | None = None,
+    horizon: float = 5.0,
+) -> Plan:
+    g_up = g if g_up is None else g_up
+    n = len(times)
+    k_min = min(range(n), key=lambda k: (A_tot[k], k))
+    A_min, t_min = A_tot[k_min], times[k_min]
+    D = plant_mw - A_min
+    P_star: list[float] = []
+    if flat:
+        shaded = [k for k in range(n) if A_tot[k] < plant_mw - 1e-6]
+        k_first, k_last = (shaded[0], shaded[-1]) if shaded else (k_min, k_min)
+        t_first, t_last = times[k_first], times[k_last]
+        L_pre = D / g
+        t_desc_start = t_first - L_pre
+        t_rise = t_last
+        for k, tt in enumerate(times):
+            if tt < t_desc_start:
+                p = plant_mw
+            elif tt < t_first:
+                p = plant_mw - g * (tt - t_desc_start)
+            elif tt <= t_last:
+                p = A_min
+            else:
+                p = min(plant_mw, A_min + g_up * (tt - t_last))
+            P_star.append(min(p, A_tot[k]))
+    else:
+        L_down = D / g
+        t_desc_start = t_min - L_down
+        k_rise = next((k for k in range(k_min, n) if A_tot[k] > A_min + 1e-6), n - 1)
+        t_rise = times[k_rise]
+        for k, tt in enumerate(times):
+            if tt < t_desc_start:
+                p = plant_mw
+            elif tt <= t_min:
+                p = plant_mw - g * (tt - t_desc_start)
+            elif tt < t_rise:
+                p = A_min
+            else:
+                p = min(plant_mw, A_min + g_up * (tt - t_rise))
+            P_star.append(min(p, A_tot[k]))
+    first_shaded = next((times[k] for k in range(n) if A_tot[k] < plant_mw - 1e-6), 0.0)
+    L = max(0.0, first_shaded - t_desc_start)
+    lead_shortfall = max(0.0, times[0] - t_desc_start)
+    if reserve_override is not None:
+        delta = float(reserve_override)
+    else:
+        delta = min(D * (1.0 - confidence) * kappa, 0.10 * plant_mw)
+    return Plan(
+        P_star=P_star, t_desc_start=t_desc_start, t_min=t_min, k_min=k_min, t_rise=t_rise,
+        A_min=A_min, D=D, L=L, g=g, g_up=g_up, delta=delta, horizon=horizon,
+        lead_shortfall=lead_shortfall, flat=flat,
+    )
+
+
+def apply_release(
+    P_star: list[float], A_tot: list[float], times: list[float], k_detect: int, g_up: float
+) -> list[float]:
+    """From step ``k_detect`` the target rises toward available power at ``g_up``.
+
+    The false-alarm release: the declared line is abandoned and the plant returns to
+    full output within its up-gradient.
+    """
+    out = list(P_star)
+    for k in range(max(1, k_detect), len(out)):
+        dt = times[k] - times[k - 1]
+        out[k] = min(A_tot[k], out[k - 1] + g_up * dt)
+    return out

@@ -32,3 +32,15 @@ def test_index_shows_a_simulated_source_before_any_data_loads(client):
 
 def test_static_assets_are_served(client):
     assert client.get("/static/styles.css").status_code == 200
+
+
+def test_shell_has_sidebar_tabs_and_page_root(client):
+    body = client.get("/").text
+    for route in ("#/kingdom", "#/plant/najm-3000", "#/control", "#/declarations", "#/about"):
+        assert f'href="{route}"' in body
+    assert 'id="page-root"' in body
+    assert 'id="banner"' in body
+    for asset in ("app.js", "store.js", "api.js", "format.js", "colour.js",
+                  "pages/about.js", "pages/plant.js", "pages/kingdom.js",
+                  "pages/control.js", "pages/declarations.js"):
+        assert client.get(f"/static/{asset}").status_code == 200, asset

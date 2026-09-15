@@ -778,7 +778,8 @@ def test_thirty_blocks_partition_the_plant(site):
     assert len(blocks) == 30
     assert [b.id for b in blocks] == [f"B{i:02d}" for i in range(1, 31)]
     all_mvps = sorted(n for b in blocks for n in b.mvps)
-    assert all_mvps == list(range(1, 364))
+    # CAD station numbers are 1..365 minus {224, 307}: compare with the site, not a range.
+    assert all_mvps == sorted(p["n"] for p in site.mvps)
     assert abs(sum(b.capacity_mw for b in blocks) - 3000.0) < 1e-6
     assert all(5 <= len(b.mvps) <= 20 for b in blocks)
     assert all(50.0 < b.capacity_mw < 170.0 for b in blocks)

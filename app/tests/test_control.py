@@ -1,0 +1,152 @@
+from __future__ import annotations
+
+import pytest
+
+from raseen.control.allocate import allocate_bgc, allocate_uniform, reactive_shares
+from raseen.control.fixture import abstract_arrays, abstract_case
+from raseen.control.planner import apply_release, plan_trajectory
+from raseen.control.simulate import simulate_scheme
+
+# Reference numbers printed by raseen_bgc_sim.py (v4 document, design case D1).
+V4_D1 = {  # g: (spill_total, lead, firm_at_contact_bgc)
+    60.0: (605.0, 19.8, 287.5),
+    90.0: (305.0, 9.8, 218.9),
+    120.0: (155.0, 4.8, 188.1),
+    150.0: (65.0, 1.8, 154.3),
+}
+
+
+@pytest.mark.parametrize("g", sorted(V4_D1))
+def test_abstract_d1_reproduces_the_v4_table(g):
+    spill_ref, lead_ref, firm_ref = V4_D1[g]
+    for scheme in ("uni", "bgc"):
+        plan, result, m = abstract_case(scheme, g)
+        assert abs(m["spill_mwh"] - spill_ref) / spill_ref < 0.05, (scheme, m["spill_mwh"])
+        assert abs(m["lead_min"] - lead_ref) < 0.5
+        assert abs(m["max_grad_mw_min"] - g) < 1.0
+        assert abs(m["max_drop10_mw"] - 10 * g) < 15.0
+    _, _, mb = abstract_case("bgc", g)
+    assert abs(mb["firm_at_contact_mw"] - firm_ref) / firm_ref < 0.10
+
+
+def test_analytic_spill_relation_holds():
+    # E_down = (r - g) * tau * (D / g) / 2 with r = D / tau, D = 1800, tau = 10.
+    for g in (60.0, 90.0, 120.0, 150.0):
+        _, _, m = abstract_case("bgc", g)
+        analytic = (180.0 - g) * 10.0 * (1800.0 / g) / 2 / 60.0
+        assert abs(m["spill_down_mwh"] - analytic) / analytic < 0.05
+
+
+def test_plant_level_and_bgc_spill_the_same_for_a_perfect_front():
+    _, _, mu = abstract_case("uni", 90.0, ppc_delay_steps=0)
+    _, _, mb = abstract_case("bgc", 90.0, ppc_delay_steps=0)
+    assert abs(mu["spill_mwh"] - mb["spill_mwh"]) / mb["spill_mwh"] < 0.01
+
+
+def test_export_never_exceeds_available_and_tracks_the_declared_line():
+    plan, result, m = abstract_case("bgc", 90.0)
+    arrays = abstract_arrays()
+    for k, p in enumerate(result.P):
+        for i, pi in enumerate(p):
+            assert pi <= arrays["A"][k][i] + 1e-6
+            assert pi >= -1e-6
+        if plan.P_star[k] <= arrays["A_tot"][k] - 1e-6:
+            assert abs(sum(p) - plan.P_star[k]) < 1e-2
+    assert m["tracking_error_pct"] < 0.5
+
+
+def test_bgc_leaves_shaded_blocks_alone_and_does_not_step():
+    _, _, mb = abstract_case("bgc", 90.0)
+    _, _, mu = abstract_case("uni", 90.0)
+    _, _, m0 = abstract_case("base", 90.0)
+    # the proportional rule curtails shaded blocks
+    assert mu["shaded_curtailment_mwh"] > 5.0
+    assert mb["shaded_curtailment_mwh"] < 0.05 * mu["shaded_curtailment_mwh"] + 0.5
+    assert m0["shaded_curtailment_mwh"] == 0.0
+    assert mb["blocks_stepped"] == 0
+
+
+def test_slew_limit_is_respected_for_bgc():
+    _, result, _ = abstract_case("bgc", 90.0)
+    lim = 100.0 * 10.0 / 100.0 * (1 / 6) + 1e-6   # 10 %/min of a 100 MW block per 10 s step
+    arrays = abstract_arrays()
+    for k in range(1, len(result.P)):
+        for i in range(30):
+            drop = result.P[k - 1][i] - result.P[k][i]
+            # a block may fall faster only because the sun did
+            # (available dropped below the set-point)
+            if drop > lim + 1.0:
+                a_now = arrays["A"][k][i]
+                assert result.P[k][i] <= a_now + 1e-6 and a_now < result.P[k - 1][i]
+
+
+def test_flat_mode_holds_the_transit_minimum_for_a_thin_band():
+    plan, result, m = abstract_case("bgc", 60.0, flat=True, band_cols=2)
+    assert abs(m["spill_mwh"] - 46.0) / 46.0 < 0.10
+    assert m["max_grad_mw_min"] <= 60.0 + 1.0
+    mid = min(range(len(plan.P_star)), key=lambda k: plan.P_star[k])
+    assert abs(result.POI[mid] - plan.A_min) < 5.0
+
+
+def test_reserve_slice_sits_on_far_blocks_and_release_frees_near_blocks_first():
+    A = [100.0, 100.0, 100.0]
+    floor = [40.0, 40.0, 40.0]
+    eta = [1.0, 5.0, 10.0]
+    cap = [100.0, 100.0, 100.0]
+    slew = [100.0, 100.0, 100.0]
+    kw = dict(delta=0.0, horizon=5.0, sigma=3.0, slew_lim=slew, prev=A)
+    p = allocate_bgc(A, floor, eta, cap, 250.0, **kw)
+    assert abs(sum(p) - 250.0) < 1e-6
+    assert p[0] < p[1] < p[2]                     # descend-first: nearest block lowest
+    r = allocate_bgc(A, floor, eta, cap, 250.0, release=True, **kw)
+    assert abs(sum(r) - 250.0) < 1e-6
+    assert r[0] > r[2]                            # release mode: far block carries what remains
+    q = allocate_bgc(A, floor, eta, cap, 280.0, **{**kw, "delta": 30.0})
+    # reserve slice on the far block only
+    assert q[2] < 100.0 - 1e-6 and abs(q[0] - 100.0) < 1e-6
+
+
+def test_uniform_and_reactive_helpers():
+    assert allocate_uniform([100.0, 50.0], 0.5) == [50.0, 25.0]
+    assert allocate_uniform([100.0], 2.0) == [100.0]
+    shares = reactive_shares([0.0, 100.0], [110.0, 110.0])
+    assert abs(sum(shares) - 1.0) < 1e-9 and shares[0] > shares[1]
+
+
+def test_planner_lead_and_release():
+    arrays = abstract_arrays()
+    plan = plan_trajectory(arrays["times"], arrays["A_tot"], 3000.0, g=90.0, confidence=0.7)
+    assert abs(plan.D - 1800.0) < 1.0 and abs(plan.L - 10.0) < 0.3
+    assert abs(plan.delta - 135.0) < 1e-6           # 1800 × (1 − 0.7) × 0.25
+    assert plan.lead_shortfall == 0.0
+    tight = plan_trajectory(arrays["times"], arrays["A_tot"], 3000.0, g=30.0, confidence=0.7)
+    assert tight.lead_shortfall > 0.0
+    k = 100
+    released = apply_release(plan.P_star, arrays["A_tot"], arrays["times"], k, plan.g_up)
+    assert released[:k] == plan.P_star[:k]
+    assert all(released[j] <= arrays["A_tot"][j] + 1e-9 for j in range(k, len(released)))
+    assert released[k + 60] >= released[k]
+
+
+def test_bgc_look_ahead_reads_the_nowcast_and_has_no_foresight_of_the_true_field():
+    arrays = abstract_arrays()
+    times, A = arrays["times"], arrays["A"]
+    plan = plan_trajectory(times, arrays["A_tot"], 3000.0, g=90.0, reserve_override=150.0)
+    kw = dict(
+        times=times, A_tot=arrays["A_tot"], floors=arrays["floors"], etas=arrays["etas"],
+        caps=arrays["caps"], P_star=plan.P_star, sigma=3.0, delta=plan.delta, horizon=5.0,
+        slew_pct_min=10.0, ppc_delay_steps=0,
+    )
+    ref = simulate_scheme("bgc", A=A, **kw)
+    # the default nowcast is the true field itself (the fixture's operator sees the front exactly)
+    assert simulate_scheme("bgc", A=A, A_nowcast=A, **kw).P == ref.P
+    # the sun changes after k_cut while the operator's nowcast does not: nothing the controller
+    # did up to k_cut may depend on that future, only on the field it could know
+    k_cut = 300
+    A_alt = [list(row) for row in A]
+    for k in range(k_cut + 1, len(A_alt)):
+        A_alt[k] = [0.5 * a for a in A_alt[k]]
+    alt = simulate_scheme("bgc", A=A_alt, A_nowcast=A, **kw)
+    assert alt.P[: k_cut + 1] == ref.P[: k_cut + 1]
+    for k in range(k_cut + 1, len(times)):
+        assert all(p <= a + 1e-6 for p, a in zip(alt.P[k], A_alt[k], strict=True))

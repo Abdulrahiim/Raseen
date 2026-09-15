@@ -15,7 +15,7 @@ DISCLAIMER = (
 )
 
 #: The reference plant inside the twin.
-PLANT_NAME = "NAJM-3000"
+PLANT_NAME = "Humaij"
 PLANT_MW = 3000.0
 #: Design basis says 365 MV power stations; the CAD/KML geometry carries 363 (GAP-019 unresolved).
 MVPS_COUNT_DESIGN = 365

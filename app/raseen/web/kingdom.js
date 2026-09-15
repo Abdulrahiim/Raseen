@@ -1,4 +1,4 @@
-/* Kingdom page: the Saudi renewable fleet and the transmission backbone. Click NAJM-3000 to
+/* Kingdom page: the Saudi renewable fleet and the transmission backbone. Click Humaij to
    open its Plant dashboard; every figure is indicative and labelled so. */
 import { fmt, fmtGW } from "/rs/format.js";
 import { TECH_COLOUR, STATUS_COLOUR, TECH_LABEL, STATUS_LABEL } from "/rs/colour.js";
@@ -18,7 +18,7 @@ function showTip(event, head, rows) {
 const hideTip = () => $("rs-tooltip").classList.remove("on");
 
 function openPlant(id) {
-  if (id === "najm-3000") { location.href = "/plant"; return; }
+  if (id === "najm-3000") { location.href = window.RASEEN?.static ? "plant.html" : "/plant"; return; }
   const p = state.plants.find((x) => x.id === id);
   if (p) state.view?.flyTo?.(p);
 }

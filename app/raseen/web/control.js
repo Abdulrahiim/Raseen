@@ -1,4 +1,4 @@
-/* Gradient Control page: a cloud crosses NAJM-3000, block by block, and Raseen holds the
+/* Gradient Control page: a cloud crosses Humaij, block by block, and Raseen holds the
    plant's export to a declared ramp. Self-contained; reuses the satellite map, the charts and
    the scenario engine (/api/rs/scenario). Everything shown is simulated and labelled so. */
 import { SiteMap } from "/rs/site-map.js";

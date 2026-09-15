@@ -86,7 +86,7 @@ def register_raseen_api(app: FastAPI) -> None:
             **envelope(),
             "product": "Raseen",
             "product_ar": "رَصين",
-            "plant": "NAJM-3000",
+            "plant": "Humaij",
             "plant_mw": 3000.0,
             "site_mode": site.mode,
             "block_count": len(get_blocks(site)),
@@ -98,7 +98,7 @@ def register_raseen_api(app: FastAPI) -> None:
         blocks = get_blocks(site)
         return {
             **envelope(),
-            "plant": "NAJM-3000",
+            "plant": "Humaij",
             "plant_mw": 3000.0,
             "note": site.note,
             "mode": site.mode,
